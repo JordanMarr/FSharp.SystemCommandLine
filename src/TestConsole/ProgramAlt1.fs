@@ -2,14 +2,13 @@
 
 open System.IO
 open System.CommandLine
-open System.CommandLine.Binding
-open FSharp.SystemCommandLine
+
+type Opt<'T> = System.CommandLine.Option<'T>
 
 let handler (i: int) (b: bool) (f: FileInfo) =
     printfn $"The value for --int-option is: %i{i}"
     printfn $"The value for --bool-option is: %b{b}"
     printfn $"The value for --file-option is: %A{f}"     
-
      
 //[<EntryPoint>]
 let main (argv: string[]) = 

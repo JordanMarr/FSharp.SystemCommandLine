@@ -1,7 +1,36 @@
-﻿namespace FSharp.SystemCommandLine
+﻿[<AutoOpen>]
+module FSharp.SystemCommandLine.Types
 
-/// An alias for `System.CommandLine.Option`.
-type Opt<'T> = System.CommandLine.Option<'T>
+open System
+open System.CommandLine
 
-/// An alias for `System.CommandLine.Argument`.
-type Arg<'T> = System.CommandLine.Argument<'T>
+/// A helper static class that creates `Option` and `Argument` `IValueDescriptor<'T>` objects.
+type Input<'T> = 
+
+    static member Option<'T>(name: string, getDefaultValue: (unit -> 'T), ?description: string) =
+        Option<'T>(
+            name,
+            getDefaultValue = Func<'T>(getDefaultValue),
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    static member Option<'T>(name: string, ?description: string) =
+        Option<'T>(
+            name,
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    static member Option<'T>(aliases: string[], getDefaultValue: (unit -> 'T), ?description: string) =
+        Option<'T>(
+            aliases,
+            getDefaultValue = Func<'T>(getDefaultValue),
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    static member Option<'T>(aliases: string[], ?description: string) =
+        Option<'T>(
+            aliases,
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    // TODO: Add Option overloads 5 & 6 with ParseArgument<'T>

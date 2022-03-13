@@ -1,14 +1,12 @@
 ﻿module ProgramSubCommand
 
-open System.IO
-open System.CommandLine.Binding
 open FSharp.SystemCommandLine
 
 let listCmd = 
     let handler (path: string) = 
         printfn $"The path is {path}."
         
-    let oPath = Opt("--path", getDefaultValue = (fun () -> "/"), description = "The path to list") :> IValueDescriptor<_>
+    let oPath = Input.Option("--path", getDefaultValue = (fun () -> "/"), description = "The path to list")
 
     command "list" {
         description "lists contents of a folder"
