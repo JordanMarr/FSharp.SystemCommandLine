@@ -33,4 +33,24 @@ type Input<'T> =
             description = (description |> Option.defaultValue null)
         ) :> Binding.IValueDescriptor<'T>
 
-    // TODO: Add Option overloads 5 & 6 with ParseArgument<'T>
+    // TODO: Add remaining Option overloads
+
+    static member Argument<'T>(getDefaultValue: (unit -> 'T)) = 
+        Argument<'T>(
+            getDefaultValue = Func<'T>(getDefaultValue)
+        ) :> Binding.IValueDescriptor<'T>
+
+    static member Argument<'T>(name: string, ?description: string) = 
+        Argument<'T>(
+            name, 
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    static member Argument<'T>(name: string, getDefaultValue: (unit -> 'T), ?description: string) = 
+        Argument<'T>(
+            name,
+            getDefaultValue = Func<'T>(getDefaultValue),
+            description = (description |> Option.defaultValue null)
+        ) :> Binding.IValueDescriptor<'T>
+
+    // TODO: Add remaining Argument overloads
