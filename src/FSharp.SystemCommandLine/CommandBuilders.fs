@@ -10,35 +10,35 @@ type private IVD<'T> = IValueDescriptor<'T>
 let private def<'T> = Unchecked.defaultof<'T>
 exception MaxArgumentsExceeded
 
-type CommandSpec<'Args, 'Result> = 
+type CommandSpec<'Inputs, 'Output> = 
     {
         Description: string
-        Options: IValueDescriptor list
-        Handler: 'Args -> 'Result
+        Inputs: IValueDescriptor list
+        Handler: 'Inputs -> 'Output
         SubCommands: System.CommandLine.Command list
     }
     static member Default = 
         { 
             Description = "My Command"
-            Options = []
-            Handler = def<unit -> 'Result> // Support unit -> 'Result handler by default
+            Inputs = []
+            Handler = def<unit -> 'Output> // Support unit -> 'Output handler by default
             SubCommands = []
         }
 
 /// Contains shared operations for building a `RootCommand` or `Command`.
-type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>() = 
+type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
 
     let newHandler handler spec =
         {
             Description = spec.Description
-            Options = spec.Options
+            Inputs = spec.Inputs
             Handler = handler
             SubCommands = spec.SubCommands
         }
     
     member this.Yield _ =
         // Set default of `unit * obj * obj` so that CE fails if no `options` are set
-        CommandSpec<unit * obj * obj *obj, 'Result>.Default 
+        CommandSpec<unit * obj * obj *obj, 'Output>.Default 
 
     // Prevents errors while typing join statement if rest of query is not filled in yet.
     member this.Zero _ = 
@@ -49,46 +49,46 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         { spec with Description = description }
     
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Result>, a: IVD<'A>) =
-        { newHandler def<'A -> 'Result> spec with Options = [ a ] }
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, a: IVD<'A>) =
+        { newHandler def<'A -> 'Output> spec with Inputs = [ a ] }
     
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Result>, (a: IVD<'A>, b: IVD<'B>)) =
-        { newHandler def<'A * 'B -> 'Result> spec with Options = [ a; b ] }
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>)) =
+        { newHandler def<'A * 'B -> 'Output> spec with Inputs = [ a; b ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Result>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>)) =
-        { newHandler def<'A * 'B * 'C -> 'Result> spec with Options = [ a; b; c ] }
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>)) =
+        { newHandler def<'A * 'B * 'C -> 'Output> spec with Inputs = [ a; b; c ] }
 
     [<CustomOperation("setHandler")>]
-    member this.SetHandler (spec: CommandSpec<'Args, 'Return>, handler: 'Args -> 'Return) =
+    member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
         newHandler handler spec
 
     [<CustomOperation("setCommand")>]
-    member this.SetHandler (spec: CommandSpec<'Args, 'Return>, subCommand: System.CommandLine.Command) =
+    member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
                
 
 /// Builds a `System.CommandLine.RootCommand`.
-type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>() = 
-    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>()
+type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
     let initRootCmd (spec: CommandSpec<'T, 'U>) = 
         let cmd = RootCommand()
         cmd.Description <- spec.Description
-        spec.Options |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
-        spec.Options |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
+        spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
+        spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
         spec.SubCommands |> List.iter cmd.AddCommand
         
         cmd
 
     /// Executes a command that returns unit.
-    member this.Run (spec: CommandSpec<'Args, unit>) =         
+    member this.Run (spec: CommandSpec<'Inputs, unit>) =         
         let cmd = initRootCmd spec
-        let opts = spec.Options |> List.toArray
-        let handler (args: obj) = spec.Handler (args :?> 'Args)
+        let opts = spec.Inputs |> List.toArray
+        let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
-        match spec.Options.Length with
+        match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
         | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
         | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
@@ -112,15 +112,15 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         cmd.Invoke args
 
     /// Executes a command that returns a Task.
-    member this.Run (spec: CommandSpec<'Args, Task<unit>>) =         
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
         let cmd = initRootCmd spec
-        let opts = spec.Options |> List.toArray
+        let opts = spec.Inputs |> List.toArray
         let handler (args: obj) = 
             task {
-                do! spec.Handler (args :?> 'Args)
+                do! spec.Handler (args :?> 'Inputs)
             }
 
-        match spec.Options.Length with
+        match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))
         | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), opts)
         | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), opts)
@@ -145,24 +145,24 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     
 
 /// Builds a `System.CommandLine.Command`.
-type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>(name: string) = 
-    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>()
+type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name: string) = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
     let initRootCmd (spec: CommandSpec<'T, 'U>) = 
         let cmd = Command(name)
         cmd.Description <- spec.Description
-        spec.Options |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
-        spec.Options |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
+        spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
+        spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd
 
     /// Executes a command that returns unit.
-    member this.Run (spec: CommandSpec<'Args, unit>) =         
+    member this.Run (spec: CommandSpec<'Inputs, unit>) =         
        let cmd = initRootCmd spec
-       let opts = spec.Options |> List.toArray
-       let handler (args: obj) = spec.Handler (args :?> 'Args)
+       let opts = spec.Inputs |> List.toArray
+       let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
-       match spec.Options.Length with
+       match spec.Inputs.Length with
        | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
        | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
        | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
@@ -184,15 +184,15 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
        cmd
 
     /// Executes a command that returns a Task.
-    member this.Run (spec: CommandSpec<'Args, Task<unit>>) =         
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
        let cmd = initRootCmd spec
-       let opts = spec.Options |> List.toArray
+       let opts = spec.Inputs |> List.toArray
        let handler (args: obj) = 
            task {
-               do! spec.Handler (args :?> 'Args)
+               do! spec.Handler (args :?> 'Inputs)
            }
 
-       match spec.Options.Length with
+       match spec.Inputs.Length with
        | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))
        | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), opts)
        | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), opts)
@@ -215,9 +215,9 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
-let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result> = 
-    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>()
+let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> = 
+    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
 
 /// Builds a `System.CommandLine.Command` using computation expression syntax.
-let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result> (name: string) = 
-    CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Result>(name)
+let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> (name: string) = 
+    CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name)
