@@ -13,7 +13,7 @@ let app (i: int, b: bool, f: FileInfo) =
 let main argv = 
     let intArgument = Input.Argument("integer", (fun () -> 53), description = "An integer argument")
     let boolOption = Input.Option<bool>("--bool-option", "An option whose argument is parsed as a bool")
-    let fileOption = Input.Option<FileInfo>("--file-option", "An option whose argument is parsed as a FileInfo") :> IValueDescriptor<_>
+    let fileOption = Input.Option<FileInfo>("--file-option", "An option whose argument is parsed as a FileInfo")
 
     rootCommand {
         description "System.CommandLine Sample App"
