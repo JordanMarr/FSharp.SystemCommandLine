@@ -59,6 +59,58 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     [<CustomOperation("inputs")>]
     member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>)) =
         { newHandler def<'A * 'B * 'C -> 'Output> spec with Inputs = [ a; b; c ] }
+        
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>)) =
+        { newHandler def<'A * 'B * 'C * 'D -> 'Output> spec with Inputs = [ a; b; c; d ] }
+            
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E -> 'Output> spec with Inputs = [ a; b; c; d; e ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F -> 'Output> spec with Inputs = [ a; b; c; d; e; f ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>, o: IVD<'O>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o ] }
+
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>, o: IVD<'O>, p: IVD<'P>)) =
+        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O * 'P -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p ] }
 
     [<CustomOperation("setHandler")>]
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
