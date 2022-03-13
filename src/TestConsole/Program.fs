@@ -1,7 +1,4 @@
-﻿module Program
-
-open System.IO
-open System.CommandLine.Binding
+﻿open System.IO
 open FSharp.SystemCommandLine
 
 let app (i: int, b: bool, f: FileInfo) =
