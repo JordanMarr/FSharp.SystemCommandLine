@@ -1,4 +1,5 @@
-﻿module FSharp.SystemCommandLine.CommandBuilders
+﻿[<AutoOpen>]
+module FSharp.SystemCommandLine.CommandBuilders
 
 open System
 open System.Threading.Tasks
@@ -85,11 +86,23 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         let handler (args: obj) = spec.Handler (args :?> 'Args)
 
         match spec.Options.Length with
-        | 0 -> cmd.SetHandler(Action(fun () -> handler ()))
-        | 1 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
-        | 2 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
-        | 3 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), opts)
-        | 4 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), opts)
+        | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
+        | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
+        | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
+        | 03 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), opts)
+        | 04 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), opts)
+        | 05 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E>(fun a b c d e -> handler (a, b, c, d, e)), opts)
+        | 06 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F>(fun a b c d e f -> handler (a, b, c, d, e, f)), opts)
+        | 07 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), opts)
+        | 08 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), opts)
+        | 09 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I>(fun a b c d e f g h i -> handler (a, b, c, d, e, f, g, h, i)), opts)
+        | 10 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J>(fun a b c d e f g h i j -> handler (a, b, c, d, e, f, g, h, i, j)), opts)
+        | 11 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K>(fun a b c d e f g h i j k -> handler (a, b, c, d, e, f, g, h, i, j, k)), opts)
+        | 12 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L>(fun a b c d e f g h i j k l -> handler (a, b, c, d, e, f, g, h, i, j, k, l)), opts)
+        | 13 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M>(fun a b c d e f g h i j k l m -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), opts)
+        | 14 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), opts)
+        | 15 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), opts)
+        | 16 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), opts)
         | _ -> raise MaxArgumentsExceeded
         
         let args = Environment.GetCommandLineArgs()
@@ -105,10 +118,23 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             }
 
         match spec.Options.Length with
-        | 1 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), opts)
-        | 2 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), opts)
-        | 3 -> cmd.SetHandler(Func<'A, 'B, 'C, Task>(fun a b c -> handler (a, b, c)), opts)
-        | 4 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, Task>(fun a b c d -> handler (a, b, c, d)), opts)
+        | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))
+        | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), opts)
+        | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), opts)
+        | 03 -> cmd.SetHandler(Func<'A, 'B, 'C, Task>(fun a b c -> handler (a, b, c)), opts)
+        | 04 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, Task>(fun a b c d -> handler (a, b, c, d)), opts)
+        | 05 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, Task>(fun a b c d e -> handler (a, b, c, d, e)), opts)
+        | 06 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, Task>(fun a b c d e f -> handler (a, b, c, d, e, f)), opts)
+        | 07 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, Task>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), opts)
+        | 08 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, Task>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), opts)
+        | 09 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, Task>(fun a b c d e f g h i -> handler (a, b, c, d, e, f, g, h, i)), opts)
+        | 10 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, Task>(fun a b c d e f g h i j -> handler (a, b, c, d, e, f, g, h, i, j)), opts)
+        | 11 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, Task>(fun a b c d e f g h i j k -> handler (a, b, c, d, e, f, g, h, i, j, k)), opts)
+        | 12 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, Task>(fun a b c d e f g h i j k l -> handler (a, b, c, d, e, f, g, h, i, j, k, l)), opts)
+        | 13 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, Task>(fun a b c d e f g h i j k l m -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), opts)
+        | 14 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, Task>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), opts)
+        | 15 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, Task>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), opts)
+        | 16 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, Task>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), opts)
         | _ -> raise MaxArgumentsExceeded
         
         let args = Environment.GetCommandLineArgs()
@@ -133,11 +159,23 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
        let handler (args: obj) = spec.Handler (args :?> 'Args)
 
        match spec.Options.Length with
-       | 0 -> cmd.SetHandler(Action(fun () -> handler ()))
-       | 1 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
-       | 2 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
-       | 3 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), opts)
-       | 4 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), opts)
+       | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
+       | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), opts)
+       | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), opts)
+       | 03 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), opts)
+       | 04 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), opts)
+       | 05 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E>(fun a b c d e -> handler (a, b, c, d, e)), opts)
+       | 06 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F>(fun a b c d e f -> handler (a, b, c, d, e, f)), opts)
+       | 07 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), opts)
+       | 08 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), opts)
+       | 09 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I>(fun a b c d e f g h i -> handler (a, b, c, d, e, f, g, h, i)), opts)
+       | 10 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J>(fun a b c d e f g h i j -> handler (a, b, c, d, e, f, g, h, i, j)), opts)
+       | 11 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K>(fun a b c d e f g h i j k -> handler (a, b, c, d, e, f, g, h, i, j, k)), opts)
+       | 12 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L>(fun a b c d e f g h i j k l -> handler (a, b, c, d, e, f, g, h, i, j, k, l)), opts)
+       | 13 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M>(fun a b c d e f g h i j k l m -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), opts)
+       | 14 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), opts)
+       | 15 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), opts)
+       | 16 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), opts)
        | _ -> raise MaxArgumentsExceeded
        cmd
 
@@ -151,6 +189,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
            }
 
        match spec.Options.Length with
+       | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))
        | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), opts)
        | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), opts)
        | 03 -> cmd.SetHandler(Func<'A, 'B, 'C, Task>(fun a b c -> handler (a, b, c)), opts)
