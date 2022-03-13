@@ -17,4 +17,8 @@
     <ProjectReference Include="..\FSharp.SystemCommandLine\FSharp.SystemCommandLine.fsproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
 </Project>

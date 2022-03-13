@@ -6,13 +6,14 @@ open System.Threading.Tasks
 open System.CommandLine
 open System.CommandLine.Binding
 
+type private IVD<'T> = IValueDescriptor<'T>
 let private def<'T> = Unchecked.defaultof<'T>
 exception MaxArgumentsExceeded
 
 type CommandSpec<'Args, 'Result> = 
     {
         Description: string
-        Options: System.CommandLine.Option list
+        Options: IValueDescriptor list
         Handler: 'Args -> 'Result
         SubCommands: System.CommandLine.Command list
     }
@@ -47,16 +48,16 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.Description (spec: CommandSpec<'T, 'U>, description) =
         { spec with Description = description }
     
-    [<CustomOperation("options")>]
-    member this.Options (spec: CommandSpec<'T, 'Result>, a: Opt<'A>) =
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Result>, a: IVD<'A>) =
         { newHandler def<'A -> 'Result> spec with Options = [ a ] }
     
-    [<CustomOperation("options")>]
-    member this.Options (spec: CommandSpec<'T, 'Result>, (a: Opt<'A>, b: Opt<'B>)) =
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Result>, (a: IVD<'A>, b: IVD<'B>)) =
         { newHandler def<'A * 'B -> 'Result> spec with Options = [ a; b ] }
 
-    [<CustomOperation("options")>]
-    member this.Options (spec: CommandSpec<'T, 'Result>, (a: Opt<'A>, b: Opt<'B>, c: Opt<'C>)) =
+    [<CustomOperation("inputs")>]
+    member this.Inputs (spec: CommandSpec<'T, 'Result>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>)) =
         { newHandler def<'A * 'B * 'C -> 'Result> spec with Options = [ a; b; c ] }
 
     [<CustomOperation("setHandler")>]
@@ -75,14 +76,16 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     let initRootCmd (spec: CommandSpec<'T, 'U>) = 
         let cmd = RootCommand()
         cmd.Description <- spec.Description
-        spec.Options |> List.iter cmd.AddOption
+        spec.Options |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
+        spec.Options |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
         spec.SubCommands |> List.iter cmd.AddCommand
+        
         cmd
 
     /// Executes a command that returns unit.
     member this.Run (spec: CommandSpec<'Args, unit>) =         
         let cmd = initRootCmd spec
-        let opts = spec.Options |> Seq.cast<IValueDescriptor> |> Seq.toArray
+        let opts = spec.Options |> List.toArray
         let handler (args: obj) = spec.Handler (args :?> 'Args)
 
         match spec.Options.Length with
@@ -111,7 +114,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     /// Executes a command that returns a Task.
     member this.Run (spec: CommandSpec<'Args, Task<unit>>) =         
         let cmd = initRootCmd spec
-        let opts = spec.Options |> Seq.cast<IValueDescriptor> |> Seq.toArray
+        let opts = spec.Options |> List.toArray
         let handler (args: obj) = 
             task {
                 do! spec.Handler (args :?> 'Args)
@@ -148,14 +151,15 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
     let initRootCmd (spec: CommandSpec<'T, 'U>) = 
         let cmd = Command(name)
         cmd.Description <- spec.Description
-        spec.Options |> List.iter cmd.AddOption
+        spec.Options |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
+        spec.Options |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd
 
     /// Executes a command that returns unit.
     member this.Run (spec: CommandSpec<'Args, unit>) =         
        let cmd = initRootCmd spec
-       let opts = spec.Options |> Seq.cast<IValueDescriptor> |> Seq.toArray
+       let opts = spec.Options |> List.toArray
        let handler (args: obj) = spec.Handler (args :?> 'Args)
 
        match spec.Options.Length with
@@ -182,7 +186,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
     /// Executes a command that returns a Task.
     member this.Run (spec: CommandSpec<'Args, Task<unit>>) =         
        let cmd = initRootCmd spec
-       let opts = spec.Options |> Seq.cast<IValueDescriptor> |> Seq.toArray
+       let opts = spec.Options |> List.toArray
        let handler (args: obj) = 
            task {
                do! spec.Handler (args :?> 'Args)
