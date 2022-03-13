@@ -8,7 +8,6 @@ open System.CommandLine.Binding
 
 type private IVD<'T> = IValueDescriptor<'T>
 let private def<'T> = Unchecked.defaultof<'T>
-exception MaxArgumentsExceeded
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -144,7 +143,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        | 14 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
        | 15 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
        | 16 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), inputs)
-       | _ -> raise MaxArgumentsExceeded
+       | _ -> raise (NotImplementedException())
        cmd
 
     /// Executes a command that returns a Task.
@@ -174,7 +173,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        | 14 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, Task>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
        | 15 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, Task>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
        | 16 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, Task>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), inputs)
-       | _ -> raise MaxArgumentsExceeded
+       | _ -> raise (NotImplementedException())
        cmd
             
             
