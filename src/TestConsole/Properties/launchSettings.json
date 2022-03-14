@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TestConsole": {
+      "commandName": "Project",
+      "commandLineArgs": "--file-option \"c:\\test.txt\""
+    }
+  }
+}

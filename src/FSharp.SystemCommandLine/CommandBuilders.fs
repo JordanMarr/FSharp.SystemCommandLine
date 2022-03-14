@@ -176,7 +176,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             
             
 /// Builds a `System.CommandLine.RootCommand`.
-type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
+type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
     let initRootCmd (spec: CommandSpec<'T, 'U>) = 
@@ -190,13 +190,11 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
         let cmd = this.CreateActionCommand(spec, initRootCmd)
-        let args = Environment.GetCommandLineArgs()
         cmd.Invoke args
 
     /// Executes a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
         let cmd = this.CreateFuncCommand(spec, initRootCmd)
-        let args = Environment.GetCommandLineArgs()
         cmd.InvokeAsync args
     
 
@@ -223,7 +221,8 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> = 
-    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+    let args = Environment.GetCommandLineArgs()
+    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args)
 
 /// Builds a `System.CommandLine.Command` using computation expression syntax.
 let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> (name: string) = 

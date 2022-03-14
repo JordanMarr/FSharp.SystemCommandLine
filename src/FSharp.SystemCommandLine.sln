@@ -9,6 +9,8 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TestConsole", "TestConsole\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E144B2FD-C858-4294-BBBE-BD388B23F25C}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{6C135A08-5956-48AA-83BE-A1443FBE1F54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,12 +25,17 @@ Global
 		{51051067-0D0E-4EE3-913A-C45D05FDD407}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{51051067-0D0E-4EE3-913A-C45D05FDD407}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{51051067-0D0E-4EE3-913A-C45D05FDD407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C135A08-5956-48AA-83BE-A1443FBE1F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C135A08-5956-48AA-83BE-A1443FBE1F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C135A08-5956-48AA-83BE-A1443FBE1F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C135A08-5956-48AA-83BE-A1443FBE1F54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{51051067-0D0E-4EE3-913A-C45D05FDD407} = {E144B2FD-C858-4294-BBBE-BD388B23F25C}
+		{6C135A08-5956-48AA-83BE-A1443FBE1F54} = {E144B2FD-C858-4294-BBBE-BD388B23F25C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {14A511E8-56FF-4D50-9F1C-494D09EB96DC}

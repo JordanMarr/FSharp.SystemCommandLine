@@ -20,16 +20,16 @@ type Input<'T> =
             description = (description |> Option.defaultValue null)
         ) :> Binding.IValueDescriptor<'T>
 
-    static member Option<'T>(aliases: string[], getDefaultValue: (unit -> 'T), ?description: string) =
+    static member Option<'T>(aliases: string seq, getDefaultValue: (unit -> 'T), ?description: string) =
         Option<'T>(
-            aliases,
+            aliases |> Seq.toArray,
             getDefaultValue = Func<'T>(getDefaultValue),
             description = (description |> Option.defaultValue null)
         ) :> Binding.IValueDescriptor<'T>
 
-    static member Option<'T>(aliases: string[], ?description: string) =
+    static member Option<'T>(aliases: string seq, ?description: string) =
         Option<'T>(
-            aliases,
+            aliases |> Seq.toArray,
             description = (description |> Option.defaultValue null)
         ) :> Binding.IValueDescriptor<'T>
 
