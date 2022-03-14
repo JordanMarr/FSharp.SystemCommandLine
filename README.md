@@ -37,12 +37,14 @@ let main argv =
 ```
 
 ```batch
-> .\TestConsole --word "hello"
-Result: hello
-> .\TestConsole --word "hello" -w "world"
-Result: hello,world
-> .\TestConsole --word "hello" -w "world" -s "***"
-Result: hello***world
+> TestConsole --word "hello"
+    Result: hello
+    
+> TestConsole --word "hello" -w "world"
+    Result: hello,world
+    
+> TestConsole --word "hello" -w "world" -s "***"
+    Result: hello***world
 ```
 
 Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
@@ -121,4 +123,18 @@ let main argv =
         setCommand listCmd
         setCommand deleteCmd
     }
+```
+
+```batch
+> TestConsole list "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
+    CommandBuilders.fs
+    FSharp.SystemCommandLine.fsproj
+    pack.cmd
+    Types.fs
+
+> TestConsole delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
+    Deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
+
+> TestConsole delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine" --recursive
+    Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 ```
