@@ -26,12 +26,12 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
     rootCommand {
         description "Appends words together"
-        inputs (oWords, oSeparator)
+        inputs (words, separator)
         setHandler app
     }        
 ```
@@ -64,12 +64,12 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
     
     rootCommand {
         description "Appends words together"
-        inputs (oWords, oSeparator)
+        inputs (words, separator)
         setHandler app
     }        
     |> Async.AwaitTask
@@ -88,7 +88,7 @@ let listCmd =
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument<DirectoryInfo>(fun () -> DirectoryInfo("c:\fake dir"))
+    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
 
     command "list" {
         description "lists contents of a directory"
@@ -105,7 +105,7 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument<DirectoryInfo>(fun () -> DirectoryInfo("c:\fake dir"))
+    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
     let recursive = Input.Option("--recursive", getDefaultValue = (fun () -> false))
 
     command "delete" {
