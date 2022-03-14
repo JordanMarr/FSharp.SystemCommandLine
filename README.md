@@ -1,4 +1,8 @@
-_The purpose of this library is to improve type safety when using the `System.CommandLine` package in F# by utilizing computation expression syntax._
+# FSharp.SystemCommandLine ![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)
+
+The purpose of this library is to improve type safety when using the `System.CommandLine` API in F# by utilizing computation expression syntax.
+
+
 
 ## Features
 
@@ -40,6 +44,10 @@ Result: hello,world
 > .\TestConsole --word "hello" -w "world" -s "***"
 Result: hello***world
 ```
+
+Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
+![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
+
 
 ### Simple Async App
 
