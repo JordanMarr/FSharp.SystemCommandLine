@@ -36,12 +36,10 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         }
     
     member this.Yield _ =
-        // Set default of `unit * obj * obj` so that CE fails if no `options` are set
-        CommandSpec<unit * obj * obj *obj, 'Output>.Default 
+        CommandSpec<unit, 'Output>.Default 
 
-    // Prevents errors while typing join statement if rest of query is not filled in yet.
     member this.Zero _ = 
-        CommandSpec<_, _>.Default
+        CommandSpec<unit, 'Output>.Default
 
     [<CustomOperation("description")>]
     member this.Description (spec: CommandSpec<'T, 'U>, description) =
@@ -189,13 +187,13 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd :> Command
 
-    /// Executes a command that returns unit.
+    /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
         let cmd = this.CreateActionCommand(spec, initRootCmd)
         let args = Environment.GetCommandLineArgs()
         cmd.Invoke args
 
-    /// Executes a command that returns a Task.
+    /// Executes a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
         let cmd = this.CreateFuncCommand(spec, initRootCmd)
         let args = Environment.GetCommandLineArgs()
@@ -214,11 +212,11 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd
 
-    /// Executes a command that returns unit.
+    /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
         this.CreateActionCommand(spec, initCmd)
 
-    /// Executes a command that returns a Task.
+    /// Returns a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
        this.CreateFuncCommand(spec, initCmd)
 
