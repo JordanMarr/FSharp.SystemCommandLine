@@ -5,6 +5,8 @@ open System
 open System.Threading.Tasks
 open System.CommandLine
 open System.CommandLine.Binding
+open System.CommandLine.Builder
+open System.CommandLine.Parsing
 
 type private IVD<'T> = IValueDescriptor<'T>
 let private def<'T> = Unchecked.defaultof<'T>
@@ -35,6 +37,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             SubCommands = spec.SubCommands
         }
     
+    member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
+
     member this.Yield _ =
         CommandSpec<unit, 'Output>.Default 
 
@@ -117,9 +121,14 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
 
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
+        subCommand this.CommandLineBuilder
+        spec
+
     /// Executes a command that returns unit.
-    member this.CreateActionCommand (spec: CommandSpec<'Inputs, unit>, initCmd: CommandSpec<_, _> -> Command) =
-       let cmd = initCmd spec
+    member this.CreateActionCommand (spec: CommandSpec<'Inputs, unit>, initCmd: CommandLineBuilder * CommandSpec<_, _> -> Command) =
+       let cmd = initCmd (this.CommandLineBuilder, spec)
        let inputs = spec.Inputs |> List.toArray
        let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
@@ -145,8 +154,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        cmd
 
     /// Executes a command that returns a Task.
-    member this.CreateFuncCommand (spec: CommandSpec<'Inputs, Task<unit>>, initCmd: CommandSpec<_, _> -> Command) =         
-       let cmd = initCmd spec
+    member this.CreateFuncCommand (spec: CommandSpec<'Inputs, Task<unit>>, initCmd: CommandLineBuilder * CommandSpec<_, _> -> Command) =         
+       let cmd = initCmd (this.CommandLineBuilder, spec)
        let inputs = spec.Inputs |> List.toArray
        let handler (args: obj) = 
            task {
@@ -179,31 +188,32 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
-    let initRootCmd (spec: CommandSpec<'T, 'U>) = 
-        let cmd = RootCommand()
+    let initRootCmd (b: CommandLineBuilder, spec: CommandSpec<'T, 'U>) = 
+        let cmd = b.Command
         cmd.Description <- spec.Description
         spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
         spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
         spec.SubCommands |> List.iter cmd.AddCommand
-        cmd :> Command
+        cmd
 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
         let cmd = this.CreateActionCommand(spec, initRootCmd)
-        cmd.Invoke args
+        this.CommandLineBuilder.Build().Invoke(args)
 
     /// Executes a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
         let cmd = this.CreateFuncCommand(spec, initRootCmd)
-        cmd.InvokeAsync args
+        this.CommandLineBuilder.Build().InvokeAsync(args)
     
 
 /// Builds a `System.CommandLine.Command`.
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name: string) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
-    let initCmd (spec: CommandSpec<'T, 'U>) = 
-        let cmd = Command(name)
+    let initCmd (b: CommandLineBuilder, spec: CommandSpec<'T, 'U>) = 
+        let cmd = b.Command
+        cmd.Name <- name
         cmd.Description <- spec.Description
         spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
         spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
