@@ -14,25 +14,31 @@ _The purpose of this library is to improve type safety when using the `System.Co
 ### Simple App
 
 ```F#
-open System.IO
 open FSharp.SystemCommandLine
 
-let app (i: int, b: bool, f: FileInfo) =
-    printfn $"The first argument value is: %i{i}"
-    printfn $"The value for --bool-option is: %b{b}"
-    printfn $"The value for --file-option is: %A{f}"    
+let app (words: string array, separator: string) =
+    System.String.Join(separator, words)
+    |> printfn "Result: %s"
     
 [<EntryPoint>]
 let main argv = 
-    let intArgument = Input.Argument("integer", (fun () -> 53), description = "An integer argument")
-    let boolOption = Input.Option("--bool-option", (fun () -> false), "An option whose argument is parsed as a bool")
-    let fileOption = Input.Option<FileInfo>("--file-option", "An option whose argument is parsed as a FileInfo")
+    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
     rootCommand {
-        description "System.CommandLine Sample App"
-        inputs (intArgument, boolOption, fileOption)
+        description "Appends words together"
+        inputs (oWords, oSeparator)
         setHandler app
-    }
+    }        
+```
+
+```batch
+> .\TestConsole --word "hello"
+Result: hello
+> .\TestConsole --word "hello" -w "world"
+Result: hello,world
+> .\TestConsole --word "hello" -w "world" -s "***"
+Result: hello***world
 ```
 
 ### Simple Async App
