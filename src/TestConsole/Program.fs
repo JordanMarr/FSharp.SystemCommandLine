@@ -6,7 +6,7 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--words"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
     let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
     rootCommand {
