@@ -51,27 +51,42 @@ Notice that mismatches between the `setHandler` and the `inputs` are caught as a
 ![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
 
 
-### Simple Async App
+### Async App with a Dependency and Pipeline Override
 
 ```F#
 open FSharp.SystemCommandLine
+open System.CommandLine.Builder
+open System.Threading.Tasks
 
-let app (words: string array, separator: string) = 
+type WordService() = 
+    member _.Join(separator: string, words: string array) = 
+        task {
+            do! Task.Delay(1000)
+            return System.String.Join(separator, words)
+        }
+
+let app (svc: WordService) (words: string array, separator: string) =
     task {
-        System.String.Join(separator, words)
-        |> printfn "Result: %s"
+        let! result = svc.Join(separator, words)
+        result |> printfn "Result: %s"
     }
     
 [<EntryPoint>]
 let main argv = 
     let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
-    
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ", "), "A character that will separate the joined words.")
+
+    // Initialize app dependencies
+    let svc = WordService()
+
     rootCommand {
         description "Appends words together"
         inputs (words, separator)
-        setHandler app
-    }        
+        usePipeline (fun builder -> 
+            builder.UseTypoCorrections(3)   // Override pipeline
+        )
+        setHandler (app svc)                // Partially apply app dependencies
+    }
     |> Async.AwaitTask
     |> Async.RunSynchronously
 ```
