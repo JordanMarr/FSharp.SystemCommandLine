@@ -132,8 +132,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         spec
 
     /// Executes a command that returns unit.
-    member this.CreateActionCommand (spec: CommandSpec<'Inputs, unit>, initCmd: CommandLineBuilder * CommandSpec<_, _> -> Command) =
-       let cmd = initCmd (this.CommandLineBuilder, spec)
+    member this.CreateActionCommand (spec: CommandSpec<'Inputs, unit>, initCmd: CommandSpec<_, _> -> Command) =
+       let cmd = initCmd spec
        let inputs = spec.Inputs |> List.toArray
        let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
@@ -159,8 +159,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        cmd
 
     /// Executes a command that returns a Task.
-    member this.CreateFuncCommand (spec: CommandSpec<'Inputs, Task<unit>>, initCmd: CommandLineBuilder * CommandSpec<_, _> -> Command) =         
-       let cmd = initCmd (this.CommandLineBuilder, spec)
+    member this.CreateFuncCommand (spec: CommandSpec<'Inputs, Task<unit>>, initCmd: CommandSpec<_, _> -> Command) =         
+       let cmd = initCmd spec
        let inputs = spec.Inputs |> List.toArray
        let handler (args: obj) = 
            task {
@@ -193,8 +193,9 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
-    let initRootCmd (b: CommandLineBuilder, spec: CommandSpec<'T, 'U>) = 
-        let cmd = b.Command
+    /// Applies the spec to the pipeline-created command.
+    let applySpecToRootCommand (builder: CommandLineBuilder) (spec: CommandSpec<'T, 'U>) = 
+        let cmd = builder.Command
         cmd.Description <- spec.Description
         spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
         spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
@@ -203,12 +204,12 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
-        let cmd = this.CreateActionCommand(spec, initRootCmd)
+        this.CreateActionCommand(spec, applySpecToRootCommand this.CommandLineBuilder) |> ignore
         this.CommandLineBuilder.Build().Invoke(args)
 
     /// Executes a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
-        let cmd = this.CreateFuncCommand(spec, initRootCmd)
+        this.CreateFuncCommand(spec, applySpecToRootCommand this.CommandLineBuilder) |> ignore
         this.CommandLineBuilder.Build().InvokeAsync(args)
     
 
@@ -216,9 +217,9 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name: string) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
-    let initCmd (b: CommandLineBuilder, spec: CommandSpec<'T, 'U>) = 
-        let cmd = b.Command
-        cmd.Name <- name
+    /// Creates a command and applies the spec.
+    let applySpecToCommand (spec: CommandSpec<'T, 'U>) = 
+        let cmd = Command(name)
         cmd.Description <- spec.Description
         spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
         spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
@@ -227,11 +228,11 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
     /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =         
-        this.CreateActionCommand(spec, initCmd)
+        this.CreateActionCommand(spec, applySpecToCommand)
 
     /// Returns a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =         
-       this.CreateFuncCommand(spec, initCmd)
+        this.CreateFuncCommand(spec, applySpecToCommand)
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
