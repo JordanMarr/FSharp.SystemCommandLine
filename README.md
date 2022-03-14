@@ -88,7 +88,7 @@ let listCmd =
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument<DirectoryInfo>(fun () -> DirectoryInfo("c:\fake dir"))
+    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
 
     command "list" {
         description "lists contents of a directory"
@@ -105,7 +105,7 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument<DirectoryInfo>(fun () -> DirectoryInfo("c:\fake dir"))
+    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
     let recursive = Input.Option("--recursive", getDefaultValue = (fun () -> false))
 
     command "delete" {
