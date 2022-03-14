@@ -126,6 +126,11 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         subCommand this.CommandLineBuilder
         spec
 
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
+        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
+        spec
+
     /// Executes a command that returns unit.
     member this.CreateActionCommand (spec: CommandSpec<'Inputs, unit>, initCmd: CommandLineBuilder * CommandSpec<_, _> -> Command) =
        let cmd = initCmd (this.CommandLineBuilder, spec)

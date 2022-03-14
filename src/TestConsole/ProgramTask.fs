@@ -1,25 +1,37 @@
 ﻿module ProgramTask
 
-open System.IO
 open FSharp.SystemCommandLine
+open System.CommandLine.Builder
+open System.Threading.Tasks
 
-let app (i: int, b: bool, f: FileInfo) =
+type WordService() = 
+    member _.Join(separator: string, words: string array) = 
+        task {
+            do! Task.Delay(1000)
+            return System.String.Join(separator, words)
+        }
+
+let app (svc: WordService) (words: string array, separator: string) =
     task {
-        printfn $"The value for --int-option is: %i{i}"
-        printfn $"The value for --bool-option is: %b{b}"
-        printfn $"The value for --file-option is: %A{f}"    
+        let! result = svc.Join(separator, words)
+        result |> printfn "Result: %s"
     }
     
 //[<EntryPoint>]
 let main argv = 
-    let intOption = Input.Option("--int-option", getDefaultValue = (fun () -> 42), description = "An option whose argument is parsed as an int")
-    let boolOption = Input.Option<bool>("--bool-option", "An option whose argument is parsed as a bool")
-    let fileOption = Input.Option<FileInfo>("--file-option", "An option whose argument is parsed as a FileInfo")
+    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ", "), "A character that will separate the joined words.")
+
+    // Initialize app dependencies
+    let svc = WordService()
 
     rootCommand {
-        description "My sample app"
-        inputs (intOption, boolOption, fileOption)
-        setHandler app
+        description "Appends words together"
+        inputs (words, separator)
+        usePipeline (fun builder -> 
+            builder.UseTypoCorrections(3)   // Override pipeline
+        )
+        setHandler (app svc)                // Partially apply app dependencies
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously

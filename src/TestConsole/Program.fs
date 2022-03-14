@@ -12,9 +12,6 @@ let main argv =
     rootCommand {
         description "Appends words together"
         inputs (words, separator)
-        usePipeline (fun builder -> 
-            builder.EnableDirectives <- true                
-        )
         setHandler app
     }
     
