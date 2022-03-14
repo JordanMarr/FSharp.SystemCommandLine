@@ -26,12 +26,12 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
     rootCommand {
         description "Appends words together"
-        inputs (oWords, oSeparator)
+        inputs (words, separator)
         setHandler app
     }        
 ```
@@ -64,12 +64,12 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
     
     rootCommand {
         description "Appends words together"
-        inputs (oWords, oSeparator)
+        inputs (words, separator)
         setHandler app
     }        
     |> Async.AwaitTask
