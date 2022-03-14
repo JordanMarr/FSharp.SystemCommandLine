@@ -22,7 +22,7 @@ let app (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let oWords = Input.Option(["--words"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
     let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
     rootCommand {
@@ -30,6 +30,15 @@ let main argv =
         inputs (oWords, oSeparator)
         setHandler app
     }        
+```
+
+```batch
+> .\TestConsole --word "hello"
+Result: hello
+> .\TestConsole --word "hello" -w "world"
+Result: hello,world
+> .\TestConsole --word "hello" -w "world" -s "***"
+Result: hello***world
 ```
 
 ### Simple Async App
