@@ -52,27 +52,24 @@ Notice that mismatches between the `setHandler` and the `inputs` are caught as a
 ### Simple Async App
 
 ```F#
-open System.IO
 open FSharp.SystemCommandLine
 
-let app (i: int, b: bool, f: FileInfo) =
+let app (words: string array, separator: string) = 
     task {
-        printfn $"The value for --int-option is: %i{i}"
-        printfn $"The value for --bool-option is: %b{b}"
-        printfn $"The value for --file-option is: %A{f}"    
+        System.String.Join(separator, words)
+        |> printfn "Result: %s"
     }
     
 [<EntryPoint>]
 let main argv = 
-    let intOption = Input.Option("--int-option", getDefaultValue = (fun () -> 42), description = "An option whose argument is parsed as an int")
-    let boolOption = Input.Option<bool>("--bool-option", "An option whose argument is parsed as a bool")
-    let fileOption = Input.Option<FileInfo>("--file-option", "An option whose argument is parsed as a FileInfo")
-
+    let oWords = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+    let oSeparator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    
     rootCommand {
-        description "My sample app"
-        inputs (intOption, boolOption, fileOption)
+        description "Appends words together"
+        inputs (oWords, oSeparator)
         setHandler app
-    }
+    }        
     |> Async.AwaitTask
     |> Async.RunSynchronously
 ```
