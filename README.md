@@ -1,8 +1,13 @@
-## FSharp.SystemCommandLine
+_The purpose of this library is to improve type safety when using the `System.CommandLine` package in F# by utilizing computation expression syntax._
 
-The purpose of this library is to:
-* provide improved type checks using F# computation expression syntax (mismatches between `inputs` and `setHandler` will be caught at compile time)
-* provide helper methods for creating `Option` and `Argument` types (helps to avoid `Option` type name conflict and eliminates need for interface casting)
+## Features
+
+### Improved type safety
+* Mismatches between `inputs` and `setHandler` are caught at compile time
+
+### Provide helper methods via the `Input` class for creating `Option` and `Argument` types 
+* Avoids initializing the `Option` type directly (which conflicts with the F# `Option` type) 
+* Eliminates the need to manually cast inputs to the `IValueDescriptor` interface
 
 ## Examples
 
