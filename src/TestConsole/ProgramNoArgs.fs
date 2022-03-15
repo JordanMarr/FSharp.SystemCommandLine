@@ -7,7 +7,7 @@ let app () =
 
 //[<EntryPoint>]
 let main argv = 
-    rootCommand {
+    rootCommand argv {
         description "My sample app"
         setHandler app
     }

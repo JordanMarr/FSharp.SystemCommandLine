@@ -25,7 +25,7 @@ let main argv =
     // Initialize app dependencies
     let svc = WordService()
 
-    rootCommand {
+    rootCommand argv {
         description "Appends words together"
         inputs (words, separator)
         usePipeline (fun builder -> 

@@ -205,7 +205,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         |> this.SetGeneralProperties spec
         |> this.SetActionHandler spec
         |> ignore
-        this.CommandLineBuilder.Build().Invoke(args)
+        this.CommandLineBuilder.Build().Parse(args).Invoke()
 
     /// Executes a Command with a handler that returns a Task.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
@@ -213,7 +213,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         |> this.SetGeneralProperties spec
         |> this.SetFuncHandler spec
         |> ignore
-        this.CommandLineBuilder.Build().InvokeAsync(args)
+        this.CommandLineBuilder.Build().Parse(args).InvokeAsync()
     
 
 /// Builds a `System.CommandLine.Command`.
@@ -234,8 +234,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
-let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> = 
-    let args = Environment.GetCommandLineArgs()
+let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array)= 
     RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args)
 
 /// Builds a `System.CommandLine.Command` using computation expression syntax.

@@ -38,7 +38,7 @@ let deleteCmd =
 
 //[<EntryPoint>]
 let main argv = 
-    rootCommand {
+    rootCommand argv {
         description "File System Manager"
         setHandler id
         setCommand listCmd
