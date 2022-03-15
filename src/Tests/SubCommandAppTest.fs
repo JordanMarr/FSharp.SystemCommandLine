@@ -44,22 +44,21 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
 [<Test>]
 let ``01 list c:\test`` () =    
     rootCmd @"list ""c:\test""" 
-        (fun (dir) -> dir.FullName |> should equal @"c:\test")
-        (fun (dir, recursive) -> shouldFail id)
+        (fun (dir) -> dir.FullName = @"c:\test" |@ "bad list path")
+        (fun (dir, recursive) -> Assert.Fail())
 
 [<Test>]
 let ``02 delete c:\temp`` () =    
     rootCmd @"delete ""c:\temp""" 
-        (fun (dir) ->
-            shouldFail id)
+        (fun (dir) -> Assert.Fail("should not call"))
         (fun (dir, recursive) -> 
-                dir.FullName |> should equal @"c:\temp"
+                dir.FullName = @"c:\temp" |@ "bad delete path"
                 recursive |> should equal false)
 
 [<Test>]
 let ``03 delete c:\temp --recursive`` () =    
     rootCmd @"delete ""c:\temp"" --recursive"
-        (fun (dir) -> shouldFail id)
+        (fun (dir) -> Assert.Fail("should not call"))
         (fun (dir, recursive) -> 
-            dir.FullName |> should equal @"c:\temp"
+            dir.FullName = @"c:\temp" |@ "bad delete path"
             recursive |> should equal true)

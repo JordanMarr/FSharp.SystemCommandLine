@@ -13,3 +13,13 @@ let testRootCommand (commandLineString: string) =
     let result = parser.Parse(commandLineString)
     let args = result.Tokens |> Seq.map (fun t -> t.Value) |> Seq.toArray
     RootCommandBuilder args
+
+open FsUnit
+
+let (|@) (test: bool) (failMsg: string) = 
+    if not test then    
+        Assert.Fail(failMsg)
+
+let (@@) (test: bool) = 
+    if not test then    
+        Assert.Fail("Error: should be true")
