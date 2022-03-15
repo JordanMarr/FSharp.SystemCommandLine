@@ -12,6 +12,9 @@ let testRootCommand (commandLineString: string) =
     let args = result.Tokens |> Seq.map (fun t -> t.Value) |> Seq.toArray
     RootCommandBuilder(args)
 
+let shouldNotCall () = 
+    Assert.Fail("should not call")
+
 let (|@) (test: bool) (failMsg: string) = 
     if not test then    
         Assert.Fail(failMsg)
