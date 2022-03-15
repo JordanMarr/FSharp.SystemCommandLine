@@ -1,10 +1,12 @@
 ﻿module SubCommandAppTest
 
+open System.IO
 open NUnit.Framework
-open FSharp.SystemCommandLine
 open Utils
 open FsUnit
-open System.IO
+open FSharp.SystemCommandLine
+open System.CommandLine
+open System.CommandLine.Builder
 
 let listCmd (handler: DirectoryInfo -> unit) = 
     let dir = Input.Argument(getDefaultValue = (fun () -> DirectoryInfo("c:\fake dir")))
@@ -25,37 +27,39 @@ let deleteCmd (handler: DirectoryInfo * bool -> unit) =
         setHandler handler
     }        
 
-[<Test>]
-let Test1 () =    
-    testRootCommand @"list ""c:\test"""  {
+let rootCmd argstr listCmdHandler deleteCmdHandler =
+    testRootCommand argstr  {
         description "File System Manager"
         setHandler id
-        setCommand (listCmd (fun dir -> dir.FullName |> should equal @"c:\test"))
-        setCommand (deleteCmd (fun (dir, recursive) -> shouldNotCall ()))
-    } |> ignore
+        //usePipeline (fun builder ->
+        //    builder.UseExceptionHandler(fun ex ctx -> 
+        //        failwith "YOU SHALL NOT PASS!!"
+        //    )
+        //)
+        setCommand (listCmd listCmdHandler)
+        setCommand (deleteCmd deleteCmdHandler)
+    } 
+    |> ignore
 
 [<Test>]
-let Test2 () =    
-    testRootCommand @"delete ""c:\temp"""  {
-        description "File System Manager"
-        setHandler id
-        setCommand (listCmd (fun dir -> shouldNotCall ()))
-        setCommand (deleteCmd <|
-            fun (dir, recursive) -> 
-                dir.FullName |> should equal @"c:\temp"
-                recursive |> should equal false
-        )
-    } |> ignore
+let ``01 list c:\test`` () =    
+    rootCmd @"list ""c:\test""" 
+        (fun (dir) -> dir.FullName |> should equal @"c:\test")
+        (fun (dir, recursive) -> shouldFail id)
 
 [<Test>]
-let Test3 () =    
-    testRootCommand @"delete ""c:\temp"" --recursive"  {
-        description "File System Manager"
-        setHandler id
-        setCommand (listCmd (fun dir -> shouldNotCall ()))
-        setCommand (deleteCmd <|
-            fun (dir, recursive) -> 
+let ``02 delete c:\temp`` () =    
+    rootCmd @"delete ""c:\temp""" 
+        (fun (dir) ->
+            shouldFail id)
+        (fun (dir, recursive) -> 
                 dir.FullName |> should equal @"c:\temp"
-                recursive |> should equal true
-        )
-    } |> ignore
+                recursive |> should equal false)
+
+[<Test>]
+let ``03 delete c:\temp --recursive`` () =    
+    rootCmd @"delete ""c:\temp"" --recursive"
+        (fun (dir) -> shouldFail id)
+        (fun (dir, recursive) -> 
+            dir.FullName |> should equal @"c:\temp"
+            recursive |> should equal true)

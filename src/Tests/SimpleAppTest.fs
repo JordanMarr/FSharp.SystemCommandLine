@@ -5,19 +5,22 @@ open FSharp.SystemCommandLine
 open Utils
 open FsUnit
 
-[<Test>]
-let Test1 () =    
-    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
+let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
-    testRootCommand "--word Hello -w World -s *" {
+let rootCmd argstr (handler: string array * string -> unit) = 
+    testRootCommand argstr {
         description "Appends words together"
         inputs (words, separator)
-        setHandler (
-            fun (words: string array, separator: string) ->
-                words |> should equal [| "Hello"; "World" |]
-                separator |> should equal "*"
-        )
+        setHandler handler
     } 
     |> ignore
-        
+
+[<Test>]
+let ``01 --word Hello -w World -s *`` () =    
+    rootCmd "--word Hello -w World -s *"
+        (fun (words, separator) ->
+            words |> should equal [| "Hello"; "World" |]
+            separator |> should equal "*"
+        )
+    
