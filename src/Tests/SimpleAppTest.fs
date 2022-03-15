@@ -1,9 +1,9 @@
 module SimpleAppTest
 
 open NUnit.Framework
+open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
-open FsUnit
 
 let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
 let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
@@ -20,7 +20,7 @@ let rootCmd argstr (handler: string array * string -> unit) =
 let ``01 --word Hello -w World -s *`` () =    
     rootCmd "--word Hello -w World -s *"
         (fun (words, separator) ->
-            words |> should equal [| "Hello"; "World" |]
-            separator |> should equal "*"
+            words =! [| "Hello"; "World" |]
+            separator =! "*"
         )
     

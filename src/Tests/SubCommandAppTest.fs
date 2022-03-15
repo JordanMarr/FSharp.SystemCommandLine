@@ -2,11 +2,9 @@
 
 open System.IO
 open NUnit.Framework
-open Utils
-open FsUnit
+open Swensen.Unquote
 open FSharp.SystemCommandLine
-open System.CommandLine
-open System.CommandLine.Builder
+open Utils
 
 let listCmd (handler: DirectoryInfo -> unit) = 
     let dir = Input.Argument(getDefaultValue = (fun () -> DirectoryInfo("c:\fake dir")))
@@ -42,7 +40,7 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
 [<Test>]
 let ``01 list c:\test`` () =    
     rootCmd @"list ""c:\test""" 
-        (fun (dir) -> dir.FullName = @"c:\test" |@ "bad list path")
+        (fun (dir) -> dir.FullName =! @"c:\test")
         (fun (dir, recursive) -> Assert.Fail())
 
 [<Test>]
@@ -50,8 +48,8 @@ let ``02 delete c:\temp`` () =
     rootCmd @"delete ""c:\temp""" 
         (fun (dir) -> Assert.Fail("should not call"))
         (fun (dir, recursive) -> 
-                dir.FullName = @"c:\temp" |@ "bad delete path"
-                recursive |> should equal false)
+                dir.FullName =! @"c:\temp"
+                recursive =! false)
 
 [<Test>]
 let ``03 delete c:\temp --recursive`` () =    
@@ -59,4 +57,4 @@ let ``03 delete c:\temp --recursive`` () =
         (fun (dir) -> Assert.Fail("should not call"))
         (fun (dir, recursive) -> 
             dir.FullName = @"c:\temp" |@ "bad delete path"
-            recursive |> should equal true)
+            recursive =! true)
