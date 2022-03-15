@@ -13,3 +13,5 @@ let testRootCommand (commandLineString: string) =
     let result = parser.Parse(commandLineString)
     let args = result.Tokens |> Seq.map (fun t -> t.Value) |> Seq.toArray
     RootCommandBuilder args
+
+let shouldNotCall () = failwith "should not call"

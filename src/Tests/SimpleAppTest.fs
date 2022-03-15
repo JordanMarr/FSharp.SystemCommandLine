@@ -17,7 +17,6 @@ let Test1 () =
             fun (words: string array, separator: string) ->
                 words |> should equal [| "Hello"; "World" |]
                 separator |> should equal "*"
-                System.String.Join(separator, words) |> printfn "Result: %s"
         )
     } 
     |> ignore
