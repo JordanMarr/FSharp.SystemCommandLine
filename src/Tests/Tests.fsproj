@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="Utils.fs" />
     <Compile Include="SubCommandAppTest.fs" />
+    <Compile Include="SimpleAsyncTest.fs" />
     <Compile Include="SimpleAppTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
