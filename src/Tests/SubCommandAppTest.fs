@@ -32,9 +32,7 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
         description "File System Manager"
         setHandler id
         //usePipeline (fun builder ->
-        //    builder.UseExceptionHandler(fun ex ctx -> 
-        //        failwith "YOU SHALL NOT PASS!!"
-        //    )
+        //    CommandLineBuilder() // Remove `UseDefaults`
         //)
         setCommand (listCmd listCmdHandler)
         setCommand (deleteCmd deleteCmdHandler)
