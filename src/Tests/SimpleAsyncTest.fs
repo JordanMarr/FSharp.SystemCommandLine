@@ -18,7 +18,6 @@ let rootCmd argstr (handler: string array * string -> unit) =
         } 
         |> ignore
     }
-    :> Task
 
 [<Test>]
 let ``01 --word Hello -w World -s *`` () =
