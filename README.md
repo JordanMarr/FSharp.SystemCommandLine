@@ -29,7 +29,7 @@ let main argv =
     let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
     let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
 
-    rootCommand {
+    rootCommand argv {
         description "Appends words together"
         inputs (words, separator)
         setHandler app
@@ -79,7 +79,7 @@ let main argv =
     // Initialize app dependencies
     let svc = WordService()
 
-    rootCommand {
+    rootCommand argv {
         description "Appends words together"
         inputs (words, separator)
         usePipeline (fun builder -> 
@@ -132,7 +132,7 @@ let deleteCmd =
 
 [<EntryPoint>]
 let main argv = 
-    rootCommand {
+    rootCommand argv {
         description "File System Manager"
         setHandler id
         setCommand listCmd
