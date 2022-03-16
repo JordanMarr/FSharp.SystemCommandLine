@@ -121,16 +121,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
 
-    [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
-        subCommand this.CommandLineBuilder
-        spec
-
-    [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
-        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
-        spec
-
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
         cmd.Description <- spec.Description
@@ -198,6 +188,16 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 /// Builds a `System.CommandLine.RootCommand`.
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+    
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
+        subCommand this.CommandLineBuilder
+        spec
+
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
+        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
+        spec
 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
