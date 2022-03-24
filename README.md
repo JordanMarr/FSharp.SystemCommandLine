@@ -11,7 +11,10 @@ The purpose of this library is to improve type safety when using the `System.Com
 
 ### Provide helper methods via the `Input` class for creating `Option` and `Argument` types 
 * Avoids initializing the `Option` type directly (which conflicts with the F# `Option` type) 
-* Eliminates the need to manually cast inputs to the `IValueDescriptor` interface
+* `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases (as an alternative to using the `Input` helper class)
+
+### Support for F# `Option` type
+* `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
 
 ## Examples
 
@@ -21,12 +24,9 @@ The purpose of this library is to improve type safety when using the `System.Com
 open FSharp.SystemCommandLine
 open System.IO
 
-let unzip (zipFile: FileInfo, outputDir: DirectoryInfo) = 
+let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if null
-    let outputDir = 
-        outputDir 
-        |> Option.ofObj 
-        |> Option.defaultValue zipFile.Directory
+    let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
 
     if zipFile.Exists
     then printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
@@ -34,12 +34,12 @@ let unzip (zipFile: FileInfo, outputDir: DirectoryInfo) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
-    let outputDir = Input.Option<DirectoryInfo>("-o", (fun () -> null), "The output directory")
+    let zipFile = Input.Argument("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
 
     rootCommand argv {
         description "Unzips a .zip file"
-        inputs (zipFile, outputDir)
+        inputs (zipFile, outputDirMaybe)
         setHandler unzip
     }
 ```
@@ -78,8 +78,8 @@ let app (svc: WordService) (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], (fun () -> ", "), "A character that will separate the joined words.")
+    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     // Initialize app dependencies
     let svc = WordService()
@@ -88,7 +88,8 @@ let main argv =
         description "Appends words together"
         inputs (words, separator)
         usePipeline (fun builder -> 
-            builder.UseTypoCorrections(3)   // Override pipeline
+            CommandLineBuilder()            // Pipeline is initialized with .UseDefaults() by default,
+                .UseTypoCorrections(3)      // but you can override it here if needed.
         )
         setHandler (app svc)                // Partially apply app dependencies
     }
@@ -108,7 +109,7 @@ let listCmd =
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
+    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
 
     command "list" {
         description "lists contents of a directory"
@@ -125,8 +126,8 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument(fun () -> DirectoryInfo("c:\fake dir"))
-    let recursive = Input.Option("--recursive", getDefaultValue = (fun () -> false))
+    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir")
+    let recursive = Input.Option("--recursive", false)
 
     command "delete" {
         description "deletes a directory"
