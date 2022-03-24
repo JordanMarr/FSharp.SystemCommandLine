@@ -18,9 +18,13 @@ let rootCmd argstr (handler: string array * string -> unit) =
 
 [<Test>]
 let ``01 --word Hello -w World -s *`` () =    
+    let mutable handlerCalled = false
     rootCmd "--word Hello -w World -s *"
         (fun (words, separator) ->
+            handlerCalled <- true
             words =! [| "Hello"; "World" |]
             separator =! "*"
         )
+
+    handlerCalled =! true
     
