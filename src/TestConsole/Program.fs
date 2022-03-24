@@ -1,13 +1,14 @@
 ﻿open FSharp.SystemCommandLine
 
-let app (words: string array, separator: string) =
+let app (words: string array, separator: string option) =
+    let separator = separator |> Option.defaultValue ", "
     System.String.Join(separator, words)
     |> printfn "Result: %s"
     
 [<EntryPoint>]
 let main argv = 
     let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
