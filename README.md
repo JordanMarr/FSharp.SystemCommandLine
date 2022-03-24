@@ -14,7 +14,7 @@ The purpose of this library is to improve type safety when using the `System.Com
 * The `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
 * The `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases and can be opened if direct access is needed to the core API. 
 
-### Support for F# `Option` type
+### Support for F# option type
 * `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
 
 ## Examples
@@ -26,7 +26,7 @@ open FSharp.SystemCommandLine
 open System.IO
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
-    // Default to the zip file dir if null
+    // Default to the zip file dir if None
     let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
 
     if zipFile.Exists
