@@ -56,47 +56,6 @@ Notice that mismatches between the `setHandler` and the `inputs` are caught as a
 ![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
 
 
-### Async App with a Dependency and Pipeline Override
-
-```F#
-open FSharp.SystemCommandLine
-open System.CommandLine.Builder
-open System.Threading.Tasks
-
-type WordService() = 
-    member _.Join(separator: string, words: string array) = 
-        task {
-            do! Task.Delay(1000)
-            return System.String.Join(separator, words)
-        }
-
-let app (svc: WordService) (words: string array, separator: string) =
-    task {
-        let! result = svc.Join(separator, words)
-        result |> printfn "Result: %s"
-    }
-    
-[<EntryPoint>]
-let main argv = 
-    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
-
-    // Initialize app dependencies
-    let svc = WordService()
-
-    rootCommand argv {
-        description "Appends words together"
-        inputs (words, separator)
-        usePipeline (fun builder -> 
-            CommandLineBuilder()            // Pipeline is initialized with .UseDefaults() by default,
-                .UseTypoCorrections(3)      // but you can override it here if needed.
-        )
-        setHandler (app svc)                // Partially apply app dependencies
-    }
-    |> Async.AwaitTask
-    |> Async.RunSynchronously
-```
-
 ### App with SubCommands
 
 ```F#
@@ -158,4 +117,46 @@ let main argv =
 
 > TestConsole delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine" --recursive
     Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
+```
+
+
+### Async App with a Partially Applied Dependency
+
+```F#
+open FSharp.SystemCommandLine
+open System.CommandLine.Builder
+open System.Threading.Tasks
+
+type WordService() = 
+    member _.Join(separator: string, words: string array) = 
+        task {
+            do! Task.Delay(1000)
+            return System.String.Join(separator, words)
+        }
+
+let app (svc: WordService) (words: string array, separator: string) =
+    task {
+        let! result = svc.Join(separator, words)
+        result |> printfn "Result: %s"
+    }
+    
+[<EntryPoint>]
+let main argv = 
+    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+
+    // Initialize app dependencies
+    let svc = WordService()
+
+    rootCommand argv {
+        description "Appends words together"
+        inputs (words, separator)
+        usePipeline (fun builder -> 
+            CommandLineBuilder()            // Pipeline is initialized with .UseDefaults() by default,
+                .UseTypoCorrections(3)      // but you can override it here if needed.
+        )
+        setHandler (app svc)                // Partially apply app dependencies
+    }
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
 ```
