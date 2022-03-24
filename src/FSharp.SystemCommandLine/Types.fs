@@ -7,32 +7,32 @@ open System.CommandLine
 module private Parser = 
     /// Parses an argument token value. 
     /// TODO: Ideally, this should use the S.CL Arugment parser.
-    let parseArgumentTokenValue<'T when 'T : null> (tokenValue: string) = 
+    let parseTokenValue<'T> (tokenValue: string) = 
         match typeof<'T> with
         | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> box :?> 'T |> Some
         | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> box :?> 'T |> Some
-        | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Option.ofObj
+        | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
 
 /// A helper static class that creates `Option` and `Argument` `IValueDescriptor<'T>` objects.
 type Input = 
 
-    static member OptionMaybe<'T when 'T : null>(name: string, ?description: string) =
+    static member OptionMaybe<'T>(name: string, ?description: string) =
         System.CommandLine.Option<'T option>(
             name,
             parseArgument = (fun argResult -> 
                 match argResult.Tokens |> Seq.tryHead with
-                | Some token -> Parser.parseArgumentTokenValue token.Value
+                | Some token -> Parser.parseTokenValue token.Value
                 | None -> failwith "F# Option can only be used with a single argument."
             ),            
             description = (description |> Option.defaultValue null)
         ) :> Binding.IValueDescriptor<'T option>
 
-    static member OptionMaybe<'T when 'T : null>(aliases: string seq, ?description: string) =
+    static member OptionMaybe<'T>(aliases: string seq, ?description: string) =
         System.CommandLine.Option<'T option>(
             aliases |> Seq.toArray,
             parseArgument = (fun argResult -> 
                 match argResult.Tokens |> Seq.tryHead with
-                | Some token -> Parser.parseArgumentTokenValue token.Value
+                | Some token -> Parser.parseTokenValue token.Value
                 | None -> failwith "F# Option can only be used with a single argument."
             ),            
             description = (description |> Option.defaultValue null)
