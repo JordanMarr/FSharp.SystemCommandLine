@@ -2,8 +2,7 @@
 
 open System.IO
 open System.CommandLine
-
-type Opt<'T> = System.CommandLine.Option<'T>
+open FSharp.SystemCommandLine.Aliases
 
 let handler (i: int) (b: bool) (f: FileInfo) =
     printfn $"The value for --int-option is: %i{i}"
