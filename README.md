@@ -10,9 +10,9 @@ The purpose of this library is to improve type safety when using the `System.Com
 ### Improved type safety
 * Mismatches between `inputs` and `setHandler` are caught at compile time
 
-### Provide helper methods via the `Input` class for creating `Option` and `Argument` types 
-* Avoids initializing the `Option` type directly (which conflicts with the F# `Option` type) 
-* `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases (as an alternative to using the `Input` helper class)
+### Helper methods for creating options and arguments
+* The `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
+* The `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases and can be opened if direct access is needed to the core API. 
 
 ### Support for F# `Option` type
 * `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
