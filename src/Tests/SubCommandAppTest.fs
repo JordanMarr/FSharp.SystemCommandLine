@@ -7,7 +7,7 @@ open FSharp.SystemCommandLine
 open Utils
 
 let listCmd (handler: DirectoryInfo -> unit) = 
-    let dir = Input.Argument(getDefaultValue = (fun () -> DirectoryInfo("c:\fake dir")))
+    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
 
     command "list" {
         description "lists contents of a directory"
@@ -16,8 +16,8 @@ let listCmd (handler: DirectoryInfo -> unit) =
     }
 
 let deleteCmd (handler: DirectoryInfo * bool -> unit) = 
-    let dir = Input.Argument(getDefaultValue = (fun () -> DirectoryInfo("c:\fake dir")))    
-    let recursive = Input.Option("--recursive", getDefaultValue = (fun () -> false))
+    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
+    let recursive = Input.Option("--recursive", false)
 
     command "delete" {
         description "deletes a directory"
@@ -29,32 +29,52 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
     testRootCommand argstr  {
         description "File System Manager"
         setHandler id
-        //usePipeline (fun builder ->
-        //    CommandLineBuilder() // Remove `UseDefaults`
-        //)
         setCommand (listCmd listCmdHandler)
         setCommand (deleteCmd deleteCmdHandler)
     } 
     |> ignore
 
 [<Test>]
-let ``01 list c:\test`` () =    
+let ``01 list c:\test`` () = 
+    let mutable listCmdHandlerCalled = false
+
     rootCmd @"list ""c:\test""" 
-        (fun (dir) -> dir.FullName =! @"c:\test")
-        (fun (dir, recursive) -> shouldNotCall ())
+        (fun (dir) -> 
+            listCmdHandlerCalled <- true
+            dir.FullName =! @"c:\test"
+        )
+        (fun (dir, recursive) -> 
+            shouldNotCall ()
+        )
+
+    listCmdHandlerCalled =! true
 
 [<Test>]
 let ``02 delete c:\temp`` () =    
+    let mutable deleteCmdHandlerCalled = false
     rootCmd @"delete ""c:\temp""" 
-        (fun (dir) -> shouldNotCall ())
+        (fun (dir) -> 
+            shouldNotCall ()
+        )
         (fun (dir, recursive) -> 
-                dir.FullName =! @"c:\temp"
-                recursive =! false)
+            deleteCmdHandlerCalled <- true
+            dir.FullName =! @"c:\temp"
+            recursive =! false
+        )
+
+    deleteCmdHandlerCalled =! true
 
 [<Test>]
 let ``03 delete c:\temp --recursive`` () =    
+    let mutable deleteCmdHandlerCalled = false
     rootCmd @"delete ""c:\temp"" --recursive"
-        (fun (dir) -> shouldNotCall ())
+        (fun (dir) -> 
+            shouldNotCall ()
+        )
         (fun (dir, recursive) -> 
+            deleteCmdHandlerCalled <- true
             dir.FullName =! @"c:\temp"
-            recursive =! true)
+            recursive =! true
+        )
+
+    deleteCmdHandlerCalled =! true

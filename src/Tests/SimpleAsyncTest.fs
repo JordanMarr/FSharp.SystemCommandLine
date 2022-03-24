@@ -5,8 +5,8 @@ open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
 
-let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+let separator = Input.Option(["--separator"; "-s"], ",", "A character that will separate the joined words.")
 
 let rootCmd argstr (handler: string array * string -> unit) = 
     task {
