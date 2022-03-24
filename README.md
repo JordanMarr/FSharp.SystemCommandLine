@@ -1,4 +1,4 @@
-### FSharp.SystemCommandLine ![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)
+### FSharp.SystemCommandLine [![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
 
 The purpose of this library is to improve type safety when using the `System.CommandLine` API in F# by utilizing computation expression syntax.
 
@@ -19,32 +19,37 @@ The purpose of this library is to improve type safety when using the `System.Com
 
 ```F#
 open FSharp.SystemCommandLine
+open System.IO
 
-let app (words: string array, separator: string) =
-    System.String.Join(separator, words)
-    |> printfn "Result: %s"
+let unzip (zipFile: FileInfo, outputDir: DirectoryInfo) = 
+    // Default to the zip file dir if null
+    let outputDir = 
+        outputDir 
+        |> Option.ofObj 
+        |> Option.defaultValue zipFile.Directory
+
+    if zipFile.Exists
+    then printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
+    else printfn $"File does not exist: {zipFile.FullName}"
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], (fun () -> Array.empty<string>), "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], (fun () -> ","), "A character that will separate the joined words.")
+    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
+    let outputDir = Input.Option<DirectoryInfo>("-o", (fun () -> null), "The output directory")
 
     rootCommand argv {
-        description "Appends words together"
-        inputs (words, separator)
-        setHandler app
-    }        
+        description "Unzips a .zip file"
+        inputs (zipFile, outputDir)
+        setHandler unzip
+    }
 ```
 
 ```batch
-> TestConsole --word "hello"
-    Result: hello
+> unzip.exe "c:\test\stuff.zip"
+    Result: Unzipping stuff.zip to c:\test
     
-> TestConsole --word "hello" -w "world"
-    Result: hello,world
-    
-> TestConsole --word "hello" -w "world" -s "***"
-    Result: hello***world
+> unzip.exe "c:\test\stuff.zip" -o "c:\test\output"
+    Result: Unzipping stuff.zip to c:\test\output
 ```
 
 Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
