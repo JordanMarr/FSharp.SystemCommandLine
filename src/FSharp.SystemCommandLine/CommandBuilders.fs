@@ -156,11 +156,11 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        cmd
 
     /// Sets a command handler that returns a Task.
-    member this.SetFuncHandler (spec: CommandSpec<'Inputs, Task<unit>>) (cmd: Command) =
+    member this.SetFuncHandler (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
        let inputs = spec.Inputs |> List.toArray
        let handler (args: obj) = 
            task {
-               do! spec.Handler (args :?> 'Inputs)
+               return! spec.Handler (args :?> 'Inputs)
            }
 
        match spec.Inputs.Length with
@@ -208,7 +208,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         this.CommandLineBuilder.Build().Parse(args).Invoke()
 
     /// Executes a Command with a handler that returns a Task.
-    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
+    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
         |> this.SetFuncHandler spec
@@ -227,7 +227,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
         |> this.SetActionHandler spec
 
     /// Returns a Command with a handler that returns a Task.
-    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
+    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetFuncHandler spec
