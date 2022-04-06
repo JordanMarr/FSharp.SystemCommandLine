@@ -1,4 +1,5 @@
-### FSharp.SystemCommandLine [![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
+### FSharp.SystemCommandLine 
+[![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
 
 The purpose of this library is to improve type safety when using the `System.CommandLine` API in F# by utilizing computation expression syntax.
 
@@ -9,11 +10,11 @@ The purpose of this library is to improve type safety when using the `System.Com
 ### Improved type safety
 * Mismatches between `inputs` and `setHandler` are caught at compile time
 
-### Provide helper methods via the `Input` class for creating `Option` and `Argument` types 
-* Avoids initializing the `Option` type directly (which conflicts with the F# `Option` type) 
-* `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases (as an alternative to using the `Input` helper class)
+### Helper methods for creating options and arguments
+* The `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
+* The `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases and can be opened if direct access is needed to the core API. 
 
-### Support for F# `Option` type
+### Support for F# option type
 * `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
 
 ## Examples
@@ -25,7 +26,7 @@ open FSharp.SystemCommandLine
 open System.IO
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
-    // Default to the zip file dir if null
+    // Default to the zip file dir if None
     let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
 
     if zipFile.Exists
@@ -62,13 +63,14 @@ Notice that mismatches between the `setHandler` and the `inputs` are caught as a
 open System.IO
 open FSharp.SystemCommandLine
 
+// Ex: fsm.exe list "c:\temp"
 let listCmd = 
     let handler (dir: DirectoryInfo) = 
         if dir.Exists 
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
+    let dir = Input.Argument("dir", "The directory to list")
 
     command "list" {
         description "lists contents of a directory"
@@ -76,6 +78,7 @@ let listCmd =
         setHandler handler
     }
 
+// Ex: fsm.exe delete "c:\temp" --recursive
 let deleteCmd = 
     let handler (dir: DirectoryInfo, recursive: bool) = 
         if dir.Exists then 
@@ -85,7 +88,7 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir")
+    let dir = Input.Argument("dir", "The directory to delete")
     let recursive = Input.Option("--recursive", false)
 
     command "delete" {
@@ -106,16 +109,16 @@ let main argv =
 ```
 
 ```batch
-> TestConsole list "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
+> fsm.exe list "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
     CommandBuilders.fs
     FSharp.SystemCommandLine.fsproj
     pack.cmd
     Types.fs
 
-> TestConsole delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
+> fsm.exe delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine"
     Deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 
-> TestConsole delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine" --recursive
+> fsm.exe delete "c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine" --recursive
     Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 ```
 
