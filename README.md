@@ -1,7 +1,7 @@
 ### FSharp.SystemCommandLine 
 [![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
 
-The purpose of this library is to improve type safety when using the `System.CommandLine` API in F# by utilizing computation expression syntax.
+The purpose of this library is to improve type safety when using the [`System.CommandLine`](https://github.com/dotnet/command-line-api) API in F# by utilizing computation expression syntax.
 
 
 
