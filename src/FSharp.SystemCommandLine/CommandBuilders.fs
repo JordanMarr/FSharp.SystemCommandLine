@@ -8,13 +8,13 @@ open System.CommandLine.Binding
 open System.CommandLine.Builder
 open System.CommandLine.Parsing
 
-type private IVD<'T> = IValueDescriptor<'T>
+type private HI<'T> = HandlerInput<'T>
 let private def<'T> = Unchecked.defaultof<'T>
 
 type CommandSpec<'Inputs, 'Output> = 
     {
         Description: string
-        Inputs: IValueDescriptor list
+        Inputs: HandlerInput list
         Handler: 'Inputs -> 'Output
         SubCommands: System.CommandLine.Command list
     }
@@ -36,7 +36,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             Handler = handler
             SubCommands = spec.SubCommands
         }
-    
+
     member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
 
     member this.Yield _ =
@@ -50,67 +50,67 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         { spec with Description = description }
     
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, a: IVD<'A>) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, a: HI<'A>) =
         { newHandler def<'A -> 'Output> spec with Inputs = [ a ] }
     
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>)) =
         { newHandler def<'A * 'B -> 'Output> spec with Inputs = [ a; b ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>)) =
         { newHandler def<'A * 'B * 'C -> 'Output> spec with Inputs = [ a; b; c ] }
         
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>)) =
         { newHandler def<'A * 'B * 'C * 'D -> 'Output> spec with Inputs = [ a; b; c; d ] }
             
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E -> 'Output> spec with Inputs = [ a; b; c; d; e ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F -> 'Output> spec with Inputs = [ a; b; c; d; e; f ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>, o: IVD<'O>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>, o: HI<'O>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o ] }
 
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: IVD<'A>, b: IVD<'B>, c: IVD<'C>, d: IVD<'D>, e: IVD<'E>, f: IVD<'F>, g: IVD<'G>, h: IVD<'H>, i: IVD<'I>, j: IVD<'J>, k: IVD<'K>, l: IVD<'L>, m: IVD<'M>, n: IVD<'N>, o: IVD<'O>, p: IVD<'P>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>, o: HI<'O>, p: HI<'P>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O * 'P -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p ] }
 
     [<CustomOperation("setHandler")>]
@@ -124,15 +124,30 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
         cmd.Description <- spec.Description
-        spec.Inputs |> List.choose (function | :? Option as opt -> Some opt | _ -> None) |> List.iter cmd.AddOption
-        spec.Inputs |> List.choose (function | :? Argument as arg -> Some arg | _ -> None) |> List.iter cmd.AddArgument
+        spec.Inputs
+        |> Seq.iter (fun input ->
+            match input.Source with
+            | ParsedOption o -> cmd.AddOption o
+            | ParsedArgument a -> cmd.AddArgument a
+            | InjectedDependency -> () // DI system will inject this input
+        )
+
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd
 
     /// Sets a command handler that returns unit.
     member this.SetActionHandler (spec: CommandSpec<'Inputs, unit>) (cmd: Command) =
-        let inputs = spec.Inputs |> List.toArray
         let handler (args: obj) = spec.Handler (args :?> 'Inputs)
+
+        let inputs = 
+            spec.Inputs 
+            |> List.choose (fun input -> 
+                match input.Source with
+                | ParsedOption o -> o :> IValueDescriptor |> Some
+                | ParsedArgument a -> a :> IValueDescriptor |> Some
+                | InjectedDependency -> None
+            )
+            |> List.toArray
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
@@ -157,11 +172,20 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
 
     /// Sets a command handler that returns a Task.
     member this.SetFuncHandler (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
-        let inputs = spec.Inputs |> List.toArray
         let handler (args: obj) = 
             task {
                 return! spec.Handler (args :?> 'Inputs)
             }
+
+        let inputs = 
+            spec.Inputs 
+            |> List.choose (fun input -> 
+                match input.Source with
+                | ParsedOption o -> o :> IValueDescriptor |> Some
+                | ParsedArgument a -> a :> IValueDescriptor |> Some
+                | InjectedDependency -> None
+            )
+            |> List.toArray
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))

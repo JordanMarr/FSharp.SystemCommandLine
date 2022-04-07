@@ -1,5 +1,5 @@
 ﻿[<AutoOpen>]
-module FSharp.SystemCommandLine.Types
+module FSharp.SystemCommandLine.Inputs
 
 open System
 open System.CommandLine
@@ -13,22 +13,37 @@ module private Parser =
         | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> box :?> 'T |> Some
         | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
 
+type HandlerInputSource = 
+    | ParsedOption of Option
+    | ParsedArgument of Argument
+    | InjectedDependency
+
+type HandlerInput(source: HandlerInputSource) = 
+    member this.Source = source
+
+type HandlerInput<'T>(inputType: HandlerInputSource) =
+    inherit HandlerInput(inputType)
+    static member OfOption<'T>(o: Option<'T>) = o :> Option |> ParsedOption |> HandlerInput<'T>
+    static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
+
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 
-
+    
     /// Creates a CLI option of type 'T.
     static member Option<'T>(name: string, ?description: string) =
         Option<'T>(
             name,
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        ) 
+        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T.
     static member Option<'T>(aliases: string seq, ?description: string) =
         Option<'T>(
             aliases |> Seq.toArray,
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        )
+        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
@@ -36,7 +51,8 @@ type Input =
             name,
             getDefaultValue = (fun () -> defaultValue),
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        )
+        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(aliases: string seq, defaultValue: 'T, ?description: string) =
@@ -44,7 +60,8 @@ type Input =
             aliases |> Seq.toArray,
             getDefaultValue = (fun () -> defaultValue),
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        )
+        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T option.
     static member OptionMaybe<'T>(name: string, ?description: string) =
@@ -56,7 +73,8 @@ type Input =
                 | None -> failwith "F# Option can only be used with a single argument."
             ),            
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T option>
+        ) 
+        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T option.
     static member OptionMaybe<'T>(aliases: string seq, ?description: string) =
@@ -68,14 +86,16 @@ type Input =
                 | None -> failwith "F# Option can only be used with a single argument."
             ),            
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T option>
+        ) 
+        |> HandlerInput.OfOption
 
     /// Creates a CLI argument of type 'T.
     static member Argument<'T>(name: string, ?description: string) = 
         Argument<'T>(
             name, 
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        ) 
+        |> HandlerInput.OfArgument
 
     /// Creates a CLI argument of type 'T with a default value.
     static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) = 
@@ -83,7 +103,8 @@ type Input =
             name,
             getDefaultValue = (fun () -> defaultValue),
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T>
+        ) 
+        |> HandlerInput.OfArgument
     
     /// Creates a CLI argument of type 'T option.
     static member ArgumentMaybe<'T>(name: string, ?description: string) = 
@@ -95,4 +116,9 @@ type Input =
                 | None -> failwith "F# Option can only be used with a single argument."
             ),   
             description = (description |> Option.defaultValue null)
-        ) :> Binding.IValueDescriptor<'T option>
+        ) 
+        |> HandlerInput.OfArgument
+
+    /// Creates an injected dependency input.
+    static member InjectedDependency<'T>() = 
+        HandlerInput<'T>(InjectedDependency)

@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <Compile Include="Aliases.fs" />
-    <Compile Include="Types.fs" />
+    <Compile Include="Inputs.fs" />
     <Compile Include="CommandBuilders.fs" />
   </ItemGroup>
 

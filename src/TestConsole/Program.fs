@@ -1,18 +1,21 @@
 ﻿module Program
-open FSharp.SystemCommandLine
 
-let app (words: string array, separator: string option) =
+open FSharp.SystemCommandLine
+open System.CommandLine.Invocation
+
+let app (ctx: InvocationContext, words: string array, separator: string option) =
     let separator = separator |> Option.defaultValue ", "
-    System.String.Join(separator, words)
-    |> printfn "Result: %s"
+    System.String.Join(separator, words) |> printfn "Result: %s"
+    ctx.ExitCode <- 1
     
 [<EntryPoint>]
 let main argv = 
+    let ctx = Input.InjectedDependency()
     let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
     let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
-        inputs (words, separator)
+        inputs (ctx, words, separator)
         setHandler app
     }
