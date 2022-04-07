@@ -122,6 +122,43 @@ let main argv =
     Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 ```
 
+### Simple App with an Injected Dependency
+
+`System.CommandLine` has a built-in dependency injection system and provides a handlful of built-in types that can be injected into your handler function by default:
+
+* `CancellationToken`
+* `InvocationContext`
+* `ParseResult`
+* `IConsole`
+* `HelpBuilder`
+* `BindingContext`
+
+You can declare injected dependencies via the `Input.InjectedDependency` method.
+
+```F#
+module Program
+
+open FSharp.SystemCommandLine
+open System.CommandLine.Invocation
+
+let app (ctx: InvocationContext, words: string array, separator: string option) =
+    let separator = separator |> Option.defaultValue ", "
+    System.String.Join(separator, words) |> printfn "Result: %s"
+    ctx.ExitCode <- 1
+    
+[<EntryPoint>]
+let main argv = 
+    let ctx = Input.InjectedDependency()
+    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+
+    rootCommand argv {
+        description "Appends words together"
+        inputs (ctx, words, separator)
+        setHandler app
+    }
+```
+
 
 ### Async App with a Partially Applied Dependency
 
