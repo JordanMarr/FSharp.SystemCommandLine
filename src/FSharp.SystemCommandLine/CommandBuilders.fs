@@ -9,6 +9,7 @@ open System.CommandLine.Builder
 open System.CommandLine.Parsing
 
 type private HI<'T> = HandlerInput<'T>
+type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
 
 type CommandSpec<'Inputs, 'Output> = 
@@ -170,8 +171,43 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | _ -> raise (NotImplementedException())
         cmd
 
+    /// Sets a command handler that returns a status code.
+    member this.SetFuncHandlerSync (spec: CommandSpec<'Inputs, int>) (cmd: Command) =
+        let handler (args: obj) = 
+            spec.Handler (args :?> 'Inputs)
+
+        let inputs = 
+            spec.Inputs 
+            |> List.choose (fun input -> 
+                match input.Source with
+                | ParsedOption o -> o :> IValueDescriptor |> Some
+                | ParsedArgument a -> a :> IValueDescriptor |> Some
+                | InjectedDependency -> None
+            )
+            |> List.toArray
+
+        match spec.Inputs.Length with
+        | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> ctx.ExitCode <- handler ()))
+        | 01 -> cmd.SetHandler(Action<IC, 'A>(fun ctx a -> ctx.ExitCode <- handler (a)), inputs)
+        | 02 -> cmd.SetHandler(Action<IC, 'A, 'B>(fun ctx a b -> ctx.ExitCode <- handler (a, b)), inputs)
+        | 03 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C>(fun ctx a b c -> ctx.ExitCode <- handler (a, b, c)), inputs)
+        | 04 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D>(fun ctx a b c d -> ctx.ExitCode <- handler (a, b, c, d)), inputs)
+        | 05 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E>(fun ctx a b c d e -> ctx.ExitCode <- handler (a, b, c, d, e)), inputs)
+        | 06 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F>(fun ctx a b c d e f -> ctx.ExitCode <- handler (a, b, c, d, e, f)), inputs)
+        | 07 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun ctx a b c d e f g -> ctx.ExitCode <- handler (a, b, c, d, e, f, g)), inputs)
+        | 08 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun ctx a b c d e f g h -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)), inputs)
+        | 09 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I>(fun ctx a b c d e f g h i -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i)), inputs)
+        | 10 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J>(fun ctx a b c d e f g h i j -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j)), inputs)
+        | 11 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K>(fun ctx a b c d e f g h i j k -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k)), inputs)
+        | 12 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L>(fun ctx a b c d e f g h i j k l -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l)), inputs)
+        | 13 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M>(fun ctx a b c d e f g h i j k l m -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), inputs)
+        | 14 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun ctx a b c d e f g h i j k l m n -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
+        | 15 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun ctx a b c d e f g h i j k l m n o -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
+        | _ -> raise (NotImplementedException())
+        cmd
+
     /// Sets a command handler that returns a Task.
-    member this.SetFuncHandler (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
+    member this.SetFuncHandlerAsync (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
         let handler (args: obj) = 
             task {
                 return! spec.Handler (args :?> 'Inputs)
@@ -231,14 +267,22 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         |> ignore
         this.CommandLineBuilder.Build().Parse(args).Invoke()
 
-    /// Executes a Command with a handler that returns a Task.
+    /// Executes a Command with a handler that returns int.
+    member this.Run (spec: CommandSpec<'Inputs, int>) =
+        this.CommandLineBuilder.Command
+        |> this.SetGeneralProperties spec
+        |> this.SetFuncHandlerSync spec
+        |> ignore
+        this.CommandLineBuilder.Build().Parse(args).Invoke()
+
+    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandler spec
+        |> this.SetFuncHandlerAsync spec
         |> ignore
         this.CommandLineBuilder.Build().Parse(args).InvokeAsync()
-    
+       
 
 /// Builds a `System.CommandLine.Command`.
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name: string) = 
@@ -250,11 +294,17 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
         |> this.SetGeneralProperties spec
         |> this.SetActionHandler spec
 
-    /// Returns a Command with a handler that returns a Task.
+    /// Executes a Command with a handler that returns int.
+    member this.Run (spec: CommandSpec<'Inputs, int>) =
+        this.CommandLineBuilder.Command
+        |> this.SetGeneralProperties spec
+        |> this.SetFuncHandlerSync spec
+
+    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         Command(name)
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandler spec
+        |> this.SetFuncHandlerAsync spec
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
