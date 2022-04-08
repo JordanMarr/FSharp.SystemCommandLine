@@ -1,39 +1,33 @@
 ﻿module ProgramTask
 
 open FSharp.SystemCommandLine
-open System.CommandLine.Builder
+open System.Threading
 open System.Threading.Tasks
 
-type WordService() = 
-    member _.Join(separator: string, words: string list) = 
-        task {
-            do! Task.Delay(1000)
-            return System.String.Join(separator, words)
-        }
-
-let app (svc: WordService) (words: string list, separator: string) =
+let app (cancel: CancellationToken, words: string array, separator: string) =
     task {
-        let! result = svc.Join(separator, words)
-        result |> printfn "Result: %s"
+        for i in [1..20] do
+            if cancel.IsCancellationRequested then 
+                printfn "Cancellation Requested!"
+                raise (new System.OperationCanceledException())
+            else 
+                printfn $"{i}"
+                do! Task.Delay(1000)
+
+        System.String.Join(separator, words)
+        |> printfn "Result: %s"
     }
     
 //[<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], [], "A list of words to be appended")
+    let cancel = Input.InjectedDependency()
+    let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
     let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
-
-    // Initialize app dependencies
-    let svc = WordService()
 
     rootCommand argv {
         description "Appends words together"
-        inputs (words, separator)
-        usePipeline (fun builder -> 
-            CommandLineBuilder()            // Override pipeline
-                .UseSuggestDirective()
-                .UseParseDirective()
-        )
-        setHandler (app svc)                // Partially apply app dependencies
+        inputs (cancel, words, separator)
+        setHandler app
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
