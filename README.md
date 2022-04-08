@@ -53,6 +53,37 @@ let main argv =
     Result: Unzipping stuff.zip to c:\test\output
 ```
 
+### Simple App that Returns a Status Code
+
+You may optionally return a status code from your handler function.
+
+```F#
+open FSharp.SystemCommandLine
+open System.IO
+
+let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
+    // Default to the zip file dir if None
+    let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
+
+    if zipFile.Exists then
+        printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
+        0 // Program successfully completed.
+    else 
+        printfn $"File does not exist: {zipFile.FullName}"
+        2 // The system cannot find the file specified.
+    
+[<EntryPoint>]
+let main argv = 
+    let zipFile = Input.Argument("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
+
+    rootCommand argv {
+        description "Unzips a .zip file"
+        inputs (zipFile, outputDirMaybe)
+        setHandler unzip
+    }
+```
+
 Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
 ![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
 
