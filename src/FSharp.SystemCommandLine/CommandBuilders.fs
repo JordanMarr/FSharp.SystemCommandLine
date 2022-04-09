@@ -296,7 +296,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
-        this.CommandLineBuilder.Command
+        Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetFuncHandlerSync spec
 
