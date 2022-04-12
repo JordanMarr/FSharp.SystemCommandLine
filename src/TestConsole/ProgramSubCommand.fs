@@ -41,8 +41,7 @@ let main argv =
     rootCommand argv {
         description "File System Manager"
         setHandler id
-        setCommand listCmd
-        setCommand deleteCmd
+        addCommands [ listCmd; deleteCmd ]
     }
     
         

@@ -29,8 +29,8 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
     testRootCommand argstr  {
         description "File System Manager"
         setHandler id
-        setCommand (listCmd listCmdHandler)
-        setCommand (deleteCmd deleteCmdHandler)
+        addCommand (listCmd listCmdHandler)
+        addCommand (deleteCmd deleteCmdHandler)
     } 
     |> ignore
 

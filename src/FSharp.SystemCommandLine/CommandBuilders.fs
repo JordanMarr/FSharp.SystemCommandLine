@@ -118,9 +118,18 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
         newHandler handler spec
 
-    [<CustomOperation("setCommand")>]
-    member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
+    [<Obsolete("'setCommand' has been deprecated in favor of 'addCommand' or 'addCommands`.")>]
+    [<CustomOperation("setCommand")>] 
+    member this.SetCommand (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
+
+    [<CustomOperation("addCommand")>]
+    member this.AddCommand (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command) =
+        { spec with SubCommands = spec.SubCommands @ [ subCommands ] }
+
+    [<CustomOperation("addCommands")>]
+    member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command seq) =
+        { spec with SubCommands = spec.SubCommands @ (subCommands |> Seq.toList) }
 
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
