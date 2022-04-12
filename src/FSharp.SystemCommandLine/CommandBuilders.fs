@@ -124,8 +124,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
 
     [<CustomOperation("addCommand")>]
-    member this.AddCommand (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command) =
-        { spec with SubCommands = spec.SubCommands @ [ subCommands ] }
+    member this.AddCommand (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
+        { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
 
     [<CustomOperation("addCommands")>]
     member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command seq) =
