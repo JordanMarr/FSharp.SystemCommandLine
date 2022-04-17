@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-	<Version>0.8.0-beta</Version>
+	<Version>0.9.0-beta</Version>
 	<Description>F# computation expressions for working with the System.CommandLine API.</Description>
 	<Authors>Jordan Marr</Authors>
 	<PackageTags>F# fsharp System.CommandLine</PackageTags>
@@ -18,6 +18,10 @@
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="FSharp.Core" Version="6.0.0" />
   </ItemGroup>
 
 </Project>
