@@ -26,6 +26,7 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
     static member OfOption<'T>(o: Option<'T>) = o :> Option |> ParsedOption |> HandlerInput<'T>
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
 
+
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 
     
@@ -44,7 +45,7 @@ type Input =
             description = (description |> Option.defaultValue null)
         )
         |> HandlerInput.OfOption
-
+    
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
         Option<'T>(
@@ -60,6 +61,24 @@ type Input =
             aliases |> Seq.toArray,
             getDefaultValue = (fun () -> defaultValue),
             description = (description |> Option.defaultValue null)
+        )
+        |> HandlerInput.OfOption
+
+    /// Creates a CLI option of type 'T that is required.
+    static member OptionRequired<'T>(name: string, ?description: string) =
+        Option<'T>(
+            name,
+            description = (description |> Option.defaultValue null),
+            IsRequired = true
+        ) 
+        |> HandlerInput.OfOption
+
+    /// Creates a CLI option of type 'T that is required.
+    static member OptionRequired<'T>(aliases: string seq, ?description: string) =
+        Option<'T>(
+            aliases |> Seq.toArray,
+            description = (description |> Option.defaultValue null),
+            IsRequired = true
         )
         |> HandlerInput.OfOption
 
@@ -86,7 +105,7 @@ type Input =
                 | None -> failwith "F# Option can only be used with a single argument."
             ),            
             description = (description |> Option.defaultValue null)
-        ) 
+        )
         |> HandlerInput.OfOption
 
     /// Creates a CLI argument of type 'T.
@@ -103,7 +122,7 @@ type Input =
             name,
             getDefaultValue = (fun () -> defaultValue),
             description = (description |> Option.defaultValue null)
-        ) 
+        )
         |> HandlerInput.OfArgument
     
     /// Creates a CLI argument of type 'T option.

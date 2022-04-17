@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="Properties\launchSettings.json" />
     <Compile Include="ProgramAlt1.fs" />
     <Compile Include="ProgramNoArgs.fs" />
     <Compile Include="ProgramSubCommand.fs" />
@@ -13,12 +14,10 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FSharp.SystemCommandLine\FSharp.SystemCommandLine.fsproj" />
-  </ItemGroup>
+  <ItemGroup />
 
   <ItemGroup>
-    <Folder Include="Properties\" />
+    <ProjectReference Include="..\FSharp.SystemCommandLine\FSharp.SystemCommandLine.fsproj" />
   </ItemGroup>
 
 </Project>
