@@ -29,8 +29,8 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
+    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
 
     rootCommand argv {
         description "Unzips a .zip file"
@@ -68,8 +68,8 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
+    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
 
     rootCommand argv {
         description "Unzips a .zip file"
@@ -95,7 +95,7 @@ let listCmd =
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument("dir", "The directory to list")
+    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to list")
 
     command "list" {
         description "lists contents of a directory"
@@ -113,8 +113,8 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("dir", "The directory to delete")
-    let recursive = Input.Option("--recursive", false)
+    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to delete")
+    let recursive = Input.Option<bool>("--recursive", false)
 
     command "delete" {
         description "deletes a directory"
@@ -183,9 +183,9 @@ let app (cancel: CancellationToken, words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let cancel = Input.InjectedDependency()
-    let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let cancel = Input.InjectedDependency<CancellationToken>()
+    let words = Input.Option<string array>(["--word"; "-w"], [||], "A list of words to be appended")
+    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
@@ -219,8 +219,8 @@ let app (svc: WordService) (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let words = Input.Option<string array>(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     // Initialize app dependencies
     let svc = WordService()
