@@ -47,6 +47,12 @@ let main argv =
     Result: Unzipping stuff.zip to c:\test\output
 ```
 
+
+_Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:_
+![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
+
+
+
 ### Simple App that Returns a Status Code
 
 You may optionally return a status code from your handler function.
@@ -77,9 +83,6 @@ let main argv =
         setHandler unzip
     }
 ```
-
-Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
-![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
 
 
 ### App with SubCommands
