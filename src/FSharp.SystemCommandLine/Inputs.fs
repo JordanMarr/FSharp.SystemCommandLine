@@ -4,13 +4,14 @@ module FSharp.SystemCommandLine.Inputs
 open System
 open System.CommandLine
 
-module private Parser = 
+module private MaybeParser = 
     /// Parses an argument token value. 
     /// TODO: Ideally, this should use the S.CL Arugment parser.
     let parseTokenValue<'T> (tokenValue: string) = 
         match typeof<'T> with
-        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> box :?> 'T |> Some
-        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> box :?> 'T |> Some
+        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> unbox<'T> |> Some
+        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> unbox<'T> |> Some
+        | t when t = typeof<Uri> -> Uri(tokenValue) |> unbox<'T> |> Some
         | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
 
 type HandlerInputSource = 
@@ -89,7 +90,7 @@ type Input =
             parseArgument = (fun argResult -> 
                 match argResult.Tokens |> Seq.toList with
                 | [] -> None
-                | [ token ] -> Parser.parseTokenValue token.Value
+                | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
             ), 
             description = (description |> Option.defaultValue null)
@@ -103,7 +104,7 @@ type Input =
             parseArgument = (fun argResult -> 
                 match argResult.Tokens |> Seq.toList with
                 | [] -> None
-                | [ token ] -> Parser.parseTokenValue token.Value
+                | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
             ), 
             description = (description |> Option.defaultValue null)
@@ -134,7 +135,7 @@ type Input =
             parse = (fun argResult -> 
                 match argResult.Tokens |> Seq.toList with
                 | [] -> None
-                | [ token ] -> Parser.parseTokenValue token.Value
+                | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
             ), 
             description = (description |> Option.defaultValue null),
