@@ -7,14 +7,8 @@ The purpose of this library is to improve type safety when using the [`System.Co
 
 ## Features
 
-### Improved type safety
-* Mismatches between `inputs` and `setHandler` are caught at compile time
-
-### Helper methods for creating options and arguments
-* The `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
-* The `FSharp.SystemCommandLine.Aliases` module contains `Opt` and `Arg` aliases and can be opened if direct access is needed to the core API. 
-
-### Support for F# option type
+* Mismatches between `inputs` and `setHandler` function parameters are caught at compile time
+* `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
 * `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
 
 ## Examples
@@ -35,8 +29,8 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
+    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
 
     rootCommand argv {
         description "Unzips a .zip file"
@@ -52,6 +46,12 @@ let main argv =
 > unzip.exe "c:\test\stuff.zip" -o "c:\test\output"
     Result: Unzipping stuff.zip to c:\test\output
 ```
+
+
+_Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:_
+![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
+
+
 
 ### Simple App that Returns a Status Code
 
@@ -74,8 +74,8 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe(["--output"; "-o"], "The output directory")
+    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
+    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
 
     rootCommand argv {
         description "Unzips a .zip file"
@@ -83,9 +83,6 @@ let main argv =
         setHandler unzip
     }
 ```
-
-Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:
-![cli safety](https://user-images.githubusercontent.com/1030435/158190730-b1ae0bbf-825b-48c4-b267-05a1853de4d9.gif)
 
 
 ### App with SubCommands
@@ -101,7 +98,7 @@ let listCmd =
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument("dir", "The directory to list")
+    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to list")
 
     command "list" {
         description "lists contents of a directory"
@@ -119,8 +116,8 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("dir", "The directory to delete")
-    let recursive = Input.Option("--recursive", false)
+    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to delete")
+    let recursive = Input.Option<bool>("--recursive", false)
 
     command "delete" {
         description "deletes a directory"
@@ -189,9 +186,9 @@ let app (cancel: CancellationToken, words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let cancel = Input.InjectedDependency()
-    let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let cancel = Input.InjectedDependency<CancellationToken>()
+    let words = Input.Option<string array>(["--word"; "-w"], [||], "A list of words to be appended")
+    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
@@ -225,8 +222,8 @@ let app (svc: WordService) (words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let words = Input.Option<string array>(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     // Initialize app dependencies
     let svc = WordService()
