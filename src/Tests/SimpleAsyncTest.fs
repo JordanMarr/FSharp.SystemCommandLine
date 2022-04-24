@@ -6,9 +6,9 @@ open FSharp.SystemCommandLine
 open Utils
 
 let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-let separator = Input.Option(["--separator"; "-s"], ",", "A character that will separate the joined words.")
+let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
 
-let rootCmd argstr (handler: string array * string -> unit) = 
+let rootCmd argstr (handler: string array * string option -> unit) = 
     task {
         testRootCommand argstr {
             description "Appends words together"
@@ -23,6 +23,14 @@ let ``01 --word Hello -w World -s *`` () =
     rootCmd "--word Hello -w World -s *"
         (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
-            separator =! "*"
+            separator =! Some "*"
+        )
+
+[<Test>]
+let ``02 --word Hello -w World`` () =
+    rootCmd "--word Hello -w World"
+        (fun (words, separator) ->
+            words =! [| "Hello"; "World" |]
+            separator =! None
         )
     

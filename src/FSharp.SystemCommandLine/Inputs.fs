@@ -87,10 +87,11 @@ type Input =
         Option<'T option>(
             name,
             parseArgument = (fun argResult -> 
-                match argResult.Tokens |> Seq.tryHead with
-                | Some token -> Parser.parseTokenValue token.Value
-                | None -> failwith "F# Option can only be used with a single argument."
-            ),            
+                match argResult.Tokens |> Seq.toList with
+                | [] -> None
+                | [ token ] -> Parser.parseTokenValue token.Value
+                | _ :: _ -> failwith "F# Option can only be used with a single argument."
+            ), 
             description = (description |> Option.defaultValue null)
         ) 
         |> HandlerInput.OfOption
@@ -100,10 +101,11 @@ type Input =
         Option<'T option>(
             aliases |> Seq.toArray,
             parseArgument = (fun argResult -> 
-                match argResult.Tokens |> Seq.tryHead with
-                | Some token -> Parser.parseTokenValue token.Value
-                | None -> failwith "F# Option can only be used with a single argument."
-            ),            
+                match argResult.Tokens |> Seq.toList with
+                | [] -> None
+                | [ token ] -> Parser.parseTokenValue token.Value
+                | _ :: _ -> failwith "F# Option can only be used with a single argument."
+            ), 
             description = (description |> Option.defaultValue null)
         )
         |> HandlerInput.OfOption
@@ -130,11 +132,13 @@ type Input =
         Argument<'T option>(
             name,
             parse = (fun argResult -> 
-                match argResult.Tokens |> Seq.tryHead with
-                | Some token -> Parser.parseTokenValue token.Value
-                | None -> failwith "F# Option can only be used with a single argument."
-            ),   
-            description = (description |> Option.defaultValue null)
+                match argResult.Tokens |> Seq.toList with
+                | [] -> None
+                | [ token ] -> Parser.parseTokenValue token.Value
+                | _ :: _ -> failwith "F# Option can only be used with a single argument."
+            ), 
+            description = (description |> Option.defaultValue null),
+            isDefault = true
         ) 
         |> HandlerInput.OfArgument
 
