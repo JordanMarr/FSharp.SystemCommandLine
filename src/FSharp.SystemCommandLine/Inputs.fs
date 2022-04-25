@@ -127,9 +127,9 @@ type Input =
                 | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
             ), 
-            description = (description |> Option.defaultValue null),
-            isDefault = true
+            description = (description |> Option.defaultValue null)
         )
+        |> fun o -> o.SetDefaultValue(None); o
         |> HandlerInput.OfArgument
 
     /// Creates an injected dependency input.
