@@ -5,34 +5,30 @@ open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
 
-let nameMaybe = Input.ArgumentMaybe<string>("Maybe a name")
-
-let rootCmd argstr (handler: string option -> unit) = 
-    testRootCommand argstr {
-        description "Maybe displays a name"
-        inputs (nameMaybe)
-        setHandler handler
-    } 
-    |> ignore
+let mutable handlerCalled = false
+[<SetUp>] 
+let setup () = handlerCalled <- false
+[<TearDown>] 
+let tearDown () = handlerCalled =! true
 
 [<Test>]
 let ``01 Some jdoe`` () =    
-    let mutable handlerCalled = false
-    rootCmd "jdoe"
-        (fun (nameMaybe) ->
+    testRootCommand "jdoe" {
+        description "Maybe displays a name"
+        inputs (Input.ArgumentMaybe<string>("Maybe a name"))
+        setHandler (fun name ->
+            name =! Some "jdoe"
             handlerCalled <- true
-            nameMaybe =! Some "jdoe"
         )
-
-    handlerCalled =! true
+    } |> ignore
     
 [<Test>]
 let ``02 None`` () =    
-    let mutable handlerCalled = false
-    rootCmd ""
-        (fun (nameMaybe) ->
+    testRootCommand "" {
+        description "Maybe displays a name"
+        inputs (Input.ArgumentMaybe<string>("Maybe a name"))
+        setHandler (fun name ->
+            name =! None
             handlerCalled <- true
-            nameMaybe =! None
         )
-
-    handlerCalled =! true
+    } |> ignore
