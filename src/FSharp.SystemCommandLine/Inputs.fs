@@ -66,15 +66,6 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T that is required.
-    static member OptionRequired<'T>(name: string, ?description: string) =
-        Option<'T>(
-            name,
-            description = (description |> Option.defaultValue null),
-            IsRequired = true
-        ) 
-        |> HandlerInput.OfOption
-
-    /// Creates a CLI option of type 'T that is required.
     static member OptionRequired<'T>(aliases: string seq, ?description: string) =
         Option<'T>(
             aliases |> Seq.toArray,
@@ -82,34 +73,32 @@ type Input =
             IsRequired = true
         )
         |> HandlerInput.OfOption
-
-    /// Creates a CLI option of type 'T option.
-    static member OptionMaybe<'T>(name: string, ?description: string) =
-        Option<'T option>(
-            name,
-            parseArgument = (fun argResult -> 
-                match argResult.Tokens |> Seq.toList with
-                | [] -> None
-                | [ token ] -> MaybeParser.parseTokenValue token.Value
-                | _ :: _ -> failwith "F# Option can only be used with a single argument."
-            ), 
-            description = (description |> Option.defaultValue null)
-        ) 
-        |> HandlerInput.OfOption
+        
+    /// Creates a CLI option of type 'T that is required.
+    static member OptionRequired<'T>(name: string, ?description: string) =
+        Input.OptionRequired<'T>([| name |], description |> Option.defaultValue null)
 
     /// Creates a CLI option of type 'T option.
     static member OptionMaybe<'T>(aliases: string seq, ?description: string) =
+        let isBool = typeof<'T> = typeof<bool>
         Option<'T option>(
             aliases |> Seq.toArray,
             parseArgument = (fun argResult -> 
                 match argResult.Tokens |> Seq.toList with
+                | [] when isBool -> true |> unbox<'T> |> Some
                 | [] -> None
                 | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
             ), 
-            description = (description |> Option.defaultValue null)
+            description = (description |> Option.defaultValue null),
+            Arity = ArgumentArity(0, 1)
         )
+        |> fun o -> o.SetDefaultValue(None); o
         |> HandlerInput.OfOption
+
+    /// Creates a CLI option of type 'T option.
+    static member OptionMaybe<'T>(name: string, ?description: string) =
+        Input.OptionMaybe<'T>([| name |], description |> Option.defaultValue null)
 
     /// Creates a CLI argument of type 'T.
     static member Argument<'T>(name: string, ?description: string) = 
@@ -140,7 +129,7 @@ type Input =
             ), 
             description = (description |> Option.defaultValue null),
             isDefault = true
-        ) 
+        )
         |> HandlerInput.OfArgument
 
     /// Creates an injected dependency input.
