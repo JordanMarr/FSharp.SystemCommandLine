@@ -8,7 +8,7 @@ The purpose of this library is to improve type safety when using the [`System.Co
 ## Features
 
 * Mismatches between `inputs` and `setHandler` function parameters are caught at compile time
-* `Input.Option` helper method avoids the need use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
+* `Input.Option` helper method avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
 * `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
 
 ## Examples
