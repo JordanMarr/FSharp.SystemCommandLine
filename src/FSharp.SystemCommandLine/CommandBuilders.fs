@@ -252,9 +252,48 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | 16 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, Task>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), inputs)
         | _ -> raise (NotImplementedException())
         cmd
+
             
-            
-/// Builds a `System.CommandLine.RootCommand`.
+/// Builds a `System.CommandLine.Parsing.Parser`.
+type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+    
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
+        subCommand this.CommandLineBuilder
+        spec
+
+    [<CustomOperation("usePipeline")>]
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
+        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
+        spec
+        
+    /// Executes a Command with a handler that returns unit.
+    member this.Run (spec: CommandSpec<'Inputs, unit>) =
+        this.CommandLineBuilder.Command
+        |> this.SetGeneralProperties spec
+        |> this.SetActionHandler spec
+        |> ignore
+        this.CommandLineBuilder.Build()
+
+    /// Executes a Command with a handler that returns int.
+    member this.Run (spec: CommandSpec<'Inputs, int>) =
+        this.CommandLineBuilder.Command
+        |> this.SetGeneralProperties spec
+        |> this.SetFuncHandlerSync spec
+        |> ignore
+        this.CommandLineBuilder.Build()
+
+    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
+        this.CommandLineBuilder.Command
+        |> this.SetGeneralProperties spec
+        |> this.SetFuncHandlerAsync spec
+        |> ignore
+        this.CommandLineBuilder.Build()
+
+        
+/// Builds and executes a `System.CommandLine.RootCommand`.
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
     
@@ -317,6 +356,10 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
+let rootCommandParser<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> = 
+    RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+
+/// Builds and executes a `System.CommandLine.RootCommand` using computation expression syntax.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array)= 
     RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args)
 
