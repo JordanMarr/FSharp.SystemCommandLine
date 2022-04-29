@@ -240,3 +240,31 @@ let main argv =
     |> Async.AwaitTask
     |> Async.RunSynchronously
 ```
+
+### Creating a Root Command Parser
+
+If you want to manually invoke your root command, use the `rootCommandParser` CE (because the `rootCommand` CE is auto-executing).
+
+```F#
+open FSharp.SystemCommandLine
+open System.CommandLine.Parsing
+
+let app (words: string array, separator: string option) =
+    let separator = separator |> Option.defaultValue ", "
+    System.String.Join(separator, words) |> printfn "Result: %s"
+    0
+    
+[<EntryPoint>]
+let main argv = 
+    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+
+    let parser = 
+        rootCommandParser {
+            description "Appends words together"
+            inputs (words, separator)
+            setHandler app
+        }
+
+    parser.Parse(argv).Invoke()
+```
