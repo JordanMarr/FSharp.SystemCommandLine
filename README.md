@@ -131,6 +131,8 @@ let main argv =
     rootCommand argv {
         description "File System Manager"
         setHandler id
+        // if using async task sub commands, setHandler to `Task.FromResult`
+        // setHandler Task.FromResult         
         addCommand listCmd
         addCommand deleteCmd
     }
