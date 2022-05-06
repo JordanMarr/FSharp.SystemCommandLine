@@ -204,13 +204,13 @@ let main argv =
 ### Example using Microsoft.Extensions.Hosting
 
 ```F#
+open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
 open FSharp.SystemCommandLine
 open System
 open System.IO
-open Microsoft.Extensions.Hosting
 
 let createHost (argv: string[]) =
     Host.CreateDefaultBuilder(argv)
