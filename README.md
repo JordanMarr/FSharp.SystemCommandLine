@@ -212,7 +212,7 @@ open FSharp.SystemCommandLine
 open System
 open System.IO
 
-let createHost (argv: string[]) =
+let buildHost (argv: string[]) =
     Host.CreateDefaultBuilder(argv)
         .ConfigureHostConfiguration(fun configHost ->
             configHost.SetBasePath(Directory.GetCurrentDirectory()) |> ignore
@@ -231,7 +231,7 @@ let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, 
 
 [<EntryPoint>]
 let main argv =
-    let host = Startup.createHost argv
+    let host = buildHost argv
     let logger = host.Services.GetService<ILogger<_>>()
     let cfg = host.Services.GetService<IConfiguration>()
 
