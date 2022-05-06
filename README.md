@@ -201,43 +201,57 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
-
-### Async App with a Partially Applied Dependency
+### Example using Microsoft.Extensions.Hosting
 
 ```F#
+open Microsoft.Extensions.Logging
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
 open FSharp.SystemCommandLine
-open System.CommandLine.Builder
-open System.Threading.Tasks
+open System
+open System.IO
+open Microsoft.Extensions.Hosting
 
-type WordService() = 
-    member _.Join(separator: string, words: string array) = 
-        task {
-            do! Task.Delay(1000)
-            return System.String.Join(separator, words)
-        }
+let createHost (argv: string[]) =
+    Host.CreateDefaultBuilder(argv)
+        .ConfigureHostConfiguration(fun configHost ->
+            configHost.SetBasePath(Directory.GetCurrentDirectory()) |> ignore
+            configHost.AddJsonFile("appsettings.json", optional = false) |> ignore
+        )
+        .ConfigureLogging(fun logging ->
+            logging.AddConsole() |> ignore
+        )
+        .Build()        
 
-let app (svc: WordService) (words: string array, separator: string) =
+let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
     task {
-        let! result = svc.Join(separator, words)
-        result |> printfn "Result: %s"
+        logger.LogInformation($"Querying from {startDate.ToShortDateString()} to {endDate.ToShortDateString()}")
+        // Do export stuff...
     }
-    
-[<EntryPoint>]
-let main argv = 
-    let words = Input.Option<string array>(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
-    // Initialize app dependencies
-    let svc = WordService()
+[<EntryPoint>]
+let main argv =
+    let host = Startup.createHost argv
+    let logger = host.Services.GetService<ILogger<_>>()
+    let cfg = host.Services.GetService<IConfiguration>()
+
+    let connStr = Input.Option<string>(
+        aliases = ["-c"; "--connection-string"], 
+        defaultValue = cfg["ConnectionStrings:DB"],
+        description = "Database connection string")
+
+    let outputDir = Input.Option<DirectoryInfo>(
+        aliases = ["-o";"--output-directory"], 
+        defaultValue = DirectoryInfo(cfg["DefaultOutputDirectory"]), 
+        description = "Output directory folder.")
+
+    let startDate = Input.Option<DateTime>("--start-date", DateTime.Today.AddDays(-7), "Start date (defaults to 1 week ago from today)")
+    let endDate = Input.Option<DateTime>("--end-date", DateTime.Today, "End date (defaults to today)")
 
     rootCommand argv {
-        description "Appends words together"
-        inputs (words, separator)
-        usePipeline (fun builder -> 
-            CommandLineBuilder()            // Pipeline is initialized with .UseDefaults() by default,
-                .UseTypoCorrections(3)      // but you can override it here if needed.
-        )
-        setHandler (app svc)                // Partially apply app dependencies
+        description "Data Export"
+        inputs (connStr, outputDir, startDate, endDate)
+        setHandler (exportHandler logger)
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
