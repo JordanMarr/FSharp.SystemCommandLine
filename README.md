@@ -260,8 +260,15 @@ let main argv =
         defaultValue = DirectoryInfo(cfg["DefaultOutputDirectory"]), 
         description = "Output directory folder.")
 
-    let startDate = Input.Option<DateTime>("--start-date", DateTime.Today.AddDays(-7), "Start date (defaults to 1 week ago from today)")
-    let endDate = Input.Option<DateTime>("--end-date", DateTime.Today, "End date (defaults to today)")
+    let startDate = Input.Option<DateTime>(
+        name = "--start-date", 
+        defaultValue = DateTime.Today.AddDays(-7), 
+        description = "Start date (defaults to 1 week ago from today)")
+        
+    let endDate = Input.Option<DateTime>(
+        name = "--end-date", 
+        defaultValue = DateTime.Today, 
+        description = "End date (defaults to today)")
 
     rootCommand argv {
         description "Data Export"
