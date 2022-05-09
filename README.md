@@ -204,13 +204,14 @@ let main argv =
 ### Example using Microsoft.Extensions.Hosting
 
 ```F#
+open System
+open System.IO
+open FSharp.SystemCommandLine
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.DependencyInjection
-open FSharp.SystemCommandLine
-open System
-open System.IO
+open Serilog
 
 let buildHost (argv: string[]) =
     Host.CreateDefaultBuilder(argv)
@@ -220,6 +221,20 @@ let buildHost (argv: string[]) =
         )
         .ConfigureLogging(fun logging ->
             logging.AddConsole() |> ignore
+            logging.AddSerilog() |> ignore
+        )
+        .ConfigureServices(fun services ->
+            // Serilog configuration
+            let logger = 
+                LoggerConfiguration()
+                    .WriteTo.File(path = "logs/log.txt")
+                    .CreateLogger()
+
+            services.AddLogging(fun builder ->
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddSerilog(logger, dispose = true) |> ignore
+            ) |> ignore
         )
         .Build()        
 
