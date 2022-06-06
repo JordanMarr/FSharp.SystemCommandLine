@@ -39,6 +39,8 @@ let main argv =
     }
 ```
 
+💥WARNING: You must declare `inputs` before `setHandler` or else the type checking will not work properly and you will get a build error!💥
+
 ```batch
 > unzip.exe "c:\test\stuff.zip"
     Result: Unzipping stuff.zip to c:\test
