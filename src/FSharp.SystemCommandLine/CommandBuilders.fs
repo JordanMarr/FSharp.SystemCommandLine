@@ -149,8 +149,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         spec.SubCommands |> List.iter cmd.AddCommand
         cmd
 
-    /// Sets a command handler that returns unit.
-    member this.SetActionHandler (spec: CommandSpec<'Inputs, unit>) (cmd: Command) =
+    /// Sets a command handler that returns `unit`.
+    member this.SetHandlerUnit (spec: CommandSpec<'Inputs, unit>) (cmd: Command) =
         let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
         let valueDescriptors = 
@@ -178,8 +178,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | _ -> raise (NotImplementedException())
         cmd
 
-    /// Sets a command handler that returns a status code.
-    member this.SetFuncHandlerSync (spec: CommandSpec<'Inputs, int>) (cmd: Command) =
+    /// Sets a command handler that returns an `int` status code.
+    member this.SetFuncHandlerInt (spec: CommandSpec<'Inputs, int>) (cmd: Command) =
         let handler (args: obj) = 
             spec.Handler (args :?> 'Inputs)
 
@@ -246,8 +246,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | _ -> raise (NotImplementedException())
         cmd
 
-    /// Sets a command handler that returns a Task.
-    member this.SetFuncHandlerAsync (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
+    /// Sets a command handler that returns a `Task`.
+    member this.SetFuncHandlerTask (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
         let handler (args: obj) = 
             task {
                 return! spec.Handler (args :?> 'Inputs)
@@ -297,7 +297,7 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetActionHandler spec
+        |> this.SetHandlerUnit spec
         |> ignore
         this.CommandLineBuilder.Build()
 
@@ -305,7 +305,7 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M
     member this.Run (spec: CommandSpec<'Inputs, int>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerSync spec
+        |> this.SetFuncHandlerInt spec
         |> ignore
         this.CommandLineBuilder.Build()
 
@@ -313,7 +313,7 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerAsync spec
+        |> this.SetFuncHandlerTask spec
         |> ignore
         this.CommandLineBuilder.Build()
 
@@ -336,7 +336,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetActionHandler spec
+        |> this.SetHandlerUnit spec
         |> ignore
         this.CommandLineBuilder.Build().Parse(args).Invoke()
 
@@ -344,7 +344,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.Run (spec: CommandSpec<'Inputs, int>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerSync spec
+        |> this.SetFuncHandlerInt spec
         |> ignore
         this.CommandLineBuilder.Build().Parse(args).Invoke()
 
@@ -352,7 +352,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         this.CommandLineBuilder.Command
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerAsync spec
+        |> this.SetFuncHandlerTask spec
         |> ignore
         this.CommandLineBuilder.Build().Parse(args).InvokeAsync()
        
@@ -365,19 +365,19 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
     member this.Run (spec: CommandSpec<'Inputs, unit>) = 
         Command(name)
         |> this.SetGeneralProperties spec
-        |> this.SetActionHandler spec
+        |> this.SetHandlerUnit spec
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
         Command(name)
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerSync spec
+        |> this.SetFuncHandlerInt spec
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         Command(name)
         |> this.SetGeneralProperties spec
-        |> this.SetFuncHandlerAsync spec
+        |> this.SetFuncHandlerTask spec
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
