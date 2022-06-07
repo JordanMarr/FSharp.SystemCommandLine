@@ -39,6 +39,8 @@ let main argv =
     }
 ```
 
+💥WARNING: You must declare `inputs` before `setHandler` or else the type checking will not work properly and you will get a build error!💥
+
 ```batch
 > unzip.exe "c:\test\stuff.zip"
     Result: Unzipping stuff.zip to c:\test
@@ -131,6 +133,8 @@ let main argv =
     rootCommand argv {
         description "File System Manager"
         setHandler id
+        // if using async task sub commands, setHandler to `Task.FromResult`
+        // setHandler Task.FromResult         
         addCommand listCmd
         addCommand deleteCmd
     }
@@ -199,44 +203,108 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
-
-### Async App with a Partially Applied Dependency
+### Example using Microsoft.Extensions.Hosting
 
 ```F#
+open System
+open System.IO
 open FSharp.SystemCommandLine
-open System.CommandLine.Builder
-open System.Threading.Tasks
+open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Logging
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
+open Serilog
 
-type WordService() = 
-    member _.Join(separator: string, words: string array) = 
-        task {
-            do! Task.Delay(1000)
-            return System.String.Join(separator, words)
-        }
+let buildHost (argv: string[]) =
+    Host.CreateDefaultBuilder(argv)
+        .ConfigureHostConfiguration(fun configHost ->
+            configHost.SetBasePath(Directory.GetCurrentDirectory()) |> ignore
+            configHost.AddJsonFile("appsettings.json", optional = false) |> ignore
+        )
+        .ConfigureLogging(fun logging ->
+            logging.AddConsole() |> ignore
+            logging.AddSerilog() |> ignore
+        )
+        .ConfigureServices(fun services ->
+            // Serilog configuration
+            let logger = 
+                LoggerConfiguration()
+                    .WriteTo.File(path = "logs/log.txt")
+                    .CreateLogger()
 
-let app (svc: WordService) (words: string array, separator: string) =
+            services.AddLogging(fun builder ->
+                builder
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddSerilog(logger, dispose = true) |> ignore
+            ) |> ignore
+        )
+        .Build()        
+
+let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
     task {
-        let! result = svc.Join(separator, words)
-        result |> printfn "Result: %s"
+        logger.LogInformation($"Querying from {startDate.ToShortDateString()} to {endDate.ToShortDateString()}")
+        // Do export stuff...
     }
-    
-[<EntryPoint>]
-let main argv = 
-    let words = Input.Option<string array>(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
-    // Initialize app dependencies
-    let svc = WordService()
+[<EntryPoint>]
+let main argv =
+    let host = buildHost argv
+    let logger = host.Services.GetService<ILogger<_>>()
+    let cfg = host.Services.GetService<IConfiguration>()
+
+    let connStr = Input.Option<string>(
+        aliases = ["-c"; "--connection-string"], 
+        defaultValue = cfg["ConnectionStrings:DB"],
+        description = "Database connection string")
+
+    let outputDir = Input.Option<DirectoryInfo>(
+        aliases = ["-o";"--output-directory"], 
+        defaultValue = DirectoryInfo(cfg["DefaultOutputDirectory"]), 
+        description = "Output directory folder.")
+
+    let startDate = Input.Option<DateTime>(
+        name = "--start-date", 
+        defaultValue = DateTime.Today.AddDays(-7), 
+        description = "Start date (defaults to 1 week ago from today)")
+        
+    let endDate = Input.Option<DateTime>(
+        name = "--end-date", 
+        defaultValue = DateTime.Today, 
+        description = "End date (defaults to today)")
 
     rootCommand argv {
-        description "Appends words together"
-        inputs (words, separator)
-        usePipeline (fun builder -> 
-            CommandLineBuilder()            // Pipeline is initialized with .UseDefaults() by default,
-                .UseTypoCorrections(3)      // but you can override it here if needed.
-        )
-        setHandler (app svc)                // Partially apply app dependencies
+        description "Data Export"
+        inputs (connStr, outputDir, startDate, endDate)
+        setHandler (exportHandler logger)
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
+```
+
+### Creating a Root Command Parser
+
+If you want to manually invoke your root command, use the `rootCommandParser` CE (because the `rootCommand` CE is auto-executing).
+
+```F#
+open FSharp.SystemCommandLine
+open System.CommandLine.Parsing
+
+let app (words: string array, separator: string option) =
+    let separator = separator |> Option.defaultValue ", "
+    System.String.Join(separator, words) |> printfn "Result: %s"
+    0
+    
+[<EntryPoint>]
+let main argv = 
+    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+
+    let parser = 
+        rootCommandParser {
+            description "Appends words together"
+            inputs (words, separator)
+            setHandler app
+        }
+
+    parser.Parse(argv).Invoke()
 ```
