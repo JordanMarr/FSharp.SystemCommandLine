@@ -25,3 +25,19 @@ let ``01 --word Hello -w World -s *`` () =
             handlerCalled <- true
         )
     } |> ignore
+
+[<Test>]
+let ``02 --word Hello -w World -s * with int return`` () =    
+    testRootCommand "--word Hello -w World -s *" {
+        description "Appends words together"
+        inputs (
+            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
+            Input.Option(["--separator"; "-s"], ",", "A character that will separate the joined words.")
+        )
+        setHandler (fun (words, separator) ->
+            words =! [| "Hello"; "World" |]
+            separator =! "*"
+            handlerCalled <- true
+            0
+        )
+    } |> ignore

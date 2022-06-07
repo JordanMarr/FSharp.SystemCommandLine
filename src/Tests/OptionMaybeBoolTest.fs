@@ -54,3 +54,16 @@ let ``04 no option or argument should be None`` () =
             handlerCalled <- true
         )
     } |> ignore
+
+[<Test>]
+let ``05 no option or argument should be None with int return`` () =
+    testRootCommand "--flag" {
+        description "Test"
+        inputs (Input.OptionMaybe<bool>("--flag", "True, false or none"))
+        setHandler (fun flag ->
+            flag =! Some true
+            handlerCalled <- true
+            0
+        )
+    } |> ignore
+

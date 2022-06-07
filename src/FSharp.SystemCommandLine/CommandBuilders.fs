@@ -12,6 +12,10 @@ type private HI<'T> = HandlerInput<'T>
 type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
 
+/// Casts an IValueDescriptor to an IValueDescriptor<'T>
+let castValueDescriptor (ivdInputs: IValueDescriptor list) (idx: int) = 
+    ivdInputs[idx] :?> IValueDescriptor<'InputType>
+
 type CommandSpec<'Inputs, 'Output> = 
     {
         Description: string
@@ -139,7 +143,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             match input.Source with
             | ParsedOption o -> cmd.AddOption o
             | ParsedArgument a -> cmd.AddArgument a
-            | InjectedDependency -> () // DI system will inject this input
+            | InjectedDependency -> ()
         )
 
         spec.SubCommands |> List.iter cmd.AddCommand
@@ -149,7 +153,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     member this.SetActionHandler (spec: CommandSpec<'Inputs, unit>) (cmd: Command) =
         let handler (args: obj) = spec.Handler (args :?> 'Inputs)
 
-        let inputs = 
+        let valueDescriptors = 
             spec.Inputs 
             |> List.choose (fun input -> 
                 match input.Source with
@@ -157,26 +161,20 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
                 | ParsedArgument a -> a :> IValueDescriptor |> Some
                 | InjectedDependency -> None
             )
-            |> List.toArray
+
+        /// Casts an IValueDescriptor to an IValueDescriptor<'T>
+        let cvd idx = castValueDescriptor valueDescriptors idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action(fun () -> handler ()))
-        | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), inputs)
-        | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), inputs)
-        | 03 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), inputs)
-        | 04 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), inputs)
-        | 05 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E>(fun a b c d e -> handler (a, b, c, d, e)), inputs)
-        | 06 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F>(fun a b c d e f -> handler (a, b, c, d, e, f)), inputs)
-        | 07 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), inputs)
-        | 08 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), inputs)
-        | 09 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I>(fun a b c d e f g h i -> handler (a, b, c, d, e, f, g, h, i)), inputs)
-        | 10 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J>(fun a b c d e f g h i j -> handler (a, b, c, d, e, f, g, h, i, j)), inputs)
-        | 11 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K>(fun a b c d e f g h i j k -> handler (a, b, c, d, e, f, g, h, i, j, k)), inputs)
-        | 12 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L>(fun a b c d e f g h i j k l -> handler (a, b, c, d, e, f, g, h, i, j, k, l)), inputs)
-        | 13 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M>(fun a b c d e f g h i j k l m -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), inputs)
-        | 14 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
-        | 15 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
-        | 16 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), inputs)
+        | 01 -> cmd.SetHandler(Action<'A>(fun a -> handler (a)), cvd 0)
+        | 02 -> cmd.SetHandler(Action<'A, 'B>(fun a b -> handler (a, b)), cvd 0, cvd 1)
+        | 03 -> cmd.SetHandler(Action<'A, 'B, 'C>(fun a b c -> handler (a, b, c)), cvd 0, cvd 1, cvd 2)
+        | 04 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D>(fun a b c d -> handler (a, b, c, d)), cvd 0, cvd 1, cvd 2, cvd 3)
+        | 05 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E>(fun a b c d e -> handler (a, b, c, d, e)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4)
+        | 06 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F>(fun a b c d e f -> handler (a, b, c, d, e, f)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5)
+        | 07 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6)
+        | 08 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6, cvd 7)
         | _ -> raise (NotImplementedException())
         cmd
 
@@ -185,33 +183,66 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         let handler (args: obj) = 
             spec.Handler (args :?> 'Inputs)
 
-        let inputs = 
-            spec.Inputs 
-            |> List.choose (fun input -> 
-                match input.Source with
-                | ParsedOption o -> o :> IValueDescriptor |> Some
-                | ParsedArgument a -> a :> IValueDescriptor |> Some
-                | InjectedDependency -> None
-            )
-            |> List.toArray
+        let getValue (ctx: IC) (idx: int) =
+            match spec.Inputs[idx].Source with
+            | ParsedOption o -> ctx.ParseResult.GetValueForOption(o)
+            | ParsedArgument a -> ctx.ParseResult.GetValueForArgument(a)
+            | InjectedDependency -> ctx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> ctx.ExitCode <- handler ()))
-        | 01 -> cmd.SetHandler(Action<IC, 'A>(fun ctx a -> ctx.ExitCode <- handler (a)), inputs)
-        | 02 -> cmd.SetHandler(Action<IC, 'A, 'B>(fun ctx a b -> ctx.ExitCode <- handler (a, b)), inputs)
-        | 03 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C>(fun ctx a b c -> ctx.ExitCode <- handler (a, b, c)), inputs)
-        | 04 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D>(fun ctx a b c d -> ctx.ExitCode <- handler (a, b, c, d)), inputs)
-        | 05 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E>(fun ctx a b c d e -> ctx.ExitCode <- handler (a, b, c, d, e)), inputs)
-        | 06 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F>(fun ctx a b c d e f -> ctx.ExitCode <- handler (a, b, c, d, e, f)), inputs)
-        | 07 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun ctx a b c d e f g -> ctx.ExitCode <- handler (a, b, c, d, e, f, g)), inputs)
-        | 08 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun ctx a b c d e f g h -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)), inputs)
-        | 09 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I>(fun ctx a b c d e f g h i -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i)), inputs)
-        | 10 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J>(fun ctx a b c d e f g h i j -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j)), inputs)
-        | 11 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K>(fun ctx a b c d e f g h i j k -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k)), inputs)
-        | 12 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L>(fun ctx a b c d e f g h i j k l -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l)), inputs)
-        | 13 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M>(fun ctx a b c d e f g h i j k l m -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), inputs)
-        | 14 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N>(fun ctx a b c d e f g h i j k l m n -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
-        | 15 -> cmd.SetHandler(Action<IC, 'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O>(fun ctx a b c d e f g h i j k l m n o -> ctx.ExitCode <- handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
+        | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                ctx.ExitCode <- handler (a)))
+        | 02 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                ctx.ExitCode <- handler (a, b)))
+        | 03 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                ctx.ExitCode <- handler (a, b, c)))
+        | 04 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                let d = getValue ctx 3 :?> 'D
+                ctx.ExitCode <- handler (a, b, c, d)))
+        | 05 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                let d = getValue ctx 3 :?> 'D
+                let e = getValue ctx 4 :?> 'E
+                ctx.ExitCode <- handler (a, b, c, d, e)))
+        | 06 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                let d = getValue ctx 3 :?> 'D
+                let e = getValue ctx 4 :?> 'E
+                let f = getValue ctx 5 :?> 'F
+                ctx.ExitCode <- handler (a, b, c, d, e, f)))
+        | 07 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                let d = getValue ctx 3 :?> 'D
+                let e = getValue ctx 4 :?> 'E
+                let f = getValue ctx 5 :?> 'F
+                let g = getValue ctx 6 :?> 'G
+                ctx.ExitCode <- handler (a, b, c, d, e, f, g)))
+        | 08 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                let a = getValue ctx 0 :?> 'A
+                let b = getValue ctx 1 :?> 'B
+                let c = getValue ctx 2 :?> 'C
+                let d = getValue ctx 3 :?> 'D
+                let e = getValue ctx 4 :?> 'E
+                let f = getValue ctx 5 :?> 'F
+                let g = getValue ctx 6 :?> 'G
+                let h = getValue ctx 7 :?> 'H
+                ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException())
         cmd
 
@@ -222,7 +253,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
                 return! spec.Handler (args :?> 'Inputs)
             }
 
-        let inputs = 
+        let valueDescriptors = 
             spec.Inputs 
             |> List.choose (fun input -> 
                 match input.Source with
@@ -230,26 +261,20 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
                 | ParsedArgument a -> a :> IValueDescriptor |> Some
                 | InjectedDependency -> None
             )
-            |> List.toArray
+            
+        /// Casts an IValueDescriptor to an IValueDescriptor<'T>
+        let cvd idx = castValueDescriptor valueDescriptors idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Func<Task>(fun () -> handler ()))
-        | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), inputs)
-        | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), inputs)
-        | 03 -> cmd.SetHandler(Func<'A, 'B, 'C, Task>(fun a b c -> handler (a, b, c)), inputs)
-        | 04 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, Task>(fun a b c d -> handler (a, b, c, d)), inputs)
-        | 05 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, Task>(fun a b c d e -> handler (a, b, c, d, e)), inputs)
-        | 06 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, Task>(fun a b c d e f -> handler (a, b, c, d, e, f)), inputs)
-        | 07 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, Task>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), inputs)
-        | 08 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, Task>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), inputs)
-        | 09 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, Task>(fun a b c d e f g h i -> handler (a, b, c, d, e, f, g, h, i)), inputs)
-        | 10 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, Task>(fun a b c d e f g h i j -> handler (a, b, c, d, e, f, g, h, i, j)), inputs)
-        | 11 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, Task>(fun a b c d e f g h i j k -> handler (a, b, c, d, e, f, g, h, i, j, k)), inputs)
-        | 12 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, Task>(fun a b c d e f g h i j k l -> handler (a, b, c, d, e, f, g, h, i, j, k, l)), inputs)
-        | 13 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, Task>(fun a b c d e f g h i j k l m -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m)), inputs)
-        | 14 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, Task>(fun a b c d e f g h i j k l m n -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n)), inputs)
-        | 15 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, Task>(fun a b c d e f g h i j k l m n o -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o)), inputs)
-        | 16 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, Task>(fun a b c d e f g h i j k l m n o p -> handler (a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p)), inputs)
+        | 01 -> cmd.SetHandler(Func<'A, Task>(fun a -> handler (a)), cvd 0)
+        | 02 -> cmd.SetHandler(Func<'A, 'B, Task>(fun a b -> handler (a, b)), cvd 0, cvd 1)
+        | 03 -> cmd.SetHandler(Func<'A, 'B, 'C, Task>(fun a b c -> handler (a, b, c)), cvd 0, cvd 1, cvd 2)
+        | 04 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, Task>(fun a b c d -> handler (a, b, c, d)), cvd 0, cvd 1, cvd 2, cvd 3)
+        | 05 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, Task>(fun a b c d e -> handler (a, b, c, d, e)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4)
+        | 06 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, Task>(fun a b c d e f -> handler (a, b, c, d, e, f)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5)
+        | 07 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, Task>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6)
+        | 08 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, Task>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6, cvd 7)
         | _ -> raise (NotImplementedException())
         cmd
 
