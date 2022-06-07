@@ -158,7 +158,7 @@ You may need to pass the `InvocationContext` to your handler function for the fo
 * You need to get `CancellationToken`, `IConsole` or `ParseResult`
 * If you have more than 8 inputs, you will need to manually get the parsed values via the `InvocationContext`.
 
-You can pass the `InvocationContext` by via the `Input.Context` method.
+You can pass the `InvocationContext` via the `Input.Context()` method.
 
 ```F#
 module Program
