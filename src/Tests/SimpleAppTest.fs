@@ -12,32 +12,50 @@ let setup () = handlerCalled <- false
 let tearDown () = handlerCalled =! true
 
 [<Test>]
-let ``01 --word Hello -w World -s *`` () =    
+let ``01 --word Hello -w World -s * return unit`` () =    
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
             Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
-            Input.Option(["--separator"; "-s"], ",", "A character that will separate the joined words.")
+            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
         )
         setHandler (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
-            separator =! "*"
+            separator =! Some "*"
             handlerCalled <- true
         )
     } |> ignore
 
 [<Test>]
-let ``02 --word Hello -w World -s * with int return`` () =    
-    testRootCommand "--word Hello -w World -s *" {
+let ``02 --word Hello -w World return unit`` () =    
+    testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
             Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
-            Input.Option(["--separator"; "-s"], ",", "A character that will separate the joined words.")
+            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
         )
         setHandler (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
-            separator =! "*"
+            separator =! None
             handlerCalled <- true
-            0
         )
     } |> ignore
+
+[<Test>]
+let ``03 --word Hello -w World -s * return int`` () =    
+    let code = 
+        testRootCommand "--word Hello -w World -s *" {
+            description "Appends words together"
+            inputs (
+                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
+                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+            )
+            setHandler (fun (words, separator) ->
+                words =! [| "Hello"; "World" |]
+                separator =! Some "*"
+                handlerCalled <- true
+                5
+            )
+        }
+
+    code =! 5

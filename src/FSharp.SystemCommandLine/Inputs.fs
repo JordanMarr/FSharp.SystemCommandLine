@@ -17,7 +17,7 @@ module private MaybeParser =
 type HandlerInputSource = 
     | ParsedOption of Option
     | ParsedArgument of Argument
-    | InjectedDependency
+    | Context
 
 type HandlerInput(source: HandlerInputSource) = 
     member this.Source = source
@@ -132,6 +132,6 @@ type Input =
         |> fun o -> o.SetDefaultValue(None); o
         |> HandlerInput.OfArgument
 
-    /// Creates an injected dependency input.
-    static member InjectedDependency<'T>() = 
-        HandlerInput<'T>(InjectedDependency)
+    /// Passes the `InvocationContext` to the handler.
+    static member Context() = 
+        HandlerInput<Invocation.InvocationContext>(Context)

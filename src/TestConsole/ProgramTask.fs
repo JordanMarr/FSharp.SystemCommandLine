@@ -3,9 +3,12 @@
 open FSharp.SystemCommandLine
 open System.Threading
 open System.Threading.Tasks
+open System.CommandLine.Invocation
 
-let app (cancel: CancellationToken, words: string array, separator: string) =
+let app (ctx: InvocationContext, words: string array, separator: string) =
     task {
+        let cancel = ctx.GetCancellationToken()
+
         for i in [1..20] do
             if cancel.IsCancellationRequested then 
                 printfn "Cancellation Requested!"
@@ -20,13 +23,13 @@ let app (cancel: CancellationToken, words: string array, separator: string) =
     
 //[<EntryPoint>]
 let main argv = 
-    let cancel = Input.InjectedDependency()
+    let ctx = Input.Context()
     let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
     let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
-        inputs (cancel, words, separator)
+        inputs (ctx, words, separator)
         setHandler app
     }
     |> Async.AwaitTask

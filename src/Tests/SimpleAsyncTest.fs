@@ -12,35 +12,68 @@ let setup () = handlerCalled <- false
 let tearDown () = handlerCalled =! true
 
 [<Test>]
-let ``01 --word Hello -w World -s *`` () =
-    task {
-        testRootCommand "--word Hello -w World -s *" {
-            description "Appends words together"
-            inputs (
-                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
-            )
-            setHandler (fun (words, separator) ->
+let ``01 --word Hello -w World -s * return Task`` () =
+    testRootCommand "--word Hello -w World -s *" {
+        description "Appends words together"
+        inputs (
+            Input.Context(),
+            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+        )
+        setHandler (fun (ctx, words, separator) -> 
+            task {
+                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! Some "*"
                 handlerCalled <- true
-            )
-        } |> ignore
-    }
+            }
+        )
+    } |> ignore
 
 [<Test>]
-let ``02 --word Hello -w World`` () =
-    task {
-        testRootCommand "--word Hello -w World" {
-            description "Appends words together"
-            inputs (
-                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
-            )
-            setHandler (fun (words, separator) ->
+let ``02 --word Hello -w World return Task`` () =
+    testRootCommand "--word Hello -w World" {
+        description "Appends words together"
+        inputs (
+            Input.Context(),
+            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+        )
+        setHandler (fun (ctx, words, separator) ->
+            task {
+                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! None
                 handlerCalled <- true
+            }
+        )
+    } |> ignore
+
+
+[<Test>]
+let ``03 --word Hello -w World return Task<int>`` () = task {
+    let! code =
+        testRootCommand "--word Hello -w World" {
+            description "Appends words together"
+            inputs (
+                Input.Context(),
+                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
+                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
             )
-        } |> ignore
-    }
+            setHandler (fun (ctx, words, separator) ->
+                task {
+                    let cancel = ctx.GetCancellationToken()
+                    cancel.IsCancellationRequested =! false
+                    words =! [| "Hello"; "World" |]
+                    separator =! None
+                    handlerCalled <- true
+                    return 5
+                }
+            )
+        }
+
+    code =! 5
+}
+
+
+
