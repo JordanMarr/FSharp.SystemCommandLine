@@ -32,7 +32,7 @@ type CommandSpec<'Inputs, 'Output> =
         }
 
 /// Contains shared operations for building a `RootCommand` or `Command`.
-type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
+type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
 
     let newHandler handler spec =
         {
@@ -85,38 +85,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
     [<CustomOperation("inputs")>]
     member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>, o: HI<'O>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o ] }
-
-    [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HI<'A>, b: HI<'B>, c: HI<'C>, d: HI<'D>, e: HI<'E>, f: HI<'F>, g: HI<'G>, h: HI<'H>, i: HI<'I>, j: HI<'J>, k: HI<'K>, l: HI<'L>, m: HI<'M>, n: HI<'N>, o: HI<'O>, p: HI<'P>)) =
-        { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H * 'I * 'J * 'K * 'L * 'M * 'N * 'O * 'P -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h; i; j; k; l; m; n; o; p ] }
 
     [<CustomOperation("setHandler")>]
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
@@ -175,7 +143,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | 06 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F>(fun a b c d e f -> handler (a, b, c, d, e, f)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5)
         | 07 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6)
         | 08 -> cmd.SetHandler(Action<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6, cvd 7)
-        | _ -> raise (NotImplementedException())
+        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
     /// Sets a command handler that returns an `int` status code.
@@ -190,7 +158,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
             | InjectedDependency -> ctx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> ctx.ExitCode <- handler ()))
+        | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> 
+                ctx.ExitCode <- handler ()))
         | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
                 let a = getValue ctx 0 :?> 'A
                 ctx.ExitCode <- handler (a)))
@@ -243,7 +212,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
                 let g = getValue ctx 6 :?> 'G
                 let h = getValue ctx 7 :?> 'H
                 ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)))
-        | _ -> raise (NotImplementedException())
+        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
     /// Sets a command handler that returns a `Task`.
@@ -275,13 +244,13 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
         | 06 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, Task>(fun a b c d e f -> handler (a, b, c, d, e, f)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5)
         | 07 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, Task>(fun a b c d e f g -> handler (a, b, c, d, e, f, g)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6)
         | 08 -> cmd.SetHandler(Func<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, Task>(fun a b c d e f g h -> handler (a, b, c, d, e, f, g, h)), cvd 0, cvd 1, cvd 2, cvd 3, cvd 4, cvd 5, cvd 6, cvd 7)
-        | _ -> raise (NotImplementedException())
+        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
             
 /// Builds a `System.CommandLine.Parsing.Parser`.
-type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>() = 
-    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     [<CustomOperation("usePipeline")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
@@ -319,8 +288,8 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M
 
         
 /// Builds and executes a `System.CommandLine.RootCommand`.
-type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array) = 
-    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array) = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     [<CustomOperation("usePipeline")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
@@ -358,8 +327,8 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 
        
 
 /// Builds a `System.CommandLine.Command`.
-type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name: string) = 
-    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) = 
@@ -381,13 +350,13 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
-let rootCommandParser<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> = 
-    RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>()
+let rootCommandParser<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
+    RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
 
 /// Builds and executes a `System.CommandLine.RootCommand` using computation expression syntax.
-let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args: string array)= 
-    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(args)
+let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array)= 
+    RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args)
 
 /// Builds a `System.CommandLine.Command` using computation expression syntax.
 let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output> (name: string) = 
-    CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'I, 'J, 'K, 'L, 'M, 'N, 'O, 'P, 'Output>(name)
+    CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name)
