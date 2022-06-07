@@ -4,7 +4,6 @@ module FSharp.SystemCommandLine.CommandBuilders
 open System
 open System.Threading.Tasks
 open System.CommandLine
-open System.CommandLine.Binding
 open System.CommandLine.Builder
 open System.CommandLine.Parsing
 
@@ -12,12 +11,8 @@ type private HI<'T> = HandlerInput<'T>
 type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
 
-/// Casts an IValueDescriptor to an IValueDescriptor<'T>
-let castValueDescriptor (ivdInputs: IValueDescriptor list) (idx: int) = 
-    ivdInputs[idx] :?> IValueDescriptor<'InputType>
-
 /// Parses a HandlerInput value using the InvocationContext.
-let parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: int) =
+let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: int) =
     match handlerInputs[idx].Source with
     | ParsedOption o -> ctx.ParseResult.GetValueForOption<'V>(o :?> Option<'V>)
     | ParsedArgument a -> ctx.ParseResult.GetValueForArgument<'V>(a :?> Argument<'V>)
