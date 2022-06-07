@@ -1,15 +1,14 @@
 ### FSharp.SystemCommandLine 
 [![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
 
-The purpose of this library is to improve type safety when using the [`System.CommandLine`](https://github.com/dotnet/command-line-api) API in F# by utilizing computation expression syntax.
-
-
+The purpose of this library is to provide quality of life improvements when using the [`System.CommandLine`](https://github.com/dotnet/command-line-api) API in F#.
 
 ## Features
 
 * Mismatches between `inputs` and `setHandler` function parameters are caught at compile time
 * `Input.Option` helper method avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
-* `Input.OptionMaybe` and `Input.ArgumentMaybe` allow you to use F# `option` types in your handler function.
+* `Input.OptionMaybe` and `Input.ArgumentMaybe` methods allow you to use F# `option` types in your handler function.
+* `Input.Context` method allows you to pass the `System.CommandLine.Invocation.InvocationContext` to your handler function.
 
 ## Examples
 
@@ -34,7 +33,7 @@ let main argv =
 
     rootCommand argv {
         description "Unzips a .zip file"
-        inputs (zipFile, outputDirMaybe)
+        inputs (zipFile, outputDirMaybe) // must be set before setHandler
         setHandler unzip
     }
 ```
@@ -52,7 +51,6 @@ let main argv =
 
 _Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:_
 ![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
-
 
 
 ### Simple App that Returns a Status Code
@@ -154,18 +152,13 @@ let main argv =
     Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 ```
 
-### Async App with an Injected CancellationToken
+### Passing the InvocationContext
 
-`System.CommandLine` has a built-in dependency injection system and provides a handlful of built-in types that can be injected into your handler function by default:
+You may need to pass the `InvocationContext` to your handler function for the following reasons:
+* You need to get `CancellationToken`, `IConsole` or `ParseResult`
+* If you have more than 8 inputs, you will need to manually get the parsed values via the `InvocationContext`.
 
-* `CancellationToken`
-* `InvocationContext`
-* `ParseResult`
-* `IConsole`
-* `HelpBuilder`
-* `BindingContext`
-
-You can declare injected dependencies via the `Input.InjectedDependency` method.
+You can pass the `InvocationContext` by via the `Input.Context` method.
 
 ```F#
 module Program
@@ -173,9 +166,11 @@ module Program
 open FSharp.SystemCommandLine
 open System.Threading
 open System.Threading.Tasks
+open System.CommandLine.Invocation
 
-let app (cancel: CancellationToken, words: string array, separator: string) =
+let app (ctx: InvocationContext, words: string array, separator: string) =
     task {
+        let cancel = ctx.GetCancellationToken()
         for i in [1..20] do
             if cancel.IsCancellationRequested then 
                 printfn "Cancellation Requested"
@@ -190,13 +185,13 @@ let app (cancel: CancellationToken, words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let cancel = Input.InjectedDependency<CancellationToken>()
+    let ctx = Input.Context()
     let words = Input.Option<string array>(["--word"; "-w"], [||], "A list of words to be appended")
     let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
-        inputs (cancel, words, separator)
+        inputs (ctx, words, separator)
         setHandler app
     }
     |> Async.AwaitTask
