@@ -200,14 +200,22 @@ let main argv =
 
 ### Example using Microsoft.Extensions.Hosting
 
+This example requires the following nuget packages:
+
+- Microsoft.Extensions.Configuration
+- Microsoft.Extensions.Hosting
+- Serilog.Extensions.Hosting
+- Serilog.Sinks.Console
+- Serilog.Sinks.File
+
 ```F#
 open System
 open System.IO
 open FSharp.SystemCommandLine
+open Microsoft.Extensions.DependencyInjection
+open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Hosting
 open Microsoft.Extensions.Logging
-open Microsoft.Extensions.Configuration
-open Microsoft.Extensions.DependencyInjection
 open Serilog
 
 let buildHost (argv: string[]) =
@@ -216,28 +224,22 @@ let buildHost (argv: string[]) =
             configHost.SetBasePath(Directory.GetCurrentDirectory()) |> ignore
             configHost.AddJsonFile("appsettings.json", optional = false) |> ignore
         )
-        .ConfigureLogging(fun logging ->
-            logging.AddConsole() |> ignore
-            logging.AddSerilog() |> ignore
-        )
-        .ConfigureServices(fun services ->
-            // Serilog configuration
-            let logger = 
-                LoggerConfiguration()
-                    .WriteTo.File(path = "logs/log.txt")
-                    .CreateLogger()
-
-            services.AddLogging(fun builder ->
-                builder
-                    .SetMinimumLevel(LogLevel.Information)
-                    .AddSerilog(logger, dispose = true) |> ignore
-            ) |> ignore
+        .UseSerilog(fun hostingContext configureLogger -> 
+            configureLogger
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File(
+                    path = "logs/log.txt", 
+                    rollingInterval = RollingInterval.Year
+                )
+                |> ignore
         )
         .Build()        
 
 let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
     task {
-        logger.LogInformation($"Querying from {startDate.ToShortDateString()} to {endDate.ToShortDateString()}")
+        logger.Information($"Querying from {StartDate} to {EndDate}", startDate, endDate)            
         // Do export stuff...
     }
 
