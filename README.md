@@ -246,7 +246,7 @@ let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, 
 [<EntryPoint>]
 let main argv =
     let host = buildHost argv
-    let logger = host.Services.GetService<ILogger<_>>()
+    let logger = host.Services.GetService<ILogger>()
     let cfg = host.Services.GetService<IConfiguration>()
 
     let connStr = Input.Option<string>(
