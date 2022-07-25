@@ -315,14 +315,11 @@ open System.CommandLine.Parsing
 open System.CommandLine.Invocation
 open System.CommandLine.Help
     
-let helloCommand = 
-    let handler name = 
-        printfn $"Hello, {name}."
-
+let helloCmd = 
+    let handler name = printfn $"Hello, {name}."
     let name = Input.Argument("Name")
-
     command "hello" {
-        description "Says hello"
+        description "Says hello."
         inputs name
         setHandler handler
     }
@@ -334,15 +331,13 @@ let main argv =
         ctx.HelpBuilder.Write(hc)
 
     let ctx = Input.Context()
-
+    
     let root = 
         rootCommandParser {
-            description "Deploys stuff"
-            inputs (
-                Input.Context()
-            )
+            description "Says hello or shows help by default."
+            inputs ctx
             setHandler showHelp
-            addCommand helloCommand
+            addCommand helloCmd
         }
 
     root.Parse(argv).Invoke()
