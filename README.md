@@ -332,13 +332,10 @@ let main argv =
 
     let ctx = Input.Context()
     
-    let root = 
-        rootCommandParser {
-            description "Says hello or shows help by default."
-            inputs ctx
-            setHandler showHelp
-            addCommand helloCmd
-        }
-
-    root.Parse(argv).Invoke()
+    rootCommand argv {
+        description "Says hello or shows help by default."
+        inputs ctx
+        setHandler showHelp
+        addCommand helloCmd
+    }
 ```
