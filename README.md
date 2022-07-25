@@ -310,10 +310,9 @@ let main argv =
 A common design is to show help information if no commands have been passed:
 
 ```F#
-open FSharp.SystemCommandLine
-open System.CommandLine.Parsing
 open System.CommandLine.Invocation
 open System.CommandLine.Help
+open FSharp.SystemCommandLine
     
 let helloCmd = 
     let handler name = printfn $"Hello, {name}."
