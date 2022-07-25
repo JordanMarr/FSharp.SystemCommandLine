@@ -305,3 +305,45 @@ let main argv =
 
     parser.Parse(argv).Invoke()
 ```
+
+### Showing Help as the Default
+A common design is to show help information if no commands have been passed:
+
+```F#
+open FSharp.SystemCommandLine
+open System.CommandLine.Parsing
+open System.CommandLine.Invocation
+open System.CommandLine.Help
+    
+let helloCommand = 
+    let handler name = 
+        printfn $"Hello, {name}."
+
+    let name = Input.Argument("Name")
+
+    command "hello" {
+        description "Says hello"
+        inputs name
+        setHandler handler
+    }
+
+[<EntryPoint>]
+let main argv = 
+    let showHelp (ctx: InvocationContext) =
+        let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
+        ctx.HelpBuilder.Write(hc)
+
+    let ctx = Input.Context()
+
+    let root = 
+        rootCommandParser {
+            description "Deploys stuff"
+            inputs (
+                Input.Context()
+            )
+            setHandler showHelp
+            addCommand helloCommand
+        }
+
+    root.Parse(argv).Invoke()
+```
