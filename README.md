@@ -314,10 +314,6 @@ open System.CommandLine.Invocation
 open System.CommandLine.Help
 open FSharp.SystemCommandLine
 
-let showHelp (ctx: InvocationContext) =
-    let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
-    ctx.HelpBuilder.Write(hc)
-
 let helloCmd = 
     let handler name = printfn $"Hello, {name}."
     let name = Input.Argument("Name")
@@ -329,6 +325,10 @@ let helloCmd =
 
 [<EntryPoint>]
 let main argv = 
+    let showHelp (ctx: InvocationContext) =
+        let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
+        ctx.HelpBuilder.Write(hc)
+        
     let ctx = Input.Context()    
     rootCommand argv {
         description "Says hello or shows help by default."
