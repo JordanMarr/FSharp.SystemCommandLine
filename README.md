@@ -20,7 +20,7 @@ open System.IO
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if None
-    let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
+    let outputDir = defaultArg outputDirMaybe zipFile.Directory
 
     if zipFile.Exists
     then printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
@@ -63,7 +63,7 @@ open System.IO
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if None
-    let outputDir = outputDirMaybe |> Option.defaultValue zipFile.Directory
+    let outputDir = defaultArg outputDirMaybe zipFile.Directory
 
     if zipFile.Exists then
         printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
@@ -287,7 +287,7 @@ open FSharp.SystemCommandLine
 open System.CommandLine.Parsing
 
 let app (words: string array, separator: string option) =
-    let separator = separator |> Option.defaultValue ", "
+    let separator = defaultArg separator ", "
     System.String.Join(separator, words) |> printfn "Result: %s"
     0
     
