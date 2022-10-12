@@ -337,3 +337,57 @@ let main argv =
         addCommand helloCmd
     }
 ```
+
+## Defining Inputs Manually
+
+While the `Input.Argument` and `Input.Option` helper methods are useful for most common scenarios, sometimes it may be necessary to manually define inputs using the underlying `System.CommandLine` base library. This will make it easier to investigate the various overloads and take advantage of other features like custom validation.
+
+```F#
+module Program
+
+open FSharp.SystemCommandLine
+
+let app (name: string) =
+    printfn $"Hello, {name}"
+    
+[<EntryPoint>]
+let main argv = 
+
+    let name = 
+        let opt = System.CommandLine.Option<string>(
+            "--name",
+            getDefaultValue = (fun () -> ""),
+            description = "User name")
+
+        opt.AddValidator(fun result -> 
+            let nameValue = result.GetValueForOption(opt)
+            if System.String.IsNullOrWhiteSpace(nameValue)
+            then result.ErrorMessage <- "Name cannot be an empty string."
+            elif nameValue.Length > 10
+            then result.ErrorMessage <- "Name cannot exceed more than 10 characters."
+        )
+
+        // Transforms Option<string> to be used with the `rootCommand`
+        HandlerInput.OfOption opt
+
+    
+    rootCommand argv {
+        description "Provides a friendly greeting."
+        inputs name
+        setHandler app
+    }
+```
+
+Note that you can also import the `FSharp.SystemCommandLine.Aliases` namespace to use the `Arg<'T>` and `Opt<'T>` aliases:
+
+```F# 
+open FSharp.SystemCommandLine.Aliases
+
+let csOpt = 
+    Opt<string>(
+        getDefaultValue = (fun () -> "conn string"),
+        aliases = [| "-cs";"--connectionString" |],
+        description = "An optional connection string to the server to import into"
+    )
+    |> HandlerInput.OfOption
+```
