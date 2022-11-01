@@ -341,7 +341,8 @@ let main argv =
 ## Customizing the Default Pipeline
 
 System.CommandLine has a `CommandLineBuilder` that allows the user to customize various behaviors.
-FSharp.SystemCommandLine is configured to use built-in defaults (via `CommandLineBuilder().UseDefaults()`), but you can easily override them should the need arise via the `usePipeline` custom operation which gives you access to the `CommandLineBuilder`. 
+
+FSharp.SystemCommandLine is configured to use the built-in defaults (via `CommandLineBuilder().UseDefaults()`), but you can easily override them via the `usePipeline` custom operation which gives you access to the `CommandLineBuilder`. 
 
 For example, the default behavior intercepts input strings that start with a "@" character via the "TryReplaceToken" feature. This will cause an issue if you need to accept input that starts with "@". Fortunately, you can disable this via `usePipeline`:
 
