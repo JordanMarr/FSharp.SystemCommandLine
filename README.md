@@ -338,6 +338,54 @@ let main argv =
     }
 ```
 
+## Changing System.CommandLine Pipeline Defaults
+
+System.CommandLine has a `CommandLineBuilder` that allows the user to customize various behaviors.
+FSharp.SystemCommandLine is configured to use built-in defaults (`CommandLineBuilder().UseDefaults()`), but you can easily override them should the need arise via the `usePipeline` custom operation which gives you access to the `CommandLineBuilder`. 
+
+For example, the default behavior intercepts input strings that start with a "@" character via the "TryReplaceToken" feature. This will cause an issue if you need to accept input that starts with "@". Fortunately, you can disable this via `usePipeline`:
+
+```F#
+module TokenReplacerExample
+
+open FSharp.SystemCommandLine
+open System.CommandLine.Builder // Necessary when overriding the builder via usePipeline
+
+let app (package: string) =
+    if package.StartsWith("@") then
+        printfn $"{package}"
+        0
+    else
+        eprintfn "The package name does not start with a leading @"
+        1
+
+//[<EntryPoint>]
+let main argv =
+
+    // The package option needs to accept strings that start with "@" symbol.
+    // For example, "--package @shoelace-style/shoelace".
+    // To accomplish this, we will need to modify the default pipeline settings below.
+    let package = Input.Option([ "--package"; "-p" ], "A package name that may have a leading '@' character.")
+
+    rootCommand argv {
+        description "Can be called with a leading '@' package"
+
+        usePipeline (fun builder -> 
+            // Override default token replacer to ignore `@` processing
+            builder.UseTokenReplacer(fun _ _ _ -> false)
+        )
+        
+        inputs package
+        setHandler app
+    }
+
+```
+
+As you can see, there are a lot of options that can be configured here (note that you need to `open System.CommandLine.Builder`):
+
+![image](https://user-images.githubusercontent.com/1030435/199282781-1800b79c-7638-4242-8ca0-777d7237e20a.png)
+
+
 ## Defining Inputs Manually
 
 While the `Input.Argument` and `Input.Option` helper methods are useful for most common scenarios, sometimes it may be necessary to manually define inputs using the underlying `System.CommandLine` base library. This will make it easier to investigate the various overloads and take advantage of other features like custom validation.
