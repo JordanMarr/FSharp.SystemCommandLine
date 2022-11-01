@@ -334,11 +334,6 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         this.CommandLineBuilder <- subCommand this.CommandLineBuilder
         spec
 
-    [<CustomOperation("useTokenReplacer")>]
-    member this.UseTokenReplacer(spec: CommandSpec<'Inputs, 'Output>, replacer: TryReplaceToken) =
-        this.CommandLineBuilder.UseTokenReplacer(replacer) |> ignore
-        spec
-        
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
         this.CommandLineBuilder.Command
@@ -378,11 +373,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         this.CommandLineBuilder <- subCommand this.CommandLineBuilder
         spec
         
-    [<CustomOperation("useTokenReplacer")>]
-    member this.UseTokenReplacer(spec: CommandSpec<'Inputs, 'Output>, replacer: TryReplaceToken) =
-        this.CommandLineBuilder.UseTokenReplacer(replacer) |> ignore
-        spec
-
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
         this.CommandLineBuilder.Command
