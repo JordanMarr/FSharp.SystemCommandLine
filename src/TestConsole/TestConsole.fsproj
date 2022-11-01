@@ -12,9 +12,8 @@
     <Compile Include="ProgramSubCommand.fs" />
     <Compile Include="ProgramTask.fs" />
     <Compile Include="Program.fs" />
+    <Compile Include="ProgramTokenReplacer.fs" />
   </ItemGroup>
-
-  <ItemGroup />
 
   <ItemGroup>
     <ProjectReference Include="..\FSharp.SystemCommandLine\FSharp.SystemCommandLine.fsproj" />

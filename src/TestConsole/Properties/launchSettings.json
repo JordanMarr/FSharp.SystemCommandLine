@@ -3,6 +3,10 @@
     "TestConsole": {
       "commandName": "Project",
       "commandLineArgs": "-w hello -w world"
+    },
+    "Leading @": {
+      "commandName": "Project",
+      "commandLineArgs": "--package @shoelace-style/shoelace"
     }
   }
 }
