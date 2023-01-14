@@ -3,21 +3,35 @@ module ProgramExtraInputs
 
 open FSharp.SystemCommandLine
 
-module Parameters = 
-    let words = Input.Option<string[]>(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.OptionMaybe<string>(["--separator"; "-s"], "A character that will separate the joined words.")
+let a = Input.Option<string>("-a", defaultValue = "a?")
+let b = Input.Option<string>("-b", defaultValue = "b?")
+let c = Input.Option<string>("-c", defaultValue = "c?")
+let d = Input.Option<string>("-d", defaultValue = "d?")
+let e = Input.Option<string>("-e", defaultValue = "e?")
+let f = Input.Option<int>("-1", defaultValue = 0)
+let g = Input.Option<int>("-2", defaultValue = 0)
+let h = Input.Option<int>("-3", defaultValue = 0) // NOTE: "-h" is taken via Help pipeline defaults
+let i = Input.Option<int>("-4", defaultValue = 0)
+let j = Input.Option<int>("-5", defaultValue = 0)
 
 let app (ctx: System.CommandLine.Invocation.InvocationContext) =
-    // Manually parse parameters
-    let words = Parameters.words.GetValue ctx
-    let separator = Parameters.separator.GetValue ctx
-
-    // Append words together
-    let separator = separator |> Option.defaultValue ", "
-    System.String.Join(separator, words) |> printfn "Result: %s"
+    [ 
+        a.GetValue ctx
+        b.GetValue ctx
+        c.GetValue ctx
+        d.GetValue ctx
+        e.GetValue ctx
+        f.GetValue ctx |> string
+        g.GetValue ctx |> string
+        h.GetValue ctx |> string
+        i.GetValue ctx |> string
+        j.GetValue ctx |> string
+    ]
+    |> String.concat ", "
+    |> printfn "Result: %s"
     0
     
-//[<EntryPoint>]
+[<EntryPoint>]
 let main argv = 
     let ctx = Input.Context()
 
@@ -25,6 +39,14 @@ let main argv =
         description "Appends words together"
         inputs ctx
         setHandler app
-        add Parameters.words
-        add Parameters.separator
+        add a
+        add b
+        add c
+        add d
+        add e
+        add f
+        add g
+        add h
+        add i
+        add j
     }

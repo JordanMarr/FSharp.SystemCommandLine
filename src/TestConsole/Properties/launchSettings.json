@@ -1,12 +1,16 @@
 {
-  "profiles": {
-    "TestConsole": {
-      "commandName": "Project",
-      "commandLineArgs": "-w hello -w world"
-    },
-    "Leading @": {
-      "commandName": "Project",
-      "commandLineArgs": "--package @shoelace-style/shoelace"
+    "profiles": {
+        "TestConsole": {
+            "commandName": "Project",
+            "commandLineArgs": "-w hello -w world"
+        },
+        "GT8": {
+            "commandName": "Project",
+            "commandLineArgs": "-a A -b B -c C -d D -e E -1 1 -2 2 -3 3 -4 4 -5 5"
+        },
+        "Leading @": {
+            "commandName": "Project",
+            "commandLineArgs": "--package @shoelace-style/shoelace"
+        }
     }
-  }
 }
