@@ -26,6 +26,11 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
     inherit HandlerInput(inputType)
     static member OfOption<'T>(o: Option<'T>) = o :> Option |> ParsedOption |> HandlerInput<'T>
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
+    member this.GetValue(ctx: System.CommandLine.Invocation.InvocationContext) =
+        match this.Source with
+        | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValueForOption
+        | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValueForArgument
+        | Context -> ctx |> unbox<'T>
 
 
 /// Creates CLI options and arguments to be passed as command `inputs`.

@@ -12,6 +12,7 @@
     <Compile Include="ProgramSubCommand.fs" />
     <Compile Include="ProgramTask.fs" />
     <Compile Include="ProgramTokenReplacer.fs" />
+    <Compile Include="ProgramExtraInputs.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
