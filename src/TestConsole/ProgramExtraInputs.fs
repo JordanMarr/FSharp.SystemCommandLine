@@ -31,7 +31,7 @@ let app (ctx: System.CommandLine.Invocation.InvocationContext) =
     |> printfn "Result: %s"
     0
     
-[<EntryPoint>]
+//[<EntryPoint>]
 let main argv = 
     let ctx = Input.Context()
 
