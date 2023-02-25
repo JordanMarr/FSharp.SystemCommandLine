@@ -387,9 +387,10 @@ As you can see, there are a lot of options that can be configured here (note tha
 ![image](https://user-images.githubusercontent.com/1030435/199282781-1800b79c-7638-4242-8ca0-777d7237e20a.png)
 
 
-## Defining Inputs Manually
+## Setting Input Properties Manually
 
-While the `Input.Argument` and `Input.Option` helper methods are useful for most common scenarios, sometimes it may be necessary to manually define inputs using the underlying `System.CommandLine` base library. This will make it easier to investigate the various overloads and take advantage of other features like custom validation.
+Sometimes it may be necessary to access the underlying `System.CommandLine` base input properties manually to take advantage of features like custom validation. You can do this by using overloads of `Input.Argument`, `Input.Option` and `Input.OptionMaybe` that provide a `configure` argument. 
+The `configure` argument is a function that allows you to modify the underlying `System.CommandLine` `Option<'T>` or `Argument<'T>`.
 
 ```F#
 module Program
@@ -403,22 +404,17 @@ let app (name: string) =
 let main argv = 
 
     let name = 
-        let opt = System.CommandLine.Option<string>(
-            "--name",
-            getDefaultValue = (fun () -> ""),
-            description = "User name")
-
-        opt.AddValidator(fun result -> 
-            let nameValue = result.GetValueForOption(opt)
-            if System.String.IsNullOrWhiteSpace(nameValue)
-            then result.ErrorMessage <- "Name cannot be an empty string."
-            elif nameValue.Length > 10
-            then result.ErrorMessage <- "Name cannot exceed more than 10 characters."
+        Input.Option<string>("--name", fun o -> 
+            o.Description <- "User name"
+            o.SetDefaultValue "-- NotSet --"
+            o.AddValidator(fun result -> 
+                let nameValue = result.GetValueForOption(opt)
+                if System.String.IsNullOrWhiteSpace(nameValue)
+                then result.ErrorMessage <- "Name cannot be an empty string."
+                elif nameValue.Length > 10
+                then result.ErrorMessage <- "Name cannot exceed more than 10 characters."
+            )
         )
-
-        // Transforms Option<string> to be used with the `rootCommand`
-        Input.OfOption opt
-
     
     rootCommand argv {
         description "Provides a friendly greeting."
@@ -427,13 +423,14 @@ let main argv =
     }
 ```
 
+Alternatively, you can manually create a `System.CommandLine` `Option<'T>` or `Argument<'T>` and then convert it for use with a `CommandBuilder` via the `Input.OfOption` or `Input.OfArgument` helper methods.
+
 Note that you can also import the `FSharp.SystemCommandLine.Aliases` namespace to use the `Arg<'T>` and `Opt<'T>` aliases:
 
 ```F# 
-open FSharp.SystemCommandLine.Aliases
 
-let csOpt = 
-    Opt<string>(
+let connectionString = 
+    System.CommandLine.Option<string>(
         getDefaultValue = (fun () -> "conn string"),
         aliases = [| "-cs";"--connectionString" |],
         description = "An optional connection string to the server to import into"
