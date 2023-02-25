@@ -59,3 +59,22 @@ let ``03 --word Hello -w World -s * return int`` () =
         }
 
     code =! 5
+
+[<Test>]
+let ``04 --word Hello -w World -s * return int using manual configured options`` () =    
+    let code = 
+        testRootCommand "--word Hello -w World -s *" {
+            description "Appends words together"
+            inputs (
+                Input.Option(["--word"; "-w"], fun o -> o.SetDefaultValue Array.empty; o.Description <- "A list of words to be appended"),
+                Input.OptionMaybe(["--separator"; "-s"], fun o -> o.Description <- "A character that will separate the joined words.")
+            )
+            setHandler (fun (words, separator) ->
+                words =! [| "Hello"; "World" |]
+                separator =! Some "*"
+                handlerCalled <- true
+                5
+            )
+        }
+
+    code =! 5
