@@ -417,7 +417,7 @@ let main argv =
         )
 
         // Transforms Option<string> to be used with the `rootCommand`
-        HandlerInput.OfOption opt
+        Input.OfOption opt
 
     
     rootCommand argv {
@@ -438,5 +438,5 @@ let csOpt =
         aliases = [| "-cs";"--connectionString" |],
         description = "An optional connection string to the server to import into"
     )
-    |> HandlerInput.OfOption
+    |> Input.OfOption
 ```
