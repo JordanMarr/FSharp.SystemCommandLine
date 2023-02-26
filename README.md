@@ -408,7 +408,7 @@ let main argv =
             o.Description <- "User name"
             o.SetDefaultValue "-- NotSet --"
             o.AddValidator(fun result -> 
-                let nameValue = result.GetValueForOption(opt)
+                let nameValue = result.GetValueForOption(o)
                 if System.String.IsNullOrWhiteSpace(nameValue)
                 then result.ErrorMessage <- "Name cannot be an empty string."
                 elif nameValue.Length > 10
