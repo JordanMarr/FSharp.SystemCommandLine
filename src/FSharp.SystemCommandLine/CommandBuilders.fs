@@ -4,8 +4,7 @@ module FSharp.SystemCommandLine.CommandBuilders
 open System
 open System.Threading.Tasks
 open System.CommandLine
-open System.CommandLine.Builder
-open System.CommandLine.Parsing
+open System.CommandLine.Invocation
 
 type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
@@ -13,8 +12,8 @@ let private def<'T> = Unchecked.defaultof<'T>
 /// Parses a HandlerInput value using the InvocationContext.
 let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: int) =
     match handlerInputs[idx].Source with
-    | ParsedOption o -> ctx.ParseResult.GetValueForOption<'V>(o :?> Option<'V>)
-    | ParsedArgument a -> ctx.ParseResult.GetValueForArgument<'V>(a :?> Argument<'V>)
+    | ParsedOption o -> ctx.ParseResult.GetValue<'V>(o :?> Option<'V>)
+    | ParsedArgument a -> ctx.ParseResult.GetValue<'V>(a :?> Argument<'V>)
     | Context -> ctx |> unbox<'V>
 
 type CommandSpec<'Inputs, 'Output> = 
@@ -47,7 +46,10 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             SubCommands = spec.SubCommands
         }
 
-    member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
+    member val CommandLineBuilder = 
+        // CommandLineBuilder now takes a RootCommand parameter!
+        //CommandLineBuilder().UseDefaults() with get, set
+        Unchecked.defaultof<CommandLineBuilder> with get, set
 
     member this.Yield _ =
         CommandSpec<unit, 'Output>.Default 
@@ -131,19 +133,19 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         spec.Inputs
         |> Seq.iter (fun input ->
             match input.Source with
-            | ParsedOption o -> cmd.AddOption o
-            | ParsedArgument a -> cmd.AddArgument a
+            | ParsedOption o -> cmd.Add o
+            | ParsedArgument a -> cmd.Add a
             | Context -> ()
         )
         spec.ExtraInputs
         |> Seq.iter (fun input ->
             match input.Source with
-            | ParsedOption o -> cmd.AddOption o
-            | ParsedArgument a -> cmd.AddArgument a
+            | ParsedOption o -> cmd.Add o
+            | ParsedArgument a -> cmd.Add a
             | Context -> ()
         )
 
-        spec.SubCommands |> List.iter cmd.AddCommand
+        List.iter cmd.Add spec.SubCommands
         cmd
 
     /// Sets a command handler that returns `unit`.
@@ -283,48 +285,47 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         let handler (args: obj) = 
             task {
                 return! spec.Handler (args :?> 'Inputs)
-            }
+            } :> Task
 
         let getValue (ctx: IC) (idx: int) =
             parseInput spec.Inputs ctx idx
-
+        
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(Func<Task>(fun () -> 
-                handler ()))
-        | 01 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+        | 00 -> cmd.SetHandler(fun ctx _ -> handler ())
+        | 01 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
-                handler (a)))
-        | 02 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a))
+        | 02 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
-                handler (a, b)))
-        | 03 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b))
+        | 03 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
-                handler (a, b, c)))
-        | 04 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b, c))
+        | 04 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
                 let d: 'D = getValue ctx 3
-                handler (a, b, c, d)))
-        | 05 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b, c, d))
+        | 05 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
                 let d: 'D = getValue ctx 3
                 let e: 'E = getValue ctx 4
-                handler (a, b, c, d, e)))
-        | 06 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b, c, d, e))
+        | 06 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
                 let d: 'D = getValue ctx 3
                 let e: 'E = getValue ctx 4
                 let f: 'F = getValue ctx 5
-                handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b, c, d, e, f))
+        | 07 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
@@ -332,8 +333,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let e: 'E = getValue ctx 4
                 let f: 'F = getValue ctx 5
                 let g: 'G = getValue ctx 6
-                handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
+                handler (a, b, c, d, e, f, g))
+        | 08 -> cmd.SetHandler(fun ctx _ -> 
                 let a: 'A = getValue ctx 0
                 let b: 'B = getValue ctx 1
                 let c: 'C = getValue ctx 2
@@ -342,7 +343,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let f: 'F = getValue ctx 5
                 let g: 'G = getValue ctx 6
                 let h: 'H = getValue ctx 7
-                handler (a, b, c, d, e, f, g, h)))
+                handler (a, b, c, d, e, f, g, h))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -406,7 +407,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
         |> ignore
-        this.CommandLineBuilder.Build().Parse(args).Invoke()
+        this.CommandLineBuilder.Build().Invoke(args)
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
@@ -414,7 +415,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
         |> ignore
-        this.CommandLineBuilder.Build().Parse(args).Invoke()
+        this.CommandLineBuilder.Build().Invoke(args)
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
@@ -422,7 +423,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
         |> ignore
-        this.CommandLineBuilder.Build().Parse(args).InvokeAsync()
+        this.CommandLineBuilder.Build().InvokeAsync(args)
        
 
 /// Builds a `System.CommandLine.Command`.
