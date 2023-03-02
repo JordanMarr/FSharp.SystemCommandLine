@@ -30,8 +30,8 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
     member this.GetValue(ctx: System.CommandLine.Invocation.InvocationContext) =
         match this.Source with
-        | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValueForOption
-        | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValueForArgument
+        | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValue
+        | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValue
         | Context -> ctx |> unbox<'T>
         
 let private applyConfiguration configure a = 
@@ -84,21 +84,17 @@ type Input =
     
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
-        Option<'T>(
-            name,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
+        Input.Option<'T>(name, fun o -> 
+            o.SetDefaultValue(defaultValue)
+            Option.iter (fun desc -> o.Description <- desc) description
         )
-        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(aliases: string seq, defaultValue: 'T, ?description: string) =
-        Option<'T>(
-            Seq.toArray aliases,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
+        Input.Option<'T>(aliases, fun o -> 
+            o.SetDefaultValue(defaultValue)
+            Option.iter (fun desc -> o.Description <- desc) description
         )
-        |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T that is required.
     static member OptionRequired<'T>(aliases: string seq, ?description: string) =
@@ -167,12 +163,10 @@ type Input =
 
     /// Creates a CLI argument of type 'T with a default value.
     static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) = 
-        Argument<'T>(
-            name,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
+        Input.Argument<'T>(name, fun a ->
+            a.SetDefaultValue(defaultValue)
+            Option.iter (fun desc -> a.Description <- desc) description
         )
-        |> HandlerInput.OfArgument
     
     /// Creates a CLI argument of type 'T option.
     static member ArgumentMaybe<'T>(name: string, ?description: string) = 
