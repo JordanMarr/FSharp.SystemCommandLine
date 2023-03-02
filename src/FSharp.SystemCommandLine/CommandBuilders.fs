@@ -11,20 +11,12 @@ type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
 
 /// Parses a HandlerInput value using the InvocationContext.
-let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: int) =
-    match handlerInputs[idx].Source with
-    | ParsedOption o -> ctx.ParseResult.GetValue<'V>(o :?> Option<'V>)
-    | ParsedArgument a -> ctx.ParseResult.GetValue<'V>(a :?> Argument<'V>)
-    | Context -> ctx |> unbox<'V>
-
-/// Parses a HandlerInput value using the InvocationContext.
-let private parseTaskInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (cancel: CancellationToken) (idx: int) =
+let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (cancel: obj) (idx: int) =
     match handlerInputs[idx].Source with
     | ParsedOption o -> ctx.ParseResult.GetValue<'V>(o :?> Option<'V>)
     | ParsedArgument a -> ctx.ParseResult.GetValue<'V>(a :?> Argument<'V>)
     | Context -> ctx |> unbox<'V>
     | Cancel -> cancel |> unbox<'V>
-
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -57,9 +49,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         }
 
     member val CommandLineBuilder = 
-        // CommandLineBuilder now takes a RootCommand parameter!
-        //CommandLineBuilder().UseDefaults() with get, set
-        Unchecked.defaultof<CommandLineBuilder> with get, set
+        CommandLineBuilder(RootCommand()).UseDefaults() with get, set
 
     member this.Yield _ =
         CommandSpec<unit, 'Output>.Default 
@@ -146,6 +136,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             | ParsedOption o -> cmd.Add o
             | ParsedArgument a -> cmd.Add a
             | Context -> ()
+            | Cancel -> ()
         )
         spec.ExtraInputs
         |> Seq.iter (fun input ->
@@ -153,6 +144,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             | ParsedOption o -> cmd.Add o
             | ParsedArgument a -> cmd.Add a
             | Context -> ()
+            | Cancel -> ()
         )
 
         List.iter cmd.Add spec.SubCommands
@@ -164,7 +156,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             spec.Handler (args :?> 'Inputs)
 
         let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+            parseInput spec.Inputs ctx (obj()) idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action(fun () -> 
@@ -230,7 +222,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             spec.Handler (args :?> 'Inputs)
 
         let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+            parseInput spec.Inputs ctx (obj()) idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> 
@@ -298,7 +290,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             } :> Task
 
         let getValue (ctx: IC) (cancel: CancellationToken) (idx: int) =
-            parseTaskInput spec.Inputs ctx cancel idx
+            parseInput spec.Inputs ctx cancel idx
         
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(fun _ _ -> 
