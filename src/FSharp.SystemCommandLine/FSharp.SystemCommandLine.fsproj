@@ -8,7 +8,10 @@
 	<Authors>Jordan Marr</Authors>
 	<PackageTags>F# fsharp System.CommandLine cli</PackageTags>
 	<PackageProjectUrl>https://github.com/JordanMarr/FSharp.SystemCommandLine</PackageProjectUrl>	  
-	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<WarningsAsErrors>
+	  <!-- Incomplete pattern matches on this expression. -->
+	  FS0025
+	</WarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>
