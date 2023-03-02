@@ -4,7 +4,6 @@ module FSharp.SystemCommandLine.CommandBuilders
 open System
 open System.Threading.Tasks
 open System.CommandLine
-open System.CommandLine.Invocation
 open System.Threading
 
 type private IC = System.CommandLine.Invocation.InvocationContext
