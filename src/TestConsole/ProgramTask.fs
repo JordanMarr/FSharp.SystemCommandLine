@@ -5,10 +5,8 @@ open System.Threading
 open System.Threading.Tasks
 open System.CommandLine.Invocation
 
-let app (ctx: InvocationContext, words: string array, separator: string) =
+let app (ctx: InvocationContext, cancel: CancellationToken, words: string array, separator: string) =
     task {
-        let cancel = ctx.GetCancellationToken()
-
         for i in [1..20] do
             if cancel.IsCancellationRequested then 
                 printfn "Cancellation Requested!"
@@ -24,12 +22,13 @@ let app (ctx: InvocationContext, words: string array, separator: string) =
 //[<EntryPoint>]
 let main argv = 
     let ctx = Input.Context()
+    let cancel = Input.Cancel()
     let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
     let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
-        inputs (ctx, words, separator)
+        inputs (ctx, cancel, words, separator)
         setHandler app
     }
     |> Async.AwaitTask

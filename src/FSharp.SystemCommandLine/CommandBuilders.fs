@@ -5,6 +5,7 @@ open System
 open System.Threading.Tasks
 open System.CommandLine
 open System.CommandLine.Invocation
+open System.Threading
 
 type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
@@ -15,6 +16,15 @@ let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: in
     | ParsedOption o -> ctx.ParseResult.GetValue<'V>(o :?> Option<'V>)
     | ParsedArgument a -> ctx.ParseResult.GetValue<'V>(a :?> Argument<'V>)
     | Context -> ctx |> unbox<'V>
+
+/// Parses a HandlerInput value using the InvocationContext.
+let private parseTaskInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (cancel: CancellationToken) (idx: int) =
+    match handlerInputs[idx].Source with
+    | ParsedOption o -> ctx.ParseResult.GetValue<'V>(o :?> Option<'V>)
+    | ParsedArgument a -> ctx.ParseResult.GetValue<'V>(a :?> Argument<'V>)
+    | Context -> ctx |> unbox<'V>
+    | Cancel -> cancel |> unbox<'V>
+
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -158,59 +168,59 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action(fun () -> 
-                handler ()))
+                    handler ()))
         | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                handler (a)))
+                    let a: 'A = getValue ctx 0
+                    handler (a)))
         | 02 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                handler (a, b)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    handler (a, b)))
         | 03 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                handler (a, b, c)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    handler (a, b, c)))
         | 04 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                handler (a, b, c, d)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    handler (a, b, c, d)))
         | 05 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                handler (a, b, c, d, e)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    handler (a, b, c, d, e)))
         | 06 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                handler (a, b, c, d, e, f)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    handler (a, b, c, d, e, f)))
         | 07 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                handler (a, b, c, d, e, f, g)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    let g: 'G = getValue ctx 6
+                    handler (a, b, c, d, e, f, g)))
         | 08 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
-                handler (a, b, c, d, e, f, g, h)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    let g: 'G = getValue ctx 6
+                    let h: 'H = getValue ctx 7
+                    handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -224,59 +234,59 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                ctx.ExitCode <- handler ()))
+                    ctx.ExitCode <- handler ()))
         | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                ctx.ExitCode <- handler (a)))
+                    let a: 'A = getValue ctx 0
+                    ctx.ExitCode <- handler (a)))
         | 02 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                ctx.ExitCode <- handler (a, b)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    ctx.ExitCode <- handler (a, b)))
         | 03 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                ctx.ExitCode <- handler (a, b, c)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    ctx.ExitCode <- handler (a, b, c)))
         | 04 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                ctx.ExitCode <- handler (a, b, c, d)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    ctx.ExitCode <- handler (a, b, c, d)))
         | 05 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                ctx.ExitCode <- handler (a, b, c, d, e)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    ctx.ExitCode <- handler (a, b, c, d, e)))
         | 06 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                ctx.ExitCode <- handler (a, b, c, d, e, f)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    ctx.ExitCode <- handler (a, b, c, d, e, f)))
         | 07 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                ctx.ExitCode <- handler (a, b, c, d, e, f, g)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    let g: 'G = getValue ctx 6
+                    ctx.ExitCode <- handler (a, b, c, d, e, f, g)))
         | 08 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
-                ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)))
+                    let a: 'A = getValue ctx 0
+                    let b: 'B = getValue ctx 1
+                    let c: 'C = getValue ctx 2
+                    let d: 'D = getValue ctx 3
+                    let e: 'E = getValue ctx 4
+                    let f: 'F = getValue ctx 5
+                    let g: 'G = getValue ctx 6
+                    let h: 'H = getValue ctx 7
+                    ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -287,63 +297,64 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 return! spec.Handler (args :?> 'Inputs)
             } :> Task
 
-        let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+        let getValue (ctx: IC) (cancel: CancellationToken) (idx: int) =
+            parseTaskInput spec.Inputs ctx cancel idx
         
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(fun ctx _ -> handler ())
-        | 01 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                handler (a))
-        | 02 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                handler (a, b))
-        | 03 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                handler (a, b, c))
-        | 04 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                handler (a, b, c, d))
-        | 05 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                handler (a, b, c, d, e))
-        | 06 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                handler (a, b, c, d, e, f))
-        | 07 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                handler (a, b, c, d, e, f, g))
-        | 08 -> cmd.SetHandler(fun ctx _ -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
-                handler (a, b, c, d, e, f, g, h))
+        | 00 -> cmd.SetHandler(fun _ _ -> 
+                    handler ())
+        | 01 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    handler (a))
+        | 02 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    handler (a, b))
+        | 03 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    handler (a, b, c))
+        | 04 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    let d: 'D = getValue ctx cancel 3
+                    handler (a, b, c, d))
+        | 05 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    let d: 'D = getValue ctx cancel 3
+                    let e: 'E = getValue ctx cancel 4
+                    handler (a, b, c, d, e))
+        | 06 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    let d: 'D = getValue ctx cancel 3
+                    let e: 'E = getValue ctx cancel 4
+                    let f: 'F = getValue ctx cancel 5
+                    handler (a, b, c, d, e, f))
+        | 07 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    let d: 'D = getValue ctx cancel 3
+                    let e: 'E = getValue ctx cancel 4
+                    let f: 'F = getValue ctx cancel 5
+                    let g: 'G = getValue ctx cancel 6
+                    handler (a, b, c, d, e, f, g))
+        | 08 -> cmd.SetHandler(fun ctx cancel -> 
+                    let a: 'A = getValue ctx cancel 0
+                    let b: 'B = getValue ctx cancel 1
+                    let c: 'C = getValue ctx cancel 2
+                    let d: 'D = getValue ctx cancel 3
+                    let e: 'E = getValue ctx cancel 4
+                    let f: 'F = getValue ctx cancel 5
+                    let g: 'G = getValue ctx cancel 6
+                    let h: 'H = getValue ctx cancel 7
+                    handler (a, b, c, d, e, f, g, h))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 

@@ -17,12 +17,12 @@ let ``01 --word Hello -w World -s * return Task`` () =
         description "Appends words together"
         inputs (
             Input.Context(),
+            Input.Cancel(),
             Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
             Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (ctx, words, separator) -> 
+        setHandler (fun (ctx, cancel, words, separator) -> 
             task {
-                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! Some "*"
                 handlerCalled <- true
@@ -36,12 +36,12 @@ let ``02 --word Hello -w World return Task`` () =
         description "Appends words together"
         inputs (
             Input.Context(),
+            Input.Cancel(),
             Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
             Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (ctx, words, separator) ->
+        setHandler (fun (ctx, cancel, words, separator) ->
             task {
-                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! None
                 handlerCalled <- true
@@ -57,12 +57,12 @@ let ``03 --word Hello -w World return Task<int>`` () = task {
             description "Appends words together"
             inputs (
                 Input.Context(),
+                Input.Cancel(),
                 Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
                 Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
             )
-            setHandler (fun (ctx, words, separator) ->
+            setHandler (fun (ctx, cancel, words, separator) ->
                 task {
-                    let cancel = ctx.GetCancellationToken()
                     cancel.IsCancellationRequested =! false
                     words =! [| "Hello"; "World" |]
                     separator =! None

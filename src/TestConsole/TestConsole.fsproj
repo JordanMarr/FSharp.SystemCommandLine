@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <Content Include="Properties\launchSettings.json" />
-    <Compile Include="ProgramAlt1.fs" />
     <Compile Include="ProgramNoArgs.fs" />
     <Compile Include="ProgramSubCommand.fs" />
     <Compile Include="ProgramTask.fs" />

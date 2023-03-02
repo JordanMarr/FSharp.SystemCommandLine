@@ -18,6 +18,7 @@ type HandlerInputSource =
     | ParsedOption of Option
     | ParsedArgument of Argument
     | Context
+    | Cancel
 
 type HandlerInput(source: HandlerInputSource) = 
     member this.Source = source
@@ -33,6 +34,7 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
         | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValue
         | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValue
         | Context -> ctx |> unbox<'T>
+        | Cancel -> failwith "Invalid operation"
         
 let private applyConfiguration configure a = 
     configure a; a
@@ -186,3 +188,7 @@ type Input =
     /// Passes the `InvocationContext` to the handler.
     static member Context() = 
         HandlerInput<Invocation.InvocationContext>(Context)
+
+    /// Passes a `CancellationToken` to the handler.
+    static member Cancel() = 
+        HandlerInput<System.Threading.CancellationToken>(Context)
