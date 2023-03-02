@@ -191,4 +191,4 @@ type Input =
 
     /// Passes a `CancellationToken` to the handler.
     static member Cancel() = 
-        HandlerInput<System.Threading.CancellationToken>(Context)
+        HandlerInput<System.Threading.CancellationToken>(Cancel)

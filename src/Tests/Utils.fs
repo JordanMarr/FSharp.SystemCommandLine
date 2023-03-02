@@ -7,8 +7,7 @@ open FSharp.SystemCommandLine
 
 /// Used to test the `rootCommand` with a command line arg string
 let testRootCommand (commandLineString: string) = 
-    let parser = Parsing.Parser()
-    let result = parser.Parse(commandLineString)
+    let result = Parsing.Parser.Parse(RootCommand(), commandLineString)
     let args = result.Tokens |> Seq.map (fun t -> t.Value) |> Seq.toArray
     RootCommandBuilder(args)
 
