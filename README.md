@@ -74,12 +74,12 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
-
     rootCommand argv {
         description "Unzips a .zip file"
-        inputs (zipFile, outputDirMaybe)
+        inputs (
+            Input.Argument<FileInfo>("The file to unzip"),
+            Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
+        )
         setHandler unzip
     }
 ```
