@@ -125,6 +125,14 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value>) =
         { spec with ExtraInputs = spec.ExtraInputs @ [ extraInput ] }
 
+    [<CustomOperation("add")>]
+    member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput seq) =
+        { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> List.ofSeq) }
+
+    [<CustomOperation("add")>]
+    member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value> seq) =
+        { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> Seq.cast |> List.ofSeq) }
+
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
         cmd.Description <- spec.Description
