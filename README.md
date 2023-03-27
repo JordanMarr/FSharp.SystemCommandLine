@@ -198,6 +198,40 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
+### Example with more than 8 inputs
+Currently, a command handler function is limited to accept a tuple with no more than eight inputs.
+If you need more, you can pass in the InvocationContext to your handler and manually get as many input values as you like (assuming they have been registered via the rootCommand or command builder's `add` operation:
+
+```F#
+module Program
+
+open FSharp.SystemCommandLine
+
+module Parameters = 
+    let words = Input.Option<string[]>(["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.OptionMaybe<string>(["--separator"; "-s"], "A character that will separate the joined words.")
+
+let app (ctx: System.CommandLine.Invocation.InvocationContext) =
+    // Manually parse as many parameters as you need
+    let words = Parameters.words.GetValue ctx
+    let separator = Parameters.separator.GetValue ctx
+
+    // Do work
+    let separator = separator |> Option.defaultValue ", "
+    System.String.Join(separator, words) |> printfn "Result: %s"
+    0
+    
+[<EntryPoint>]
+let main argv = 
+    rootCommand argv {
+        description "Appends words together"
+        inputs (Input.Context())
+        setHandler app
+        add Parameters.words
+        add Parameters.separator
+    }
+```
+
 ### Example using Microsoft.Extensions.Hosting
 
 This example requires the following nuget packages:
