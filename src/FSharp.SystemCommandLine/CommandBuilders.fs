@@ -124,11 +124,11 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         { spec with SubCommands = spec.SubCommands @ (subCommands |> Seq.toList) }
 
     [<CustomOperation("addAlias")>]
-    member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, alias: string seq) =
+    member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string seq) =
         { spec with Alias = spec.Alias @ (alias |> Seq.toList) }
 
     [<CustomOperation("addAlias")>]
-    member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, alias: string) =
+    member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string) =
         { spec with Alias = alias :: spec.Alias }
 
     /// Registers an additional input that can be manually parsed via the InvocationContext. (Use when more than 8 inputs are required.)
