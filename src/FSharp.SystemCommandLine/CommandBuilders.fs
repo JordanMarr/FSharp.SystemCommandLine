@@ -22,7 +22,7 @@ type CommandSpec<'Inputs, 'Output> =
         Description: string
         Inputs: HandlerInput list
         Handler: 'Inputs -> 'Output
-        Alias: string list
+        Aliases: string list
         SubCommands: System.CommandLine.Command list
         /// Registers extra inputs that can be parsed via the InvocationContext if more than 8 are required.
         ExtraInputs: HandlerInput list
@@ -31,7 +31,7 @@ type CommandSpec<'Inputs, 'Output> =
         { 
             Description = "My Command"
             Inputs = []
-            Alias = []
+            Aliases = []
             ExtraInputs = []
             Handler = def<unit -> 'Output> // Support unit -> 'Output handler by default
             SubCommands = []
@@ -44,7 +44,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         {
             Description = spec.Description
             Inputs = spec.Inputs
-            Alias = spec.Alias
+            Aliases = spec.Aliases
             ExtraInputs = spec.ExtraInputs
             Handler = handler
             SubCommands = spec.SubCommands
@@ -108,7 +108,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
         newHandler handler spec
 
-    [<Obsolete("'setCommand' has been deprecated in favor of 'addCommand' or 'addCommands`.")>]
+    [<Obsolete("'setCommand' has been deprecated in favor of 'addCommand' or 'addCommands'.")>]
     [<CustomOperation("setCommand")>] 
     member this.SetCommand (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
         { spec with SubCommands = spec.SubCommands @ [ subCommand ] }
@@ -123,26 +123,40 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command seq) =
         { spec with SubCommands = spec.SubCommands @ (subCommands |> Seq.toList) }
 
-    [<CustomOperation("addAlias")>]
-    member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string seq) =
-        { spec with Alias = spec.Alias @ (alias |> Seq.toList) }
-
+    /// Adds an alias to the command.
     [<CustomOperation("addAlias")>]
     member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string) =
-        { spec with Alias = alias :: spec.Alias }
+        { spec with Aliases = alias :: spec.Aliases }
 
-    /// Registers an additional input that can be manually parsed via the InvocationContext. (Use when more than 8 inputs are required.)
+    /// Adds aliases to the command.
+    [<CustomOperation("addAliases")>]
+    member this.AddAliases (spec: CommandSpec<'Inputs, 'Output>, aliases: string seq) =
+        { spec with Aliases = spec.Aliases @ (aliases |> Seq.toList) }
+
+    [<Obsolete("'add' has been deprecated in favor of 'addInput'.")>]
     [<CustomOperation("add")>]
     member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value>) =
         { spec with ExtraInputs = spec.ExtraInputs @ [ extraInput ] }
 
+    [<Obsolete("'add' has been deprecated in favor of 'addInputs'.")>]
     [<CustomOperation("add")>]
     member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput seq) =
         { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> List.ofSeq) }
 
+    [<Obsolete("'add' has been deprecated in favor of 'addInputs'.")>]
     [<CustomOperation("add")>]
     member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value> seq) =
         { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> Seq.cast |> List.ofSeq) }
+
+    /// Adds an extra input (when more than 8 inputs are required).
+    [<CustomOperation("addInput")>]
+    member this.AddInput(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput) =
+        { spec with ExtraInputs = spec.ExtraInputs @ [ extraInput ] }
+
+    /// Adds extra inputs (when more than 8 inputs are required).
+    [<CustomOperation("addInputs")>]
+    member this.AddInputs(spec: CommandSpec<'Inputs, 'Output>, extraInputs: HandlerInput seq) =
+        { spec with ExtraInputs = spec.ExtraInputs @ (extraInputs |> List.ofSeq) }
 
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
@@ -161,9 +175,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             | ParsedArgument a -> cmd.AddArgument a
             | Context -> ()
         )
-
         spec.SubCommands |> List.iter cmd.AddCommand
-        spec.Alias |> List.iter cmd.AddAlias
+        spec.Aliases |> List.iter cmd.AddAlias
         cmd
 
     /// Sets a command handler that returns `unit`.

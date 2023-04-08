@@ -39,14 +39,5 @@ let main argv =
         description "Appends words together"
         inputs ctx
         setHandler app
-        add a
-        add b
-        add c
-        add d
-        add e
-        add f
-        add g
-        add h
-        add i
-        add j
+        addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }
