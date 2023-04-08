@@ -22,6 +22,7 @@ type CommandSpec<'Inputs, 'Output> =
         Description: string
         Inputs: HandlerInput list
         Handler: 'Inputs -> 'Output
+        Alias: string list
         SubCommands: System.CommandLine.Command list
         /// Registers extra inputs that can be parsed via the InvocationContext if more than 8 are required.
         ExtraInputs: HandlerInput list
@@ -30,6 +31,7 @@ type CommandSpec<'Inputs, 'Output> =
         { 
             Description = "My Command"
             Inputs = []
+            Alias = []
             ExtraInputs = []
             Handler = def<unit -> 'Output> // Support unit -> 'Output handler by default
             SubCommands = []
@@ -42,6 +44,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         {
             Description = spec.Description
             Inputs = spec.Inputs
+            Alias = spec.Alias
             ExtraInputs = spec.ExtraInputs
             Handler = handler
             SubCommands = spec.SubCommands
@@ -120,6 +123,14 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command seq) =
         { spec with SubCommands = spec.SubCommands @ (subCommands |> Seq.toList) }
 
+    [<CustomOperation("addAlias")>]
+    member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string seq) =
+        { spec with Alias = spec.Alias @ (alias |> Seq.toList) }
+
+    [<CustomOperation("addAlias")>]
+    member this.AddAlias (spec: CommandSpec<'Inputs, 'Output>, alias: string) =
+        { spec with Alias = alias :: spec.Alias }
+
     /// Registers an additional input that can be manually parsed via the InvocationContext. (Use when more than 8 inputs are required.)
     [<CustomOperation("add")>]
     member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value>) =
@@ -152,6 +163,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         )
 
         spec.SubCommands |> List.iter cmd.AddCommand
+        spec.Alias |> List.iter cmd.AddAlias
         cmd
 
     /// Sets a command handler that returns `unit`.
