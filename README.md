@@ -227,7 +227,7 @@ let main argv =
         description "Appends words together"
         inputs (Input.Context())
         setHandler app
-        add [ Parameters.words; Parameters.separator ]
+        addInputs [ Parameters.words; Parameters.separator ]
     }
 ```
 
