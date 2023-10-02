@@ -8,6 +8,7 @@
 	<Authors>Jordan Marr</Authors>
 	<PackageTags>F# fsharp System.CommandLine cli</PackageTags>
 	<PackageProjectUrl>https://github.com/JordanMarr/FSharp.SystemCommandLine</PackageProjectUrl>
+	<PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
