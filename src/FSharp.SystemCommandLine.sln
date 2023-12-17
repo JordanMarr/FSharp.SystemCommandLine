@@ -9,7 +9,12 @@ Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "TestConsole", "TestConsole\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{E144B2FD-C858-4294-BBBE-BD388B23F25C}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Tests", "Tests\Tests.fsproj", "{6C135A08-5956-48AA-83BE-A1443FBE1F54}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Tests", "Tests\Tests.fsproj", "{6C135A08-5956-48AA-83BE-A1443FBE1F54}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{1B490EE2-1DBB-45FE-94DE-93841BFF96FC}"
+	ProjectSection(SolutionItems) = preProject
+		build.fsx = build.fsx
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
