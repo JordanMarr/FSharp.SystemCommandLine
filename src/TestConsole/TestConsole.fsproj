@@ -9,6 +9,7 @@
     <Content Include="Properties\launchSettings.json" />
     <Compile Include="ProgramAlt1.fs" />
     <Compile Include="ProgramNoArgs.fs" />
+    <Compile Include="ProgramNestedSubCommands.fs" />
     <Compile Include="ProgramSubCommand.fs" />
     <Compile Include="ProgramTask.fs" />
     <Compile Include="ProgramTokenReplacer.fs" />
