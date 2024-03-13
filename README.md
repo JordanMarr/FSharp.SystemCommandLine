@@ -311,6 +311,109 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
+### Passing Dependencies to Commands
+
+This real-life example for running database migrations demonstrates the following features:
+* Uses Microsoft.Extensions.Hosting.
+* Passes the `ILogger` to the commands.
+* Uses async/task commands.
+* Shows help if no command is passed.
+
+```F#
+module Program
+
+open EvolveDb
+open System.Data.SqlClient
+open System.IO
+open Microsoft.Extensions.Hosting
+open Microsoft.Extensions.Configuration
+open Microsoft.Extensions.DependencyInjection
+open Serilog
+open EvolveDb.Configuration
+open FSharp.SystemCommandLine
+open System.CommandLine.Invocation
+open System.CommandLine.Help
+
+let buildHost (argv: string[]) =
+    Host.CreateDefaultBuilder(argv)
+        .ConfigureHostConfiguration(fun configHost ->
+            configHost.SetBasePath(Directory.GetCurrentDirectory()) |> ignore
+            configHost.AddJsonFile("appsettings.json", optional = false) |> ignore
+        )
+        .UseSerilog(fun hostingContext configureLogger ->
+            configureLogger
+                .MinimumLevel.Information()
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.File(
+                    path = "logs/log.txt", 
+                    rollingInterval = RollingInterval.Year
+                )
+                |> ignore
+        )
+        .Build()
+
+let repairCmd (logger: ILogger) = 
+    let handler (env: string) =
+        task {
+            logger.Information($"Environment: {env}")
+            logger.Information("Starting EvolveDb Repair (correcting checksums).")
+            let! connStr = KeyVault.getConnectionString env
+            use conn = new SqlConnection(connStr)
+            let evolve = Evolve(conn, fun msg -> printfn "%s" msg) 
+            evolve.TransactionMode <- TransactionKind.CommitAll
+            evolve.Locations <- [| "Scripts" |]
+            evolve.IsEraseDisabled <- true
+            evolve.MetadataTableName <- "_EvolveChangelog"
+            evolve.Repair()
+        }
+
+    command "repair" {
+        description "Corrects checksums in the database."
+        inputs (Input.Argument<string>("env", "The keyvault environment: [dev, beta, prod]."))
+        setHandler handler
+    }
+
+let migrateCmd (logger: ILogger) =
+    let handler (env: string) =
+        task {
+            logger.Information($"Environment: {env}")
+            logger.Information("Starting EvolveDb Migrate.")
+            let! connStr = KeyVault.getConnectionString env
+            use conn = new SqlConnection(connStr)
+            let evolve = Evolve(conn, fun msg -> printfn "%s" msg) 
+            evolve.TransactionMode <- TransactionKind.CommitAll
+            evolve.Locations <- [| "Scripts" |]
+            evolve.IsEraseDisabled <- true
+            evolve.MetadataTableName <- "_EvolveChangelog"
+            evolve.Migrate()
+        }
+
+    command "migrate" {
+        description "Migrates the database."
+        inputs (Input.Argument<string>("env", "The keyvault environment: [dev, beta, prod]."))
+        setHandler handler
+    }
+
+let showHelp (ctx: InvocationContext) =
+    let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
+    ctx.HelpBuilder.Write(hc)
+
+[<EntryPoint>]
+let main argv =
+    let host = buildHost argv
+    let logger = host.Services.GetService<ILogger>()
+
+    rootCommand argv {
+        description "Database Migrations"
+        inputs (Input.Context())
+        setHandler (showHelp)
+        addCommand (repairCmd logger)
+        addCommand (migrateCmd logger)
+    }
+
+```
+
 ### Creating a Root Command Parser
 
 If you want to manually invoke your root command, use the `rootCommandParser` CE (because the `rootCommand` CE is auto-executing).
