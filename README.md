@@ -311,12 +311,12 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
-### Passing Dependencies to Commands
+### Database Migrations Example
 
 This real-life example for running database migrations demonstrates the following features:
 * Uses Microsoft.Extensions.Hosting.
-* Passes the `ILogger` to the commands.
 * Uses async/task commands.
+* Passes the `ILogger` dependency to the commands.
 * Shows help if no command is passed.
 
 ```F#
