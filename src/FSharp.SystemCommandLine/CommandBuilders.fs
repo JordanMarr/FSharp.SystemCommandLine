@@ -500,23 +500,35 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
+    let addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
+        globalOptions
+        |> List.iter (fun g ->
+            match g.Source with
+            | ParsedOption o -> cmd.AddGlobalOption(o)
+            | _ -> ()
+        )
+        cmd
+
     /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) = 
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
