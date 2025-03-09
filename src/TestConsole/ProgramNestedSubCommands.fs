@@ -2,9 +2,15 @@
 
 open System.IO
 open FSharp.SystemCommandLine
+open System.CommandLine.Invocation
+
+/// A global option to enable logging.
+let enableLogging = Input.Option<bool>("--enable-logging", false)
 
 let listCmd =
-    let handler (dir: DirectoryInfo) =
+    let handler (ctx: InvocationContext, dir: DirectoryInfo) =
+        let enableLogging = enableLogging.GetValue(ctx)
+        printfn "enableLogging: %b" enableLogging
         if dir.Exists then
             dir.EnumerateFiles()
             |> Seq.iter (fun f -> printfn "%s" f.FullName)
@@ -15,7 +21,7 @@ let listCmd =
 
     command "list" {
         description "lists contents of a directory"
-        inputs dir
+        inputs (Input.Context(), dir)
         setHandler handler
         addAlias "ls"
     }
@@ -48,10 +54,11 @@ let ioCmd =
     }
 
 
-// [<EntryPoint>]
+//[<EntryPoint>]
 let main argv =
     rootCommand argv {
         description "Sample app for System.CommandLine"
         setHandler id
+        addGlobalOption enableLogging
         addCommand ioCmd
     }
