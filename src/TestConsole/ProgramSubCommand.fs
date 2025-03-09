@@ -37,7 +37,7 @@ let deleteCmd =
         description "deletes a directory"
         inputs (dir, recursive)
         setHandler handler
-        addAlias [ "d"; "del" ]
+        addAliases [ "d"; "del" ]
     }
 
 
