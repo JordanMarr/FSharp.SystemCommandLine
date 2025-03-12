@@ -2,9 +2,26 @@
 
 open System.IO
 open FSharp.SystemCommandLine
+open System.CommandLine.Invocation
+
+module Global = 
+    let enableLogging = Input.Option<bool>("--enable-logging", false)
+    let logFile = Input.Option<FileInfo>("--log-file", FileInfo @"c:\temp\default.log")
+
+    type Options = { EnableLogging: bool; LogFile: FileInfo }
+
+    let options: HandlerInput seq = [ enableLogging; logFile ] 
+
+    let bind (ctx: InvocationContext) = 
+        { EnableLogging = enableLogging.GetValue ctx
+          LogFile = logFile.GetValue ctx }
 
 let listCmd =
-    let handler (dir: DirectoryInfo) =
+    let handler (ctx: InvocationContext, dir: DirectoryInfo) =
+        let options = Global.bind ctx
+        if options.EnableLogging then 
+            printfn $"Logging enabled to {options.LogFile.FullName}"
+
         if dir.Exists then
             dir.EnumerateFiles()
             |> Seq.iter (fun f -> printfn "%s" f.FullName)
@@ -15,13 +32,17 @@ let listCmd =
 
     command "list" {
         description "lists contents of a directory"
-        inputs dir
+        inputs (Input.Context(), dir)
         setHandler handler
         addAlias "ls"
     }
 
 let deleteCmd =
-    let handler (dir: DirectoryInfo, recursive: bool) =
+    let handler (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
+        let options = Global.bind ctx
+        if options.EnableLogging then 
+            printfn $"Logging enabled to {options.LogFile.FullName}"
+        
         if dir.Exists then
             if recursive then
                 printfn $"Recursively deleting {dir.FullName}"
@@ -35,7 +56,7 @@ let deleteCmd =
 
     command "delete" {
         description "deletes a directory"
-        inputs (dir, recursive)
+        inputs (Input.Context(), dir, recursive)
         setHandler handler
         addAlias "del"
     }
@@ -47,11 +68,11 @@ let ioCmd =
         addCommands [ deleteCmd; listCmd ]
     }
 
-
-// [<EntryPoint>]
+//[<EntryPoint>]
 let main argv =
     rootCommand argv {
         description "Sample app for System.CommandLine"
         setHandler id
+        addGlobalOptions Global.options
         addCommand ioCmd
     }

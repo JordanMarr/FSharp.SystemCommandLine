@@ -14,7 +14,7 @@
     },
     "IO Nested SubCommands": {
       "commandName": "Project",
-      "commandLineArgs": "io list c:/data/"
-    },
+      "commandLineArgs": "io list c:/data/ --enable-logging true"
+    }
   }
 }
