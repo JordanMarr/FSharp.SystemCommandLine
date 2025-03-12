@@ -4,13 +4,13 @@ open System.IO
 open FSharp.SystemCommandLine
 open System.CommandLine.Invocation
 
-module GlobalOptions = 
+module Global = 
     let enableLogging = Input.Option<bool>("--enable-logging", false)
     let logFile = Input.Option<FileInfo>("--log-file", FileInfo @"c:\temp\default.log")
 
-    type GlobalOptions = { EnableLogging: bool; LogFile: FileInfo }
+    type Options = { EnableLogging: bool; LogFile: FileInfo }
 
-    let all: HandlerInput seq = [ enableLogging; logFile ] 
+    let options: HandlerInput seq = [ enableLogging; logFile ] 
 
     let bind (ctx: InvocationContext) = 
         { EnableLogging = enableLogging.GetValue ctx
@@ -18,7 +18,7 @@ module GlobalOptions =
 
 let listCmd =
     let handler (ctx: InvocationContext, dir: DirectoryInfo) =
-        let options = GlobalOptions.bind ctx
+        let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
 
@@ -39,7 +39,7 @@ let listCmd =
 
 let deleteCmd =
     let handler (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
-        let options = GlobalOptions.bind ctx
+        let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
         
@@ -73,6 +73,6 @@ let main argv =
     rootCommand argv {
         description "Sample app for System.CommandLine"
         setHandler id
-        addGlobalOptions GlobalOptions.all
+        addGlobalOptions Global.options
         addCommand ioCmd
     }
