@@ -13,10 +13,8 @@ module GlobalOptions =
     let all: HandlerInput seq = [ enableLogging; logFile ] 
 
     let bind (ctx: InvocationContext) = 
-        let log = logFile.GetValue ctx
-        if not log.Exists then File.Create(log.FullName).Dispose()
         { EnableLogging = enableLogging.GetValue ctx
-          LogFile = log }
+          LogFile = logFile.GetValue ctx }
 
 let listCmd =
     let handler (ctx: InvocationContext, dir: DirectoryInfo) =
