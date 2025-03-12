@@ -4,13 +4,26 @@ open System.IO
 open FSharp.SystemCommandLine
 open System.CommandLine.Invocation
 
-/// A global option to enable logging.
-let enableLogging = Input.Option<bool>("--enable-logging", false)
+module GlobalOptions = 
+    let enableLogging = Input.Option<bool>("--enable-logging", false)
+    let logFile = Input.Option<FileInfo>("--log-file", FileInfo @"c:\temp\default.log")
+
+    type GlobalOptions = { EnableLogging: bool; LogFile: FileInfo }
+
+    let all: HandlerInput seq = [ enableLogging; logFile ] 
+
+    let bind (ctx: InvocationContext) = 
+        let log = logFile.GetValue ctx
+        if not log.Exists then File.Create(log.FullName).Dispose()
+        { EnableLogging = enableLogging.GetValue ctx
+          LogFile = log }
 
 let listCmd =
     let handler (ctx: InvocationContext, dir: DirectoryInfo) =
-        let enableLogging = enableLogging.GetValue(ctx)
-        printfn "enableLogging: %b" enableLogging
+        let options = GlobalOptions.bind ctx
+        if options.EnableLogging then 
+            printfn $"Logging enabled to {options.LogFile.FullName}"
+
         if dir.Exists then
             dir.EnumerateFiles()
             |> Seq.iter (fun f -> printfn "%s" f.FullName)
@@ -27,7 +40,11 @@ let listCmd =
     }
 
 let deleteCmd =
-    let handler (dir: DirectoryInfo, recursive: bool) =
+    let handler (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
+        let options = GlobalOptions.bind ctx
+        if options.EnableLogging then 
+            printfn $"Logging enabled to {options.LogFile.FullName}"
+        
         if dir.Exists then
             if recursive then
                 printfn $"Recursively deleting {dir.FullName}"
@@ -41,7 +58,7 @@ let deleteCmd =
 
     command "delete" {
         description "deletes a directory"
-        inputs (dir, recursive)
+        inputs (Input.Context(), dir, recursive)
         setHandler handler
         addAlias "del"
     }
@@ -53,12 +70,11 @@ let ioCmd =
         addCommands [ deleteCmd; listCmd ]
     }
 
-
 //[<EntryPoint>]
 let main argv =
     rootCommand argv {
         description "Sample app for System.CommandLine"
         setHandler id
-        addGlobalOption enableLogging
+        addGlobalOptions GlobalOptions.all
         addCommand ioCmd
     }
