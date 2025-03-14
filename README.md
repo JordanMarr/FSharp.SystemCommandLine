@@ -389,11 +389,23 @@ let ioCmd =
 
 [<EntryPoint>]
 let main argv =
-    rootCommand argv {
-        description "Sample app for System.CommandLine"
-        setHandler id        
-        addCommand ioCmd
-    }
+    let ctx = Input.Context()
+    
+    let parser = 
+        rootCommandParser {
+            description "Sample app for System.CommandLine"
+            setHandler id
+            addGlobalOptions Global.options
+            addCommand ioCmd
+        }
+
+    let parseResult = parser.Parse(argv)
+
+    // Get global option value from the parseResult
+    let loggingEnabled = Global.enableLogging.GetValue parseResult
+    printfn $"ROOT: Logging enabled: {loggingEnabled}"
+
+    parseResult.Invoke()
 ```
 
 ### Database Migrations Example
