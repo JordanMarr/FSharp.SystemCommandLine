@@ -24,15 +24,27 @@ type HandlerInput(source: HandlerInputSource) =
 
 type HandlerInput<'T>(inputType: HandlerInputSource) =
     inherit HandlerInput(inputType)
+    
     /// Converts a System.CommandLine.Option<'T> for usage with the CommandBuilder.
     static member OfOption<'T>(o: Option<'T>) = o :> Option |> ParsedOption |> HandlerInput<'T>
+    
     /// Converts a System.CommandLine.Argument<'T> for usage with the CommandBuilder.
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
+
+    /// Gets the value of an Option or Argument from the InvocationContext.
     member this.GetValue(ctx: System.CommandLine.Invocation.InvocationContext) =
         match this.Source with
         | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValueForOption
         | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValueForArgument
         | Context -> ctx |> unbox<'T>
+    
+    /// Gets the value of an Option or Argument from the Parser.
+    member this.GetValue(parseResult: Parsing.ParseResult) =
+        match this.Source with
+        | ParsedOption o -> o :?> Option<'T> |> parseResult.GetValueForOption
+        | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValueForArgument
+        | Context -> failwith "Cannot get a value for InvocationContext from a ParseResult."
+
         
 let private applyConfiguration configure a = 
     configure a; a

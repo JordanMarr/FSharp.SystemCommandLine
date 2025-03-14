@@ -3,6 +3,7 @@
 open System.IO
 open FSharp.SystemCommandLine
 open System.CommandLine.Invocation
+open System.CommandLine.Parsing
 
 module Global = 
     let enableLogging = Input.Option<bool>("--enable-logging", false)
@@ -70,9 +71,20 @@ let ioCmd =
 
 //[<EntryPoint>]
 let main argv =
-    rootCommand argv {
-        description "Sample app for System.CommandLine"
-        setHandler id
-        addGlobalOptions Global.options
-        addCommand ioCmd
-    }
+    let ctx = Input.Context()
+    
+    let parser = 
+        rootCommandParser {
+            description "Sample app for System.CommandLine"
+            setHandler id
+            addGlobalOptions Global.options
+            addCommand ioCmd
+        }
+
+    let parseResult = parser.Parse(argv)
+
+    let loggingEnabled = Global.enableLogging.GetValue parseResult
+    printfn $"ROOT: Logging enabled: {loggingEnabled}"
+
+    parseResult.Invoke()
+    
