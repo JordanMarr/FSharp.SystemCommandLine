@@ -383,7 +383,6 @@ let ioCmd =
     command "io" {
         description "Contains IO related subcommands."
         setHandler id
-        addGlobalOptions Global.options
         addCommands [ deleteCmd; listCmd ]
     }
 
