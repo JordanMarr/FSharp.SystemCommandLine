@@ -7,15 +7,14 @@ open System.CommandLine
 open System.CommandLine.Builder
 open System.CommandLine.Parsing
 
-type private IC = System.CommandLine.Invocation.InvocationContext
 let private def<'T> = Unchecked.defaultof<'T>
 
 /// Parses a HandlerInput value using the InvocationContext.
-let private parseInput<'V> (handlerInputs: HandlerInput list) (ctx: IC) (idx: int) =
+let private parseInput<'V> (handlerInputs: HandlerInput list) (pr: ParseResult) (idx: int) =
     match handlerInputs[idx].Source with
-    | ParsedOption o -> ctx.ParseResult.GetValueForOption<'V>(o :?> Option<'V>)
-    | ParsedArgument a -> ctx.ParseResult.GetValueForArgument<'V>(a :?> Argument<'V>)
-    | Context -> ctx |> unbox<'V>
+    | ParsedOption o -> pr.GetValue<'V>(o :?> Option<'V>)
+    | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
+    | Context -> pr |> unbox<'V>
 
 let private addGlobalOptionsToParser (globalInputs: HandlerInput list) (parser: Parser) =
     globalInputs
@@ -204,63 +203,63 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         let handler (args: obj) = 
             spec.Handler (args :?> 'Inputs)
 
-        let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+        let getValue (pr: ParseResult) (idx: int) =
+            parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(Action(fun () -> 
+        | 00 -> cmd.SetAction(Action(fun () -> 
                 handler ()))
-        | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
+        | 01 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
                 handler (a)))
-        | 02 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
+        | 02 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
                 handler (a, b)))
-        | 03 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
+        | 03 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
                 handler (a, b, c)))
-        | 04 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
+        | 04 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
                 handler (a, b, c, d)))
-        | 05 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
+        | 05 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
                 handler (a, b, c, d, e)))
-        | 06 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
+        | 06 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
                 handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
+        | 07 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
                 handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
+        | 08 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
+                let h: 'H = getValue pr 7
                 handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
@@ -270,64 +269,64 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         let handler (args: obj) = 
             spec.Handler (args :?> 'Inputs)
 
-        let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+        let getValue (pr: ParseResult) (idx: int) =
+            parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                ctx.ExitCode <- handler ()))
-        | 01 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                ctx.ExitCode <- handler (a)))
-        | 02 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                ctx.ExitCode <- handler (a, b)))
-        | 03 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                ctx.ExitCode <- handler (a, b, c)))
-        | 04 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                ctx.ExitCode <- handler (a, b, c, d)))
-        | 05 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                ctx.ExitCode <- handler (a, b, c, d, e)))
-        | 06 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                ctx.ExitCode <- handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                ctx.ExitCode <- handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetHandler(Action<IC>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
-                ctx.ExitCode <- handler (a, b, c, d, e, f, g, h)))
+        | 00 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                pr.ExitCode <- handler ()))
+        | 01 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                pr.ExitCode <- handler (a)))
+        | 02 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                pr.ExitCode <- handler (a, b)))
+        | 03 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                pr.ExitCode <- handler (a, b, c)))
+        | 04 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                pr.ExitCode <- handler (a, b, c, d)))
+        | 05 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                pr.ExitCode <- handler (a, b, c, d, e)))
+        | 06 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                pr.ExitCode <- handler (a, b, c, d, e, f)))
+        | 07 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
+                pr.ExitCode <- handler (a, b, c, d, e, f, g)))
+        | 08 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
+                let h: 'H = getValue pr 7
+                pr.ExitCode <- handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -338,63 +337,63 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 return! spec.Handler (args :?> 'Inputs)
             }
 
-        let getValue (ctx: IC) (idx: int) =
-            parseInput spec.Inputs ctx idx
+        let getValue (pr: ParseResult) (idx: int) =
+            parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetHandler(Func<Task>(fun () -> 
+        | 00 -> cmd.SetAction(Func<Task>(fun () -> 
                 handler ()))
-        | 01 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
+        | 01 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
                 handler (a)))
-        | 02 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
+        | 02 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
                 handler (a, b)))
-        | 03 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
+        | 03 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
                 handler (a, b, c)))
-        | 04 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
+        | 04 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
                 handler (a, b, c, d)))
-        | 05 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
+        | 05 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
                 handler (a, b, c, d, e)))
-        | 06 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
+        | 06 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
                 handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
+        | 07 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
                 handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetHandler(Func<IC, Task>(fun ctx -> 
-                let a: 'A = getValue ctx 0
-                let b: 'B = getValue ctx 1
-                let c: 'C = getValue ctx 2
-                let d: 'D = getValue ctx 3
-                let e: 'E = getValue ctx 4
-                let f: 'F = getValue ctx 5
-                let g: 'G = getValue ctx 6
-                let h: 'H = getValue ctx 7
+        | 08 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+                let a: 'A = getValue pr 0
+                let b: 'B = getValue pr 1
+                let c: 'C = getValue pr 2
+                let d: 'D = getValue pr 3
+                let e: 'E = getValue pr 4
+                let f: 'F = getValue pr 5
+                let g: 'G = getValue pr 6
+                let h: 'H = getValue pr 7
                 handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
