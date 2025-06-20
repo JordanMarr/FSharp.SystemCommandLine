@@ -207,7 +207,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetAction(Action(fun () -> 
+        | 00 -> cmd.SetAction(Action<ParseResult>(fun _ -> 
                 handler ()))
         | 01 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
                 let a: 'A = getValue pr 0
