@@ -30,20 +30,13 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
     
     /// Converts a System.CommandLine.Argument<'T> for usage with the CommandBuilder.
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> HandlerInput<'T>
-
-    /// Gets the value of an Option or Argument from the InvocationContext.
-    member this.GetValue(ctx: System.CommandLine.Invocation.InvocationContext) =
-        match this.Source with
-        | ParsedOption o -> o :?> Option<'T> |> ctx.ParseResult.GetValueForOption
-        | ParsedArgument a -> a :?> Argument<'T> |> ctx.ParseResult.GetValueForArgument
-        | Context -> ctx |> unbox<'T>
-    
+        
     /// Gets the value of an Option or Argument from the Parser.
-    member this.GetValue(parseResult: Parsing.ParseResult) =
+    member this.GetValue(parseResult: ParseResult) =
         match this.Source with
-        | ParsedOption o -> o :?> Option<'T> |> parseResult.GetValueForOption
-        | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValueForArgument
-        | Context -> failwith "Cannot get a value for InvocationContext from a ParseResult."
+        | ParsedOption o -> o :?> Option<'T> |> parseResult.GetValue
+        | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValue
+        | Context -> parseResult |> unbox<'T>
 
         
 let private applyConfiguration configure a = 
@@ -201,6 +194,11 @@ type Input =
         |> fun o -> o.SetDefaultValue(None); o
         |> HandlerInput.OfArgument
 
-    /// Passes the `InvocationContext` to the handler.
+    /// Passes the `ParseResult` to the handler.
+    [<System.Obsolete("Use Context() or ParseResult() instead.")>]
     static member Context() = 
-        HandlerInput<Invocation.InvocationContext>(Context)
+        HandlerInput<ParseResult>(Context)
+
+    /// Passes the `ParseResult` to the handler.
+    static member ParseResult() = 
+        HandlerInput<ParseResult>(Context)
