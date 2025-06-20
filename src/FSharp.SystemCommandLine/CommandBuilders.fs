@@ -504,7 +504,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         globalOptions
         |> List.iter (fun g ->
             match g.Source with
-            | ParsedOption o -> cmd.AddGlobalOption(o)
+            | ParsedOption o -> cmd.Add(o)
             | _ -> ()
         )
         cmd
