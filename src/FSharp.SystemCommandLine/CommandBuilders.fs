@@ -184,19 +184,19 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         spec.Inputs
         |> Seq.iter (fun input ->
             match input.Source with
-            | ParsedOption o -> cmd.AddOption o
-            | ParsedArgument a -> cmd.AddArgument a
+            | ParsedOption o -> cmd.Add o
+            | ParsedArgument a -> cmd.Add a
             | Context -> ()
         )
         spec.ExtraInputs
         |> Seq.iter (fun input ->
             match input.Source with
-            | ParsedOption o -> cmd.AddOption o
-            | ParsedArgument a -> cmd.AddArgument a
+            | ParsedOption o -> cmd.Add o
+            | ParsedArgument a -> cmd.Add a
             | Context -> ()
         )
-        spec.SubCommands |> List.iter cmd.AddCommand
-        spec.Aliases |> List.iter cmd.AddAlias
+        spec.SubCommands |> List.iter cmd.Add
+        spec.Aliases |> List.iter cmd.Aliases.Add
         cmd
 
     /// Sets a command handler that returns `unit`.
