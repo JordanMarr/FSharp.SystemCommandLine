@@ -481,7 +481,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetHandlerTask spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        CommandLineParser.Parse(rootCommand, args).Invoke()
+        CommandLineParser.Parse(rootCommand, args).InvokeAsync()
        
 
 /// Builds a `System.CommandLine.Command`.
