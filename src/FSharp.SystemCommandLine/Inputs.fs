@@ -42,6 +42,10 @@ type HandlerInput<'T>(inputType: HandlerInputSource) =
 let private applyConfiguration configure a = 
     configure a; a
 
+let setDescription (description: string option) (symbol: #Symbol) = 
+    description |> Option.iter (fun desc -> symbol.Description <- desc)
+    symbol
+
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 
 
@@ -60,138 +64,138 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with the ability to manually configure the underlying properties.
-    static member Option<'T>(aliases: string seq, configure) =
-        Option<'T>(Seq.toArray aliases) 
+    static member Option<'T>(name: string, aliases: string seq, configure) =
+        Option<'T>(name, aliases = Seq.toArray aliases) 
         |> applyConfiguration configure
         |> HandlerInput.OfOption
 
     /// Creates a CLI argument of type 'T with the ability to manually configure the underlying properties.
-    static member Argument<'T>(name: string, configure) =
-        Argument<'T>(name) 
-        |> applyConfiguration configure
-        |> HandlerInput.OfArgument
+    //static member Argument<'T>(name: string, configure) =
+    //    Argument<'T>(name) 
+    //    |> applyConfiguration configure
+    //    |> HandlerInput.OfArgument
+    //    |> fun o -> o.GetValue
 
     /// Creates a CLI option of type 'T.
     static member Option<'T>(name: string, ?description: string) =
-        Option<'T>(
-            name,
-            ?description = description
-        ) 
+        Option<'T>(name) 
+        |> fun o -> 
+            description |> Option.iter (fun desc -> o.Description <- desc)
+            o
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T.
-    static member Option<'T>(aliases: string seq, ?description: string) =
-        Option<'T>(
-            Seq.toArray aliases,
-            ?description = description
-        )
+    static member Option<'T>(name: string, aliases: string seq, ?description: string) =
+        Option<'T>(name, aliases = Seq.toArray aliases)
+        |> setDescription description
         |> HandlerInput.OfOption
     
     /// Creates a CLI option of type 'T with a default value.
     static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
-        Option<'T>(
-            name,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
-        )
+        Option<'T>(name)
+        |> setDescription description
+        |> fun o -> 
+            o.DefaultValueFactory <- (fun _ -> defaultValue)
+            o
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with a default value.
-    static member Option<'T>(aliases: string seq, defaultValue: 'T, ?description: string) =
-        Option<'T>(
-            Seq.toArray aliases,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
-        )
+    static member Option<'T>(name: string, aliases: string seq, defaultValue: 'T, ?description: string) =
+        Option<'T>(name)
+        |> setDescription description
+        |> fun o -> 
+            o.DefaultValueFactory <- (fun _ -> defaultValue)
+            aliases |> Seq.iter o.Aliases.Add
+            o
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T that is required.
-    static member OptionRequired<'T>(aliases: string seq, ?description: string) =
-        Option<'T>(
-            Seq.toArray aliases,
-            ?description = description,
-            IsRequired = true
-        )
+    static member OptionRequired<'T>(name: string, aliases: string seq, ?description: string) =
+        Option<'T>(name)
+        |> setDescription description
+        |> fun o ->
+            aliases |> Seq.iter o.Aliases.Add
+            o.Required <- true
+            o
         |> HandlerInput.OfOption
         
     /// Creates a CLI option of type 'T that is required.
     static member OptionRequired<'T>(name: string, ?description: string) =
-        Input.OptionRequired<'T>([| name |], ?description = description)
+        Input.OptionRequired<'T>(name, aliases = [], ?description = description)
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
-    static member OptionMaybe<'T>(aliases: string seq, configure) =
+    static member OptionMaybe<'T>(name: string, aliases: string seq, configure) =
         let isBool = typeof<'T> = typeof<bool>
-        Option<'T option>(
-            Seq.toArray aliases,
-            parseArgument = (fun argResult -> 
-                match argResult.Tokens |> Seq.toList with
+        Option<'T option>(name, Seq.toArray aliases)
+        |> fun o -> 
+            o.CustomParser <- (fun result -> 
+                match result.Tokens |> Seq.toList with
                 | [] when isBool -> true |> unbox<'T> |> Some
                 | [] -> None
                 | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
-            ), 
-            Arity = ArgumentArity(0, 1)
-        )
-        |> fun o -> o.SetDefaultValue(None); o
+            )
+            o.Arity <- ArgumentArity(0, 1)
+            o.DefaultValueFactory <- (fun _ -> None)
+            o
         |> applyConfiguration configure
+        |> HandlerInput.OfOption
+
+    /// Creates a CLI option of type 'T option.
+    static member OptionMaybe<'T>(name: string, ?aliases: string seq, ?description: string) =
+        let isBool = typeof<'T> = typeof<bool>
+        let aliases = defaultArg aliases Seq.empty |> Seq.toArray
+        Option<'T option>(name, aliases)
+        |> setDescription description
+        |> fun o -> 
+            o.CustomParser <- (fun result -> 
+                match result.Tokens |> Seq.toList with
+                | [] when isBool -> true |> unbox<'T> |> Some
+                | [] -> None
+                | [ token ] -> MaybeParser.parseTokenValue token.Value
+                | _ :: _ -> failwith "F# Option can only be used with a single argument."
+            )
+            o.Arity <- ArgumentArity(0, 1)
+            o.DefaultValueFactory <- (fun _ -> None)
+            o
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
     static member OptionMaybe<'T>(name: string, configure) =
-        Input.OptionMaybe<'T>([|name|], configure = configure)
-
-    /// Creates a CLI option of type 'T option.
-    static member OptionMaybe<'T>(aliases: string seq, ?description: string) =
-        let isBool = typeof<'T> = typeof<bool>
-        Option<'T option>(
-            Seq.toArray aliases,
-            parseArgument = (fun argResult -> 
-                match argResult.Tokens |> Seq.toList with
-                | [] when isBool -> true |> unbox<'T> |> Some
-                | [] -> None
-                | [ token ] -> MaybeParser.parseTokenValue token.Value
-                | _ :: _ -> failwith "F# Option can only be used with a single argument."
-            ), 
-            ?description = description,
-            Arity = ArgumentArity(0, 1)
-        )
-        |> fun o -> o.SetDefaultValue(None); o
-        |> HandlerInput.OfOption
+        Input.OptionMaybe<'T>(name, aliases = [], configure = configure)
 
     /// Creates a CLI option of type 'T option.
     static member OptionMaybe<'T>(name: string, ?description) =
-        Input.OptionMaybe<'T>([| name |], ?description = description)
+        Input.OptionMaybe<'T>(name, aliases = [], ?description = description)
 
     /// Creates a CLI argument of type 'T.
     static member Argument<'T>(name: string, ?description: string) = 
-        Argument<'T>(
-            name, 
-            ?description = description
-        ) 
+        Argument<'T>(name) 
+        |> setDescription description
         |> HandlerInput.OfArgument
 
     /// Creates a CLI argument of type 'T with a default value.
     static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) = 
-        Argument<'T>(
-            name,
-            getDefaultValue = (fun () -> defaultValue),
-            ?description = description
-        )
+        Argument<'T>(name)
+        |> fun o -> 
+            o.DefaultValueFactory <- (fun _ -> defaultValue)
+            description |> Option.iter (fun desc -> o.Description <- desc)
+            o
         |> HandlerInput.OfArgument
     
     /// Creates a CLI argument of type 'T option.
     static member ArgumentMaybe<'T>(name: string, ?description: string) = 
-        Argument<'T option>(
-            name,
-            parse = (fun argResult -> 
+        Argument<'T option>(name)
+        |> fun o -> 
+            description |> Option.iter (fun desc -> o.Description <- desc)
+            o.DefaultValueFactory <- (fun _ -> None)
+            o.CustomParser <- (fun argResult -> 
                 match argResult.Tokens |> Seq.toList with
                 | [] -> None
                 | [ token ] -> MaybeParser.parseTokenValue token.Value
                 | _ :: _ -> failwith "F# Option can only be used with a single argument."
-            ), 
-            ?description = description
-        )
-        |> fun o -> o.SetDefaultValue(None); o
+            )
+            o
         |> HandlerInput.OfArgument
 
     /// Passes the `ParseResult` to the handler.
