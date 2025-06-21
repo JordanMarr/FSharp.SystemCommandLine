@@ -397,7 +397,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         cmd
 
             
-/// Builds a `System.CommandLineConfiguration` that can be passed to the CommandLineParser.Parse static method.
+/// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method.
 type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
@@ -455,42 +455,33 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
-        this.CommandLineConfiguration.RootCommand
-        |> this.SetGeneralProperties spec
-        |> this.SetHandlerUnit spec
-        |> ignore
+        let rootCommand = 
+            this.CommandLineConfiguration.RootCommand
+            |> this.SetGeneralProperties spec
+            |> this.SetHandlerUnit spec
+            |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        let parser = 
-            this.CommandLineBuilder.Build()
-            |> addGlobalOptionsToParser spec.GlobalInputs
-
-        parser.Parse(args).Invoke()
+        CommandLineParser.Parse(rootCommand, args).Invoke()
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
-        this.CommandLineBuilder.Command
-        |> this.SetGeneralProperties spec
-        |> this.SetHandlerInt spec
-        |> ignore
+        let rootCommand = 
+            this.CommandLineConfiguration.RootCommand
+            |> this.SetGeneralProperties spec
+            |> this.SetHandlerInt spec
+            |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        let parser = 
-            this.CommandLineBuilder.Build()
-            |> addGlobalOptionsToParser spec.GlobalInputs
-
-        parser.Parse(args).Invoke()
+        CommandLineParser.Parse(rootCommand, args).Invoke()
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
-        this.CommandLineBuilder.Command
-        |> this.SetGeneralProperties spec
-        |> this.SetHandlerTask spec
-        |> ignore
+        let rootCommand = 
+            this.CommandLineConfiguration.RootCommand
+            |> this.SetGeneralProperties spec
+            |> this.SetHandlerTask spec
+            |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        let parser = 
-            this.CommandLineBuilder.Build()
-            |> addGlobalOptionsToParser spec.GlobalInputs
-
-        parser.Parse(args).InvokeAsync()
+        CommandLineParser.Parse(rootCommand, args).Invoke()
        
 
 /// Builds a `System.CommandLine.Command`.
@@ -519,7 +510,7 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         |> addGlobalOptionsToCommand spec.GlobalInputs
 
 
-/// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
+/// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method using computation expression syntax.
 let commandLineConfiguration<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
     CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
 
