@@ -402,13 +402,13 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
-        subCommand this.CommandLineBuilder
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
+        subCommand this.CommandLineConfiguration
         spec
 
     [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
-        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
+        this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
         spec
 
     /// Executes a Command with a handler that returns unit.
@@ -444,13 +444,13 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> unit) =
-        subCommand this.CommandLineBuilder
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
+        subCommand this.CommandLineConfiguration
         spec
 
     [<CustomOperation("usePipeline")>]
-    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineBuilder -> CommandLineBuilder) =
-        this.CommandLineBuilder <- subCommand this.CommandLineBuilder
+    member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
+        this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
         spec
         
     /// Executes a Command with a handler that returns unit.
