@@ -28,7 +28,8 @@ let main argv =
         usePipeline (fun cfg -> 
             // Skip @ processing
             //cfg.UseTokenReplacer(fun _ _ _ -> false)
-            cfg
+            cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
+            //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun str _ _ -> false)
         )
         
         inputs package
