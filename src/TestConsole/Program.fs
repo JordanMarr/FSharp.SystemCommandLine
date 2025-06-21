@@ -9,8 +9,8 @@ let app (words: string array, separator: string option) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+    let words = Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended")
+    let separator = Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"

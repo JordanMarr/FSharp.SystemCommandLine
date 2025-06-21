@@ -1,6 +1,7 @@
 ﻿/// This option can be used when more than 8 inputs are required.
 module ProgramExtraInputs
 
+open System.CommandLine
 open FSharp.SystemCommandLine
 
 let a = Input.Option<string>("-a", defaultValue = "a?")
@@ -14,18 +15,18 @@ let h = Input.Option<int>("-3", defaultValue = 0) // NOTE: "-h" is taken via Hel
 let i = Input.Option<int>("-4", defaultValue = 0)
 let j = Input.Option<int>("-5", defaultValue = 0)
 
-let app (ctx: System.CommandLine.Invocation.InvocationContext) =
+let app (parseResult: ParseResult) =
     [ 
-        a.GetValue ctx
-        b.GetValue ctx
-        c.GetValue ctx
-        d.GetValue ctx
-        e.GetValue ctx
-        f.GetValue ctx |> string
-        g.GetValue ctx |> string
-        h.GetValue ctx |> string
-        i.GetValue ctx |> string
-        j.GetValue ctx |> string
+        a.GetValue parseResult
+        b.GetValue parseResult
+        c.GetValue parseResult
+        d.GetValue parseResult
+        e.GetValue parseResult
+        f.GetValue parseResult |> string
+        g.GetValue parseResult |> string
+        h.GetValue parseResult |> string
+        i.GetValue parseResult |> string
+        j.GetValue parseResult |> string
     ]
     |> String.concat ", "
     |> printfn "Result: %s"
@@ -33,11 +34,11 @@ let app (ctx: System.CommandLine.Invocation.InvocationContext) =
     
 //[<EntryPoint>]
 let main argv = 
-    let ctx = Input.Context()
+    let parseResult = Input.ParseResult()
 
     rootCommand argv {
         description "Appends words together"
-        inputs ctx
+        inputs parseResult
         setHandler app
         addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }

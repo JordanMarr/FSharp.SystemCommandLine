@@ -1,13 +1,12 @@
 ﻿module ProgramTask
 
 open FSharp.SystemCommandLine
-open System.Threading
 open System.Threading.Tasks
-open System.CommandLine.Invocation
+open System.CommandLine
 
-let app (ctx: InvocationContext, words: string array, separator: string) =
+let app (res: ParseResult, words: string array, separator: string) =
     task {
-        let cancel = ctx.GetCancellationToken()
+        let cancel = res.GetCancellationToken()
 
         for i in [1..20] do
             if cancel.IsCancellationRequested then 
@@ -23,13 +22,13 @@ let app (ctx: InvocationContext, words: string array, separator: string) =
     
 //[<EntryPoint>]
 let main argv = 
-    let ctx = Input.Context()
-    let words = Input.Option(["--word"; "-w"], [||], "A list of words to be appended")
-    let separator = Input.Option(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let parseResult = Input.ParseResult()
+    let words = Input.Option("word", ["--word"; "-w"], [||], "A list of words to be appended")
+    let separator = Input.Option("separator", ["--separator"; "-s"], ", ", "A character that will separate the joined words.")
 
     rootCommand argv {
         description "Appends words together"
-        inputs (ctx, words, separator)
+        inputs (parseResult, words, separator)
         setHandler app
     }
     |> Async.AwaitTask
