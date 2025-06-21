@@ -70,18 +70,16 @@ let ioCmd =
     }
 
 //[<EntryPoint>]
-let main argv =
-    let ctx = Input.Context()
-    
-    let parser = 
-        rootCommandParser {
+let main (argv: string[]) =
+    let cfg = 
+        commandLineConfiguration {
             description "Sample app for System.CommandLine"
             setHandler id
             addGlobalOptions Global.options
             addCommand ioCmd
         }
 
-    let parseResult = parser.Parse(argv)
+    let parseResult = CommandLineParser.Parse(cfg.RootCommand, argv)
 
     let loggingEnabled = Global.enableLogging.GetValue parseResult
     printfn $"ROOT: Logging enabled: {loggingEnabled}"

@@ -4,7 +4,6 @@ module FSharp.SystemCommandLine.CommandBuilders
 open System
 open System.Threading.Tasks
 open System.CommandLine
-open System.CommandLine.Builder
 open System.CommandLine.Parsing
 
 let private def<'T> = Unchecked.defaultof<'T>
@@ -16,14 +15,13 @@ let private parseInput<'V> (handlerInputs: HandlerInput list) (pr: ParseResult) 
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> pr |> unbox<'V>
 
-let private addGlobalOptionsToParser (globalInputs: HandlerInput list) (parser: Parser) =
-    globalInputs
-    |> List.iter (fun gi ->
-        match gi.Source with
-        | ParsedOption o -> parser.Configuration.RootCommand.AddGlobalOption(o)
-        | _ -> ()
-    )
-    parser
+let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
+    for g in globalOptions do
+        match g.Source with
+        | ParsedOption o -> cmd.Add(o)
+        | ParsedArgument _ -> () // cmd.Add(a) // TODO: Should arguments be added globally?
+        | Context -> () 
+    cmd
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -61,7 +59,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             SubCommands = spec.SubCommands
         }
 
-    member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
+    //member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
+    member val CommandLineConfiguration = new CommandLineConfiguration(new RootCommand()) with get, set
 
     member this.Yield _ =
         CommandSpec<unit, 'Output>.Default 
@@ -398,8 +397,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         cmd
 
             
-/// Builds a `System.CommandLine.Parsing.Parser`.
-type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+/// Builds a `System.CommandLineConfiguration` that can be passed to the CommandLineParser.Parse static method.
+type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
     [<CustomOperation("usePipeline")>]
@@ -414,30 +413,30 @@ type RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
-        this.CommandLineBuilder.Command
+        this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
-        this.CommandLineBuilder.Build()
-        |> addGlobalOptionsToParser spec.GlobalInputs
+        this.CommandLineConfiguration
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
-        this.CommandLineBuilder.Command
+        this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
-        this.CommandLineBuilder.Build()
-        |> addGlobalOptionsToParser spec.GlobalInputs
+        this.CommandLineConfiguration
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
-        this.CommandLineBuilder.Command
+        this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
+        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
-        this.CommandLineBuilder.Build()
-        |> addGlobalOptionsToParser spec.GlobalInputs
+        this.CommandLineConfiguration
 
         
 /// Builds and executes a `System.CommandLine.RootCommand`.
@@ -456,7 +455,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
-        this.CommandLineBuilder.Command
+        this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
         |> ignore
@@ -498,15 +497,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
-    let addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
-        globalOptions
-        |> List.iter (fun g ->
-            match g.Source with
-            | ParsedOption o -> cmd.Add(o)
-            | _ -> ()
-        )
-        cmd
-
     /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) = 
         Command(name)
@@ -530,8 +520,8 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
 
 
 /// Builds a `System.CommandLine.RootCommand` using computation expression syntax.
-let rootCommandParser<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
-    RootCommandParserBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
+let commandLineConfiguration<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
+    CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
 
 /// Builds and executes a `System.CommandLine.RootCommand` using computation expression syntax.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array)= 
