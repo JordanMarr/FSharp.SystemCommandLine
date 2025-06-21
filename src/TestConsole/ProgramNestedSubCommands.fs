@@ -2,7 +2,6 @@
 
 open System.IO
 open FSharp.SystemCommandLine
-open System.CommandLine.Invocation
 open System.CommandLine.Parsing
 
 module Global = 
@@ -13,13 +12,13 @@ module Global =
 
     let options: HandlerInput seq = [ enableLogging; logFile ] 
 
-    let bind (ctx: InvocationContext) = 
-        { EnableLogging = enableLogging.GetValue ctx
-          LogFile = logFile.GetValue ctx }
+    let bind parseResult = 
+        { EnableLogging = enableLogging.GetValue parseResult
+          LogFile = logFile.GetValue parseResult }
 
 let listCmd =
-    let handler (ctx: InvocationContext, dir: DirectoryInfo) =
-        let options = Global.bind ctx
+    let handler (ctx, dir: DirectoryInfo) =
+        let options = Global.bind ctx.ParseResult
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
 
@@ -39,8 +38,8 @@ let listCmd =
     }
 
 let deleteCmd =
-    let handler (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
-        let options = Global.bind ctx
+    let handler (ctx, dir: DirectoryInfo, recursive: bool) =
+        let options = Global.bind ctx.ParseResult
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
         

@@ -15,18 +15,18 @@ let h = Input.Option<int>("-3", defaultValue = 0) // NOTE: "-h" is taken via Hel
 let i = Input.Option<int>("-4", defaultValue = 0)
 let j = Input.Option<int>("-5", defaultValue = 0)
 
-let app (parseResult: ParseResult) =
-    [ 
-        a.GetValue parseResult
-        b.GetValue parseResult
-        c.GetValue parseResult
-        d.GetValue parseResult
-        e.GetValue parseResult
-        f.GetValue parseResult |> string
-        g.GetValue parseResult |> string
-        h.GetValue parseResult |> string
-        i.GetValue parseResult |> string
-        j.GetValue parseResult |> string
+let app ctx =
+    [
+        a.GetValue ctx.ParseResult
+        b.GetValue ctx.ParseResult
+        c.GetValue ctx.ParseResult
+        d.GetValue ctx.ParseResult
+        e.GetValue ctx.ParseResult
+        f.GetValue ctx.ParseResult |> string
+        g.GetValue ctx.ParseResult |> string
+        h.GetValue ctx.ParseResult |> string
+        i.GetValue ctx.ParseResult |> string
+        j.GetValue ctx.ParseResult |> string
     ]
     |> String.concat ", "
     |> printfn "Result: %s"
@@ -34,11 +34,11 @@ let app (parseResult: ParseResult) =
     
 //[<EntryPoint>]
 let main argv = 
-    let parseResult = Input.ParseResult()
+    let ctx = Input.Context()
 
     rootCommand argv {
         description "Appends words together"
-        inputs parseResult
+        inputs ctx
         setHandler app
         addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }

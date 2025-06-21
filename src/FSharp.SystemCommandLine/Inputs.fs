@@ -14,6 +14,18 @@ module private MaybeParser =
         | t when t = typeof<Uri> -> Uri(tokenValue) |> unbox<'T> |> Some
         | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
 
+/// A custom action context that contains the `ParseResult` and a cancellation token.
+type ActionContext = 
+    {
+        ParseResult: ParseResult
+        CancellationToken: System.Threading.CancellationToken
+    }
+    static member Create(parseResult: ParseResult) = 
+        {   
+            ParseResult = parseResult
+            CancellationToken = System.Threading.CancellationToken.None 
+        }
+
 type HandlerInputSource = 
     | ParsedOption of Option
     | ParsedArgument of Argument
@@ -198,11 +210,6 @@ type Input =
             o
         |> HandlerInput.OfArgument
 
-    /// Passes the `ParseResult` to the handler.
-    [<System.Obsolete("Use Context() or ParseResult() instead.")>]
+    /// Passes the `Context` to the handler.
     static member Context() = 
-        HandlerInput<ParseResult>(Context)
-
-    /// Passes the `ParseResult` to the handler.
-    static member ParseResult() = 
-        HandlerInput<ParseResult>(Context)
+        HandlerInput<ActionContext>(Context)

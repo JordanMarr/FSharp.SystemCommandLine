@@ -2,6 +2,7 @@
 module FSharp.SystemCommandLine.CommandBuilders
 
 open System
+open System.Threading
 open System.Threading.Tasks
 open System.CommandLine
 open System.CommandLine.Parsing
@@ -9,11 +10,11 @@ open System.CommandLine.Parsing
 let private def<'T> = Unchecked.defaultof<'T>
 
 /// Parses a HandlerInput value using the InvocationContext.
-let private parseInput<'V> (handlerInputs: HandlerInput list) (pr: ParseResult) (idx: int) =
+let private parseInput<'V> (handlerInputs: HandlerInput list) (pr: ParseResult) (cancelToken: CancellationToken) (idx: int) =
     match handlerInputs[idx].Source with
     | ParsedOption o -> pr.GetValue<'V>(o :?> Option<'V>)
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
-    | Context -> pr |> unbox<'V>
+    | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
 
 let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
     for g in globalOptions do
@@ -203,7 +204,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             spec.Handler (args :?> 'Inputs)
 
         let getValue (pr: ParseResult) (idx: int) =
-            parseInput spec.Inputs pr idx
+            parseInput spec.Inputs pr CancellationToken.None idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetAction(fun _ -> 
@@ -269,7 +270,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             spec.Handler (args :?> 'Inputs)
 
         let getValue (pr: ParseResult) (idx: int) =
-            parseInput spec.Inputs pr idx
+            parseInput spec.Inputs pr CancellationToken.None idx
 
         match spec.Inputs.Length with
         | 00 -> cmd.SetAction(fun pr -> handler ())
@@ -335,63 +336,63 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 return! spec.Handler (args :?> 'Inputs)
             }
 
-        let getValue (pr: ParseResult) (idx: int) =
-            parseInput spec.Inputs pr idx
+        let getValue (pr: ParseResult) ct (idx: int) =
+            parseInput spec.Inputs pr ct idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
+        | 00 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
                 handler ()))
-        | 01 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
+        | 01 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
                 handler (a)))
-        | 02 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
+        | 02 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
                 handler (a, b)))
-        | 03 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
+        | 03 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
                 handler (a, b, c)))
-        | 04 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
-                let d: 'D = getValue pr 3
+        | 04 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
                 handler (a, b, c, d)))
-        | 05 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
-                let d: 'D = getValue pr 3
-                let e: 'E = getValue pr 4
+        | 05 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
                 handler (a, b, c, d, e)))
-        | 06 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
-                let d: 'D = getValue pr 3
-                let e: 'E = getValue pr 4
-                let f: 'F = getValue pr 5
+        | 06 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
                 handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
-                let d: 'D = getValue pr 3
-                let e: 'E = getValue pr 4
-                let f: 'F = getValue pr 5
-                let g: 'G = getValue pr 6
+        | 07 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
+                let g: 'G = getValue pr ct 6
                 handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
-                let a: 'A = getValue pr 0
-                let b: 'B = getValue pr 1
-                let c: 'C = getValue pr 2
-                let d: 'D = getValue pr 3
-                let e: 'E = getValue pr 4
-                let f: 'F = getValue pr 5
-                let g: 'G = getValue pr 6
-                let h: 'H = getValue pr 7
+        | 08 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
+                let g: 'G = getValue pr ct 6
+                let h: 'H = getValue pr ct 7
                 handler (a, b, c, d, e, f, g, h)))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
