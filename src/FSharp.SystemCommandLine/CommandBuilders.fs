@@ -207,42 +207,42 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetAction(Action<ParseResult>(fun _ -> 
-                handler ()))
-        | 01 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+        | 00 -> cmd.SetAction(fun _ -> 
+                handler ())
+        | 01 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
-                handler (a)))
-        | 02 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a))
+        | 02 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
-                handler (a, b)))
-        | 03 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b))
+        | 03 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
-                handler (a, b, c)))
-        | 04 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c))
+        | 04 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
-                handler (a, b, c, d)))
-        | 05 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d))
+        | 05 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
                 let e: 'E = getValue pr 4
-                handler (a, b, c, d, e)))
-        | 06 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e))
+        | 06 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
                 let e: 'E = getValue pr 4
                 let f: 'F = getValue pr 5
-                handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e, f))
+        | 07 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
@@ -250,8 +250,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let e: 'E = getValue pr 4
                 let f: 'F = getValue pr 5
                 let g: 'G = getValue pr 6
-                handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e, f, g))
+        | 08 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
@@ -260,7 +260,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let f: 'F = getValue pr 5
                 let g: 'G = getValue pr 6
                 let h: 'H = getValue pr 7
-                handler (a, b, c, d, e, f, g, h)))
+                handler (a, b, c, d, e, f, g, h))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -273,42 +273,41 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
-                pr.ExitCode <- handler ()))
-        | 01 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+        | 00 -> cmd.SetAction(fun pr -> handler ())
+        | 01 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
-                pr.ExitCode <- handler (a)))
-        | 02 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a))
+        | 02 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
-                pr.ExitCode <- handler (a, b)))
-        | 03 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b))
+        | 03 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
-                pr.ExitCode <- handler (a, b, c)))
-        | 04 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c))
+        | 04 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
-                pr.ExitCode <- handler (a, b, c, d)))
-        | 05 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d))
+        | 05 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
                 let e: 'E = getValue pr 4
-                pr.ExitCode <- handler (a, b, c, d, e)))
-        | 06 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e))
+        | 06 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
                 let d: 'D = getValue pr 3
                 let e: 'E = getValue pr 4
                 let f: 'F = getValue pr 5
-                pr.ExitCode <- handler (a, b, c, d, e, f)))
-        | 07 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e, f))
+        | 07 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
@@ -316,8 +315,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let e: 'E = getValue pr 4
                 let f: 'F = getValue pr 5
                 let g: 'G = getValue pr 6
-                pr.ExitCode <- handler (a, b, c, d, e, f, g)))
-        | 08 -> cmd.SetAction(Action<ParseResult>(fun pr -> 
+                handler (a, b, c, d, e, f, g))
+        | 08 -> cmd.SetAction(fun pr -> 
                 let a: 'A = getValue pr 0
                 let b: 'B = getValue pr 1
                 let c: 'C = getValue pr 2
@@ -326,7 +325,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let f: 'F = getValue pr 5
                 let g: 'G = getValue pr 6
                 let h: 'H = getValue pr 7
-                pr.ExitCode <- handler (a, b, c, d, e, f, g, h)))
+                handler (a, b, c, d, e, f, g, h))
         | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
         cmd
 
@@ -341,7 +340,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             parseInput spec.Inputs pr idx
 
         match spec.Inputs.Length with
-        | 00 -> cmd.SetAction(Func<Task>(fun () -> 
+        | 00 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
                 handler ()))
         | 01 -> cmd.SetAction(Func<ParseResult, Task>(fun pr -> 
                 let a: 'A = getValue pr 0
