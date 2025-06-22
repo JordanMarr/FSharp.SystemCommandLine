@@ -4,7 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
-open System.CommandLine.Parsing
+open Input
 
 let mutable handlerCalled = false
 [<SetUp>] 
@@ -17,8 +17,10 @@ let ``01 --word Hello -w World -s * return unit`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            //Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            //Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            option "word" |> aliases ["--word"; "-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            optionMaybe "separator" |> aliases ["--separator"; "-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -32,8 +34,10 @@ let ``02 --word Hello -w World return unit`` () =
     testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
-            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            //Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            //Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            option "word" |> aliases ["--word"; "-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            optionMaybe "separator" |> aliases ["--separator"; "-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -47,8 +51,10 @@ let ``03 --word Hello -w World -s * return int`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            //Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            //Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            option "word" |> aliases ["--word"; "-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            optionMaybe "separator" |> aliases ["--separator"; "-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -63,8 +69,10 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            //Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            //Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+            option "word" |> aliases ["--word"; "-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            optionMaybe "separator" |> aliases ["--separator"; "-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -85,7 +93,8 @@ let ``05 Token Replacer`` () =
             cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
             //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> false)
         )
-        inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
+        //inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
+        inputs (Input.option "package" |> aliases [ "--package"; "-p" ] |> desc "A package with a leading @ name")
         setAction (fun (package: string) ->
             handlerCalled <- true
             if package.StartsWith("@") then
