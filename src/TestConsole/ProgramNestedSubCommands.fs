@@ -5,8 +5,8 @@ open FSharp.SystemCommandLine
 open Input
 
 module Global = 
-    let enableLogging = option "--enable-logging" |> defVal false
-    let logFile = option "--log-file" |> defVal (FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> def false
+    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log")
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
@@ -28,7 +28,7 @@ let listCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
+    let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
 
     command "list" {
         description "lists contents of a directory"
@@ -51,8 +51,8 @@ let deleteCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
-    let recursive = option "--recursive" |> defVal false
+    let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
+    let recursive = option "--recursive" |> def false
 
     command "delete" {
         description "deletes a directory"

@@ -88,7 +88,7 @@ module Input =
             | ParsedArgument a -> a.Description <- description; a :?> Argument<'T> |> HandlerInput.OfArgument<'T>
             | Context -> hi
 
-    let defVal (defaultValue: 'T) (hi: HandlerInput<'T>) = 
+    let def (defaultValue: 'T) (hi: HandlerInput<'T>) = 
         hi.Source 
         |> function 
             | ParsedOption o -> 
@@ -98,6 +98,19 @@ module Input =
             | ParsedArgument a -> 
                 let a = a :?> Argument<'T>
                 a.DefaultValueFactory <- (fun _ -> defaultValue)
+                HandlerInput.OfArgument<'T> a
+            | Context -> hi
+
+    let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (hi: HandlerInput<'T>) = 
+        hi.Source 
+        |> function 
+            | ParsedOption o -> 
+                let o = o :?> Option<'T>
+                o.DefaultValueFactory <- defaultValueFactory
+                HandlerInput.OfOption<'T> o
+            | ParsedArgument a -> 
+                let a = a :?> Argument<'T>
+                a.DefaultValueFactory <- defaultValueFactory
                 HandlerInput.OfArgument<'T> a
             | Context -> hi
 

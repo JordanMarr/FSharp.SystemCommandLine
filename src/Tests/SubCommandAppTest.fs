@@ -8,7 +8,7 @@ open Utils
 open Input
 
 let listCmd (handler: DirectoryInfo -> unit) = 
-    let dir = argument "dir" |> defVal (DirectoryInfo @"c:\fake dir")
+    let dir = argument "dir" |> def (DirectoryInfo @"c:\fake dir")
 
     command "list" {
         description "lists contents of a directory"
@@ -17,8 +17,8 @@ let listCmd (handler: DirectoryInfo -> unit) =
     }
 
 let deleteCmd (handler: DirectoryInfo * bool -> unit) = 
-    let dir = argument "dir" |> defVal (DirectoryInfo @"c:\fake dir")
-    let recursive = option "--recursive" |> defVal false
+    let dir = argument "dir" |> def (DirectoryInfo @"c:\fake dir")
+    let recursive = option "--recursive" |> def false
 
     command "delete" {
         description "deletes a directory"

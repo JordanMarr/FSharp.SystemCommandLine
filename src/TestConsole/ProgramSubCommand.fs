@@ -12,7 +12,7 @@ let listCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
+    let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
 
     command "list" {
         description "lists contents of a directory"
@@ -30,8 +30,8 @@ let deleteCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
-    let recursive = option "--recursive" |> defVal false
+    let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
+    let recursive = option "--recursive" |> def false
 
     command "delete" {
         description "deletes a directory"

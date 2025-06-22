@@ -19,7 +19,7 @@ let ``01 --word Hello -w World -s * return unit`` () =
         inputs (
             //Input.Option("--word", ["-w"], Array.empty, "A list of words to be appended"),
             //Input.OptionMaybe("--separator", ["-s"], "A character that will separate the joined words.")
-            option "--word" |> alias "-w" |> defVal [||] |> desc "A list of words to be appended",
+            option "--word" |> alias "-w" |> def [||] |> desc "A list of words to be appended",
             optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
@@ -34,7 +34,7 @@ let ``02 --word Hello -w World return unit`` () =
     testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
             optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
@@ -49,7 +49,7 @@ let ``03 --word Hello -w World -s * return int`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
             optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
@@ -65,7 +65,7 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
             optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->

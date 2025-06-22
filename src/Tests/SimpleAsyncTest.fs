@@ -18,7 +18,7 @@ let ``01 --word Hello -w World -s * return Task`` () = task {
         testRootCommand "--word Hello -w World -s *" {
             description "Appends words together"
             inputs (
-                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
                 optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (words, separator) -> 
@@ -39,7 +39,7 @@ let ``02 --word Hello -w World return Task`` () = task {
         testRootCommand "--word Hello -w World" {
             description "Appends words together"
             inputs (
-                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
                 optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (words, separator) ->
@@ -64,7 +64,7 @@ let ``03 --word Hello -w World return Task<int>`` () = task {
                 //Input.Option("--word", ["-w"], Array.empty, "A list of words to be appended"),
                 //Input.OptionMaybe("--separator", ["-s"], "A character that will separate the joined words.")
                 context,
-                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
                 optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (ctx, words, separator) ->
