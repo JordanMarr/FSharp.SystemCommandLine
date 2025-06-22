@@ -19,7 +19,9 @@ let private parseInput<'V> (handlerInputs: HandlerInput list) (pr: ParseResult) 
 let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
     for g in globalOptions do
         match g.Source with
-        | ParsedOption o -> cmd.Add(o)
+        | ParsedOption o -> 
+            o.Recursive <- true // Ensure global options are recursive
+            cmd.Add(o)
         | ParsedArgument _ -> () // cmd.Add(a) // TODO: Should arguments be added globally?
         | Context -> () 
     cmd
