@@ -128,6 +128,17 @@ module Input =
         let a = Argument<'T>(name)
         HandlerInput.OfArgument<'T> a
 
+    let argumentMaybe<'T> (name: string) = 
+        let a = Argument<'T option>(name)
+        a.DefaultValueFactory <- (fun _ -> None)
+        a.CustomParser <- (fun argResult -> 
+            match argResult.Tokens |> Seq.toList with
+            | [] -> None
+            | [ token ] -> MaybeParser.parseTokenValue token.Value
+            | _ :: _ -> failwith "F# Option can only be used with a single argument."
+        )
+        HandlerInput.OfArgument<'T option> a
+
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 
 

@@ -16,7 +16,7 @@ let tearDown () = handlerCalled =! true
 let ``01 Some jdoe`` () =    
     testRootCommand "jdoe" {
         description "Maybe displays a name"
-        inputs (Input.ArgumentMaybe<string>("Maybe a name"))
+        inputs (argumentMaybe "Name")
         setAction (fun name ->
             name =! Some "jdoe"
             handlerCalled <- true
@@ -27,7 +27,7 @@ let ``01 Some jdoe`` () =
 let ``02 None`` () =    
     testRootCommand "" {
         description "Maybe displays a name"
-        inputs (Input.ArgumentMaybe<string>("Maybe a name"))
+        inputs (argumentMaybe<string> "Name")
         setAction (fun name ->
             name =! None
             handlerCalled <- true
