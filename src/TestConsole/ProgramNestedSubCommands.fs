@@ -78,7 +78,8 @@ let main (argv: string[]) =
             addCommand ioCmd
         }
 
-    let parseResult = CommandLineParser.Parse(cfg.RootCommand, argv)
+    //let parseResult = CommandLineParser.Parse(cfg.RootCommand, argv)
+    let parseResult = cfg.Parse(argv)
 
     let loggingEnabled = Global.enableLogging.GetValue parseResult
     printfn $"ROOT: Logging enabled: {loggingEnabled}"
