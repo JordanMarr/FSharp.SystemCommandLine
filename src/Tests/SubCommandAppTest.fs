@@ -31,8 +31,7 @@ let rootCmd argstr listCmdHandler deleteCmdHandler =
         noAction
         addCommand (listCmd listCmdHandler)
         addCommand (deleteCmd deleteCmdHandler)
-    } 
-    |> ignore
+    } =! 0
 
 [<Test>]
 let ``01 list c:\test`` () = 

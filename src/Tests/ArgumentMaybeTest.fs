@@ -20,7 +20,7 @@ let ``01 Some jdoe`` () =
             name =! Some "jdoe"
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
     
 [<Test>]
 let ``02 None`` () =    
@@ -31,4 +31,4 @@ let ``02 None`` () =
             name =! None
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0

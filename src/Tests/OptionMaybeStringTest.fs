@@ -20,7 +20,7 @@ let ``01 --str with argument value should be Some value`` () =
             str =! Some "value"
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
 
 [<Test>]
 let ``02 no option or argument should be None`` () =
@@ -31,4 +31,4 @@ let ``02 no option or argument should be None`` () =
             str =! None
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0

@@ -20,7 +20,7 @@ let ``01 --flag with no argument should be true`` () =
             flag =! Some true
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
 
 [<Test>]
 let ``02 --flag with true argument should be Some true`` () =
@@ -31,7 +31,7 @@ let ``02 --flag with true argument should be Some true`` () =
             flag =! Some true
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
 
 [<Test>]
 let ``03 --flag with false argument should be Some false`` () =
@@ -42,7 +42,7 @@ let ``03 --flag with false argument should be Some false`` () =
             flag =! Some false
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
 
 [<Test>]
 let ``04 no option or argument should be None`` () =
@@ -53,7 +53,7 @@ let ``04 no option or argument should be None`` () =
             flag =! None
             handlerCalled <- true
         )
-    } |> ignore
+    } =! 0
 
 [<Test>]
 let ``05 no option or argument should be None with int return`` () =
@@ -63,7 +63,7 @@ let ``05 no option or argument should be None with int return`` () =
         setAction (fun flag ->
             flag =! Some true
             handlerCalled <- true
-            0
+            5
         )
-    } |> ignore
+    } =! 5
 

@@ -48,7 +48,7 @@ type CommandSpec<'Inputs, 'Output> =
             SubCommands = []
         }
 
-/// Contains shared operations for building a `RootCommand` or `Command`.
+/// Contains shared operations for building a `rootCommand`, `command` or `commandLineConfiguration` CE.
 type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
 
     let newHandler handler spec =
