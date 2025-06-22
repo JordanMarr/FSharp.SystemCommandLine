@@ -4,6 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
+open System.CommandLine.Parsing
 
 let mutable handlerCalled = false
 [<SetUp>] 
@@ -72,3 +73,27 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
             5
         )
     } =! 5
+
+/// In beta5, the action handler is never called if an input starts with "@", even if ResponseFileTokenReplacer is set to null.
+[<Test>]
+let ``05 Token Replacer`` () = 
+    testRootCommand "--package @shoelace-style/shoelace" {
+        description "Can be called with a leading @ package"
+        configure (fun cfg -> 
+            // Skip @ processing
+            //cfg.UseTokenReplacer(fun _ _ _ -> false) // Removed in beta5
+            cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
+            //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> false)
+        )
+        inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
+        setAction (fun (package: string) ->
+            handlerCalled <- true
+            if package.StartsWith("@") then
+                printfn $"{package}"
+                0 // success
+            else
+                eprintfn "The package name does not start with a leading @"
+                1 // failure
+        )
+    } =! 0
+    
