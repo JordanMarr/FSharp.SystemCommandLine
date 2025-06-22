@@ -13,7 +13,6 @@ let handler (parseResult: ParseResult) = //(i: int, b: bool, f: FileInfo) =
     let i = parseResult.GetValue intOption
     let b = parseResult.GetValue boolOption
     let f = parseResult.GetValue fileOption
-
     printfn $"The value for --int-option is: %i{i}"
     printfn $"The value for --bool-option is: %b{b}"
     printfn $"The value for --file-option is: %A{f}"     

@@ -115,9 +115,19 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h ] }
 
     /// Sets a handler function that takes a tuple of inputs (max. 8). NOTE: This must be set after the inputs.
-    [<CustomOperation("setHandler")>]
+    [<CustomOperation("setHandler"); Obsolete("Please use `setAction` instead.")>]
     member this.SetHandler (spec: CommandSpec<'Inputs, 'Output>, handler: 'Inputs -> 'Output) =
         newHandler handler spec
+
+    /// Sets an action function that takes a tuple of inputs (max. 8). NOTE: This must be set after the inputs.
+    [<CustomOperation("setAction")>]
+    member this.SetAction (spec: CommandSpec<'Inputs, 'Output>, action: 'Inputs -> 'Output) =
+        newHandler action spec
+
+    /// Sets an empty handler action that does nothing. This is used when no action is required, such as when only sub-commands are defined.
+    [<CustomOperation("noAction")>]
+    member this.NoAction (spec: CommandSpec<'Inputs, 'Output>) =
+        newHandler (fun () -> ()) spec
 
     [<CustomOperation("addGlobalOption")>]
     member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: HandlerInput) =
@@ -402,13 +412,23 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
-    [<CustomOperation("usePipeline")>]
+    [<CustomOperation("usePipeline"); Obsolete("Please use `configure` instead.")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
         subCommand this.CommandLineConfiguration
         spec
 
-    [<CustomOperation("usePipeline")>]
+    [<CustomOperation("usePipeline"); Obsolete("Please use `configure` instead.")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
+        this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
+        spec
+        
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
+        subCommand this.CommandLineConfiguration
+        spec
+
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
         this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
         spec
 
@@ -444,14 +464,26 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
-    [<CustomOperation("usePipeline")>]
+    [<CustomOperation("usePipeline"); Obsolete("Please use `configure` instead.")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
         subCommand this.CommandLineConfiguration
         spec
 
-    [<CustomOperation("usePipeline")>]
+    [<CustomOperation("usePipeline"); Obsolete("Please use `configure` instead.")>]
     member this.UsePipeline (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
         this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
+        spec
+        
+    /// Allows modification of the CommandLineConfiguration.
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: CommandLineConfiguration -> unit) =
+        configure this.CommandLineConfiguration
+        spec
+
+    /// Allows modification of the CommandLineConfiguration.
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: CommandLineConfiguration -> CommandLineConfiguration) =
+        this.CommandLineConfiguration <- configure this.CommandLineConfiguration
         spec
         
     /// Executes a Command with a handler that returns unit.

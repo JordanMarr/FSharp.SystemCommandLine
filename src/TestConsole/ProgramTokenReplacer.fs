@@ -1,10 +1,6 @@
 ﻿module ProgramTokenReplacer
 
 open FSharp.SystemCommandLine
-open System.CommandLine.Parsing
-open System.CommandLine
-open System.CommandLine.Invocation
-open System.CommandLine.Help
 
 let app (package: string) =
     if package.StartsWith("@") then
@@ -24,14 +20,12 @@ let main argv =
 
     rootCommand argv {
         description "Can be called with a leading @ package"
-
-        usePipeline (fun cfg -> 
+        configure (fun cfg -> 
             // Skip @ processing
             //cfg.UseTokenReplacer(fun _ _ _ -> false)
             cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
-            //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun str _ _ -> false)
-        )
-        
+            //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> false)
+        )        
         inputs package
-        setHandler app
+        setAction app
     }

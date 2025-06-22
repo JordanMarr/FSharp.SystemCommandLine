@@ -9,7 +9,7 @@ let app () =
 let main argv = 
     rootCommand argv {
         description "My sample app"
-        setHandler app
+        setAction app
     }
     
         

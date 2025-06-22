@@ -17,7 +17,7 @@ module Global =
           LogFile = logFile.GetValue parseResult }
 
 let listCmd =
-    let handler (ctx, dir: DirectoryInfo) =
+    let action (ctx, dir: DirectoryInfo) =
         let options = Global.bind ctx.ParseResult
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -33,12 +33,12 @@ let listCmd =
     command "list" {
         description "lists contents of a directory"
         inputs (Input.Context(), dir)
-        setHandler handler
+        setAction action
         addAlias "ls"
     }
 
 let deleteCmd =
-    let handler (ctx, dir: DirectoryInfo, recursive: bool) =
+    let action (ctx, dir: DirectoryInfo, recursive: bool) =
         let options = Global.bind ctx.ParseResult
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -57,14 +57,14 @@ let deleteCmd =
     command "delete" {
         description "deletes a directory"
         inputs (Input.Context(), dir, recursive)
-        setHandler handler
+        setAction action
         addAlias "del"
     }
 
 let ioCmd = 
     command "io" {
         description "Contains IO related subcommands."
-        setHandler id
+        noAction
         addCommands [ deleteCmd; listCmd ]
     }
 
@@ -73,7 +73,7 @@ let main (argv: string[]) =
     let cfg = 
         commandLineConfiguration {
             description "Sample app for System.CommandLine"
-            setHandler id
+            noAction
             addGlobalOptions Global.options
             addCommand ioCmd
         }

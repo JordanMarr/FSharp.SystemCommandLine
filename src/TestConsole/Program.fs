@@ -15,5 +15,5 @@ let main argv =
     rootCommand argv {
         description "Appends words together"
         inputs (words, separator)
-        setHandler app
+        setAction app
     }

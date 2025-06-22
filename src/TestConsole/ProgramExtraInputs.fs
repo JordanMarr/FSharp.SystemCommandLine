@@ -1,7 +1,6 @@
 ﻿/// This option can be used when more than 8 inputs are required.
 module ProgramExtraInputs
 
-open System.CommandLine
 open FSharp.SystemCommandLine
 
 let a = Input.Option<string>("-a", defaultValue = "a?")
@@ -39,6 +38,6 @@ let main argv =
     rootCommand argv {
         description "Appends words together"
         inputs ctx
-        setHandler app
+        setAction app
         addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }

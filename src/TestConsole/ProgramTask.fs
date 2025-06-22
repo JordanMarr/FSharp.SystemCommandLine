@@ -2,7 +2,6 @@
 
 open FSharp.SystemCommandLine
 open System.Threading.Tasks
-open System.CommandLine
 
 let app (ctx, words: string array, separator: string) =
     task {
@@ -27,7 +26,7 @@ let main argv =
     rootCommand argv {
         description "Appends words together"
         inputs (ctx, words, separator)
-        setHandler app
+        setAction app
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
