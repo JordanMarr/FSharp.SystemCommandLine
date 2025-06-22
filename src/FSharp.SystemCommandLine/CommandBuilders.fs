@@ -344,9 +344,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets a command handler that returns a `Task`.
     member this.SetHandlerTask (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
         let handler (args: obj) = 
-            task {
-                return! spec.Handler (args :?> 'Inputs)
-            }
+            spec.Handler (args :?> 'Inputs)
 
         let getValue (pr: ParseResult) ct (idx: int) =
             parseInput spec.Inputs pr ct idx
