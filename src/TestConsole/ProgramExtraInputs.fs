@@ -2,17 +2,18 @@
 module ProgramExtraInputs
 
 open FSharp.SystemCommandLine
+open Input
 
-let a = Input.Option<string>("-a", defaultValue = "a?")
-let b = Input.Option<string>("-b", defaultValue = "b?")
-let c = Input.Option<string>("-c", defaultValue = "c?")
-let d = Input.Option<string>("-d", defaultValue = "d?")
-let e = Input.Option<string>("-e", defaultValue = "e?")
-let f = Input.Option<int>("-1", defaultValue = 0)
-let g = Input.Option<int>("-2", defaultValue = 0)
-let h = Input.Option<int>("-3", defaultValue = 0) // NOTE: "-h" is taken via Help pipeline defaults
-let i = Input.Option<int>("-4", defaultValue = 0)
-let j = Input.Option<int>("-5", defaultValue = 0)
+let a = option "-a" |> def "a?"
+let b = option "-b" |> def "b?"
+let c = option "-c" |> def "c?"
+let d = option "-d" |> def "d?"
+let e = option "-e" |> def "e?"
+let f = option "-1" |> def 0
+let g = option "-2" |> def 0
+let h = option "-3" |> def 0 // NOTE: "-h" is taken via Help pipeline defaults
+let i = option "-4" |> def 0
+let j = option "-5" |> def 0
 
 let app ctx =
     [

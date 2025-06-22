@@ -152,24 +152,34 @@ module Input =
         )
         HandlerInput.OfArgument<'T option> a
 
+    let ofOption (o: Option<'T>) = 
+        HandlerInput.OfOption<'T> o
+
+    let ofArgument (a: Argument<'T>) = 
+        HandlerInput.OfArgument<'T> a
+
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 
 
     /// Converts a System.CommandLine.Option<'T> for usage with the CommandBuilder.
+    [<Obsolete("Use Input.ofOption instead")>]
     static member OfOption<'T>(o: Option<'T>) = 
         HandlerInput.OfOption o
 
     /// Converts a System.CommandLine.Argument<'T> for usage with the CommandBuilder.
+    [<Obsolete("Use Input.ofArgument instead")>]
     static member OfArgument<'T>(a: Argument<'T>) = 
         HandlerInput.OfArgument a
 
     /// Creates a CLI option of type 'T with the ability to manually configure the underlying properties.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, configure) =
         Option<'T>(name) 
         |> applyConfiguration configure
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with the ability to manually configure the underlying properties.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, aliases: string seq, configure) =
         Option<'T>(name, aliases = Seq.toArray aliases) 
         |> applyConfiguration configure
@@ -183,6 +193,7 @@ type Input =
     //    |> fun o -> o.GetValue
 
     /// Creates a CLI option of type 'T.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, ?description: string) =
         Option<'T>(name) 
         |> fun o -> 
@@ -191,12 +202,14 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, aliases: string seq, ?description: string) =
         Option<'T>(name, aliases = Seq.toArray aliases)
         |> setDescription description
         |> HandlerInput.OfOption
     
     /// Creates a CLI option of type 'T with a default value.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
         Option<'T>(name)
         |> setDescription description
@@ -206,6 +219,7 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T with a default value.
+    [<Obsolete("Use Input.option instead")>]
     static member Option<'T>(name: string, aliases: string seq, defaultValue: 'T, ?description: string) =
         Option<'T>(name)
         |> setDescription description
@@ -216,6 +230,7 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T that is required.
+    [<Obsolete("Use Input.option + Input.required instead")>]
     static member OptionRequired<'T>(name: string, aliases: string seq, ?description: string) =
         Option<'T>(name)
         |> setDescription description
@@ -226,10 +241,12 @@ type Input =
         |> HandlerInput.OfOption
         
     /// Creates a CLI option of type 'T that is required.
+    [<Obsolete("Use Input.option + Input.required instead")>]
     static member OptionRequired<'T>(name: string, ?description: string) =
         Input.OptionRequired<'T>(name, aliases = [], ?description = description)
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
+    [<Obsolete("Use Input.optionMaybe instead")>]
     static member OptionMaybe<'T>(name: string, aliases: string seq, configure) =
         let isBool = typeof<'T> = typeof<bool>
         Option<'T option>(name, Seq.toArray aliases)
@@ -248,6 +265,7 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T option.
+    [<Obsolete("Use Input.optionMaybe instead")>]
     static member OptionMaybe<'T>(name: string, ?aliases: string seq, ?description: string) =
         let isBool = typeof<'T> = typeof<bool>
         let aliases = defaultArg aliases Seq.empty |> Seq.toArray
@@ -267,20 +285,24 @@ type Input =
         |> HandlerInput.OfOption
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
+    [<Obsolete("Use Input.optionMaybe instead")>]
     static member OptionMaybe<'T>(name: string, configure) =
         Input.OptionMaybe<'T>(name, aliases = [], configure = configure)
 
     /// Creates a CLI option of type 'T option.
+    [<Obsolete("Use Input.optionMaybe instead")>]
     static member OptionMaybe<'T>(name: string, ?description) =
         Input.OptionMaybe<'T>(name, aliases = [], ?description = description)
 
     /// Creates a CLI argument of type 'T.
+    [<Obsolete("Use Input.argument instead")>]
     static member Argument<'T>(name: string, ?description: string) = 
         Argument<'T>(name) 
         |> setDescription description
         |> HandlerInput.OfArgument
 
     /// Creates a CLI argument of type 'T with a default value.
+    [<Obsolete("Use Input.argument instead")>]
     static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) = 
         Argument<'T>(name)
         |> fun o -> 
@@ -290,6 +312,7 @@ type Input =
         |> HandlerInput.OfArgument
     
     /// Creates a CLI argument of type 'T option.
+    [<Obsolete("Use Input.argumentMaybe instead")>]
     static member ArgumentMaybe<'T>(name: string, ?description: string) = 
         Argument<'T option>(name)
         |> fun o -> 
@@ -305,5 +328,6 @@ type Input =
         |> HandlerInput.OfArgument
 
     /// Passes the `Context` to the handler.
+    [<Obsolete("Use Input.context instead")>]
     static member Context() = 
         HandlerInput<ActionContext>(Context)
