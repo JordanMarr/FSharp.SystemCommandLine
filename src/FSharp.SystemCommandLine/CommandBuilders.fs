@@ -407,6 +407,73 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         | _ -> invalidOp "Only 8 inputs are supported."
         cmd
 
+    /// Sets a command handler that returns a `Task<int>`.
+    member this.SetHandlerTaskInt (spec: CommandSpec<'Inputs, Task<int>>) (cmd: Command) =
+        let handler (args: obj) = 
+            spec.Handler (args :?> 'Inputs)
+
+        let getValue (pr: ParseResult) ct (idx: int) =
+            parseInput spec.Inputs pr ct idx
+
+        match spec.Inputs.Length with
+        | 00 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                handler ()))
+        | 01 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                handler (a)))
+        | 02 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                handler (a, b)))
+        | 03 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                    let a: 'A = getValue pr ct 0
+                    let b: 'B = getValue pr ct 1
+                    let c: 'C = getValue pr ct 2
+                    handler (a, b, c)
+                ))
+        | 04 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                handler (a, b, c, d)))
+        | 05 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                handler (a, b, c, d, e)))
+        | 06 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
+                handler (a, b, c, d, e, f)))
+        | 07 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
+                let g: 'G = getValue pr ct 6
+                handler (a, b, c, d, e, f, g)))
+        | 08 -> cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
+                let a: 'A = getValue pr ct 0
+                let b: 'B = getValue pr ct 1
+                let c: 'C = getValue pr ct 2
+                let d: 'D = getValue pr ct 3
+                let e: 'E = getValue pr ct 4
+                let f: 'F = getValue pr ct 5
+                let g: 'G = getValue pr ct 6
+                let h: 'H = getValue pr ct 7
+                handler (a, b, c, d, e, f, g, h)))
+        | _ -> invalidOp "Only 8 inputs are supported."
+        cmd
+
             
 /// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method.
 type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
@@ -507,11 +574,21 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
         CommandLineParser.Parse(rootCommand, args).Invoke()
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
-    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
         let rootCommand = 
             this.CommandLineConfiguration.RootCommand
             |> this.SetGeneralProperties spec
             |> this.SetHandlerTask spec
+            |> addGlobalOptionsToCommand spec.GlobalInputs
+        
+        CommandLineParser.Parse(rootCommand, args).InvokeAsync()
+
+    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
+        let rootCommand = 
+            this.CommandLineConfiguration.RootCommand
+            |> this.SetGeneralProperties spec
+            |> this.SetHandlerTaskInt spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
         
         CommandLineParser.Parse(rootCommand, args).InvokeAsync()
