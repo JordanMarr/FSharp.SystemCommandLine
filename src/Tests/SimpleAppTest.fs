@@ -19,7 +19,7 @@ let ``01 --word Hello -w World -s * return unit`` () =
         inputs (
             //Input.Option("--word", ["-w"], Array.empty, "A list of words to be appended"),
             //Input.OptionMaybe("--separator", ["-s"], "A character that will separate the joined words.")
-            option "--word" |> alias "-w" |> def [||] |> desc "A list of words to be appended",
+            option "--word" |> alias "-w" |> desc "A list of words to be appended",
             optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
@@ -34,8 +34,8 @@ let ``02 --word Hello -w World return unit`` () =
     testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
-            optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
+            option "--word" |> alias "-w" |> desc "A list of words to be appended",
+            optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -49,8 +49,8 @@ let ``03 --word Hello -w World -s * return int`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
-            optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
+            option "--word" |> alias "-w" |> desc "A list of words to be appended",
+            optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -65,8 +65,8 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            option "--word" |> aliases ["-w"] |> def Array.empty |> desc "A list of words to be appended",
-            optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
+            option "--word" |> alias "-w" |> desc "A list of words to be appended",
+            optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
         )
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
@@ -76,9 +76,24 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
         )
     } =! 5
 
+[<Test>]
+let ``05 empty array`` () = 
+    testRootCommand "-s *" {
+        description "Appends words together"
+        inputs (
+            option "--word" |> alias "-w" |> desc "A list of words to be appended",
+            optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
+        )
+        setAction (fun (words, separator) ->
+            words =! [||]
+            separator =! Some "*"
+            handlerCalled <- true
+        )
+    } =! 0
+
 /// In beta5, the action handler is never called if an input starts with "@", even if ResponseFileTokenReplacer is set to null.
 [<Test>]
-let ``05 Token Replacer`` () = 
+let ``06 Token Replacer`` () = 
     testRootCommand "--package @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
