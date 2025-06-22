@@ -6,7 +6,6 @@ open Input
 let app (words: string array, separator: string option) =
     let separator = separator |> Option.defaultValue ", "
     System.String.Join(separator, words) |> printfn "Result: %s"
-    0
     
 [<EntryPoint>]
 let main argv = 
