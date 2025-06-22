@@ -16,65 +16,6 @@ let private parseInput<'V> (handlerInput: HandlerInput) (pr: ParseResult) (cance
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
 
-/// Converts up to 8 handler inputs into a tuple of the specified action input type.
-let private inputsToTuple<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Input> (pr: ParseResult) (ct: CancellationToken) (inputs: HandlerInput list) =
-    match inputs.Length with
-    | 0 -> () |> unbox<'Input>
-    | 1 -> 
-        let a = parseInput<'A> inputs[0] pr ct
-        a |> unbox<'Input>
-    | 2 -> 
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        (a, b) |> unbox<'Input>
-    | 3 ->
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        (a, b, c) |> unbox<'Input>
-    | 4 ->
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        let d = parseInput<'D> inputs[3] pr ct
-        (a, b, c, d) |> unbox<'Input>
-    | 5 -> 
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        let d = parseInput<'D> inputs[3] pr ct
-        let e = parseInput<'E> inputs[4] pr ct
-        (a, b, c, d, e) |> unbox<'Input>
-    | 6 -> 
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        let d = parseInput<'D> inputs[3] pr ct
-        let e = parseInput<'E> inputs[4] pr ct
-        let f = parseInput<'F> inputs[5] pr ct
-        (a, b, c, d, e, f) |> unbox<'Input>
-    | 7 ->
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        let d = parseInput<'D> inputs[3] pr ct
-        let e = parseInput<'E> inputs[4] pr ct
-        let f = parseInput<'F> inputs[5] pr ct
-        let g = parseInput<'G> inputs[6] pr ct
-        (a, b, c, d, e, f, g) |> unbox<'Input>
-    | 8 ->
-        let a = parseInput<'A> inputs[0] pr ct
-        let b = parseInput<'B> inputs[1] pr ct
-        let c = parseInput<'C> inputs[2] pr ct
-        let d = parseInput<'D> inputs[3] pr ct
-        let e = parseInput<'E> inputs[4] pr ct
-        let f = parseInput<'F> inputs[5] pr ct
-        let g = parseInput<'G> inputs[6] pr ct
-        let h = parseInput<'H> inputs[7] pr ct
-        (a, b, c, d, e, f, g, h) |> unbox<'Input>
-    | _ -> 
-        invalidOp "Only 8 inputs are supported."
-        
 /// Adds global options to a command, ensuring they are recursive.
 let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
     for g in globalOptions do
@@ -121,6 +62,67 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             Handler = handler
             SubCommands = spec.SubCommands
         }
+
+    /// Converts up to 8 handler inputs into a tuple of the specified action input type.
+    let inputsToTuple (pr: ParseResult) (ct: CancellationToken) (inputs: HandlerInput list) =
+        match inputs.Length with
+        | 0 -> 
+            box ()
+        | 1 -> 
+            let a = parseInput<'A> inputs[0] pr ct
+            box a
+        | 2 -> 
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            box (a, b)
+        | 3 ->
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            box (a, b, c)
+        | 4 ->
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            let d = parseInput<'D> inputs[3] pr ct
+            box (a, b, c, d)
+        | 5 -> 
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            let d = parseInput<'D> inputs[3] pr ct
+            let e = parseInput<'E> inputs[4] pr ct
+            box (a, b, c, d, e)
+        | 6 -> 
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            let d = parseInput<'D> inputs[3] pr ct
+            let e = parseInput<'E> inputs[4] pr ct
+            let f = parseInput<'F> inputs[5] pr ct
+            box (a, b, c, d, e, f)
+        | 7 ->
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            let d = parseInput<'D> inputs[3] pr ct
+            let e = parseInput<'E> inputs[4] pr ct
+            let f = parseInput<'F> inputs[5] pr ct
+            let g = parseInput<'G> inputs[6] pr ct
+            box (a, b, c, d, e, f, g)
+        | 8 ->
+            let a = parseInput<'A> inputs[0] pr ct
+            let b = parseInput<'B> inputs[1] pr ct
+            let c = parseInput<'C> inputs[2] pr ct
+            let d = parseInput<'D> inputs[3] pr ct
+            let e = parseInput<'E> inputs[4] pr ct
+            let f = parseInput<'F> inputs[5] pr ct
+            let g = parseInput<'G> inputs[6] pr ct
+            let h = parseInput<'H> inputs[7] pr ct
+            box (a, b, c, d, e, f, g, h)
+        | _ -> 
+            invalidOp "Only 8 inputs are supported."
+        
 
     //member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
     member val CommandLineConfiguration = new CommandLineConfiguration(new RootCommand()) with get, set
@@ -273,7 +275,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets a command handler that returns `unit`.
     member this.SetHandlerUnit (spec: CommandSpec<'Inputs, unit>) (cmd: Command) =
         cmd.SetAction(fun pr -> 
-            let input = inputsToTuple<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Inputs> pr CancellationToken.None spec.Inputs
+            let input = inputsToTuple pr CancellationToken.None spec.Inputs :?> 'Inputs
             spec.Handler input
         )
         cmd
@@ -281,7 +283,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets a command handler that returns an `int` status code.
     member this.SetHandlerInt (spec: CommandSpec<'Inputs, int>) (cmd: Command) =
         cmd.SetAction(fun pr -> 
-            let input = inputsToTuple<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Inputs> pr CancellationToken.None spec.Inputs
+            let input = inputsToTuple pr CancellationToken.None spec.Inputs :?> 'Inputs
             spec.Handler input
         )
         cmd
@@ -289,7 +291,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets a command handler for an action function that returns a `Task<unit>`.
     member this.SetHandlerTask (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) (cmd: Command) =
         cmd.SetAction(Func<ParseResult, CancellationToken, Task>(fun pr ct -> 
-            let input = inputsToTuple<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Inputs> pr ct spec.Inputs
+            let input = inputsToTuple pr ct spec.Inputs :?> 'Inputs
             spec.Handler input
         ))
         cmd
@@ -297,7 +299,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets a command handler for an action function that returns a `Task<int>`.
     member this.SetHandlerTaskInt (spec: CommandSpec<'Inputs, Task<int>>) (cmd: Command) =
         cmd.SetAction(Func<ParseResult, CancellationToken, Task<int>>(fun pr ct -> 
-            let input = inputsToTuple<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Inputs> pr ct spec.Inputs
+            let input = inputsToTuple pr ct spec.Inputs :?> 'Inputs
             spec.Handler input
         ))
         cmd
