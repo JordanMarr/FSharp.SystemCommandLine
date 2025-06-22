@@ -101,7 +101,7 @@ module Input =
                 HandlerInput.OfArgument<'T> a
             | Context -> hi
 
-    let setRequired (hi: HandlerInput<'T>) = 
+    let required (hi: HandlerInput<'T>) = 
         hi.Source 
         |> function 
             | ParsedOption o -> 
@@ -123,6 +123,10 @@ module Input =
         o.Arity <- ArgumentArity(0, 1)
         o.DefaultValueFactory <- (fun _ -> None)
         HandlerInput.OfOption<'T option> o
+
+    let argument<'T> (name: string) = 
+        let a = Argument<'T>(name)
+        HandlerInput.OfArgument<'T> a
 
 /// Creates CLI options and arguments to be passed as command `inputs`.
 type Input = 

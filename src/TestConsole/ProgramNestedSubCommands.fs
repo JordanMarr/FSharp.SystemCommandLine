@@ -2,11 +2,11 @@
 
 open System.IO
 open FSharp.SystemCommandLine
-open System.CommandLine.Parsing
+open Input
 
 module Global = 
-    let enableLogging = Input.Option<bool>("--enable-logging", false)
-    let logFile = Input.Option<FileInfo>("--log-file", FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> defVal false
+    let logFile = option "--log-file" |> defVal (FileInfo @"c:\temp\default.log")
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
@@ -28,11 +28,11 @@ let listCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("directory", DirectoryInfo(@"c:\default"))
+    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
 
     command "list" {
         description "lists contents of a directory"
-        inputs (Input.Context(), dir)
+        inputs (context, dir)
         setAction action
         addAlias "ls"
     }
@@ -51,12 +51,12 @@ let deleteCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("directory", DirectoryInfo(@"c:\default"))
-    let recursive = Input.Option("--recursive", false)
+    let dir = argument "directory" |> defVal (DirectoryInfo @"c:\default")
+    let recursive = option "--recursive" |> defVal false
 
     command "delete" {
         description "deletes a directory"
-        inputs (Input.Context(), dir, recursive)
+        inputs (context, dir, recursive)
         setAction action
         addAlias "del"
     }

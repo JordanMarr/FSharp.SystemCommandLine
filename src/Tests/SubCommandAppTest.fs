@@ -5,9 +5,10 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
+open Input
 
 let listCmd (handler: DirectoryInfo -> unit) = 
-    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
+    let dir = argument "dir" |> defVal (DirectoryInfo @"c:\fake dir")
 
     command "list" {
         description "lists contents of a directory"
@@ -16,8 +17,8 @@ let listCmd (handler: DirectoryInfo -> unit) =
     }
 
 let deleteCmd (handler: DirectoryInfo * bool -> unit) = 
-    let dir = Input.Argument("dir", DirectoryInfo(@"c:\fake dir"))
-    let recursive = Input.Option("--recursive", false)
+    let dir = argument "dir" |> defVal (DirectoryInfo @"c:\fake dir")
+    let recursive = option "--recursive" |> defVal false
 
     command "delete" {
         description "deletes a directory"
