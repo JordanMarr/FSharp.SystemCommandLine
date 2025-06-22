@@ -1,6 +1,7 @@
 ﻿module ProgramTokenReplacer
 
 open FSharp.SystemCommandLine
+open Input
 
 let app (package: string) =
     if package.StartsWith("@") then
@@ -16,7 +17,7 @@ let main argv =
     // The package option needs to accept strings that start with "@" symbol.
     // For example, "--package @shoelace-style/shoelace".
     // To accomplish this, we will need to modify the default pipeline settings below.
-    let package = Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name")
+    let package =  option "--package" |> aliases ["-p"] |> desc "A package with a leading @ name"
 
     rootCommand argv {
         description "Can be called with a leading @ package"

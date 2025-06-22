@@ -4,6 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
+open Input
 
 let mutable handlerCalled = false
 [<SetUp>] 

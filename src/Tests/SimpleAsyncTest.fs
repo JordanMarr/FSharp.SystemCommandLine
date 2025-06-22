@@ -4,6 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
+open Input
 
 let mutable handlerCalled = false
 [<SetUp>] 
@@ -17,8 +18,8 @@ let ``01 --word Hello -w World -s * return Task`` () = task {
         testRootCommand "--word Hello -w World -s *" {
             description "Appends words together"
             inputs (
-                Input.Option<string[]>("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (words, separator) -> 
                 task {
@@ -38,8 +39,8 @@ let ``02 --word Hello -w World return Task`` () = task {
         testRootCommand "--word Hello -w World" {
             description "Appends words together"
             inputs (
-                Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (words, separator) ->
                 task {
@@ -59,9 +60,12 @@ let ``03 --word Hello -w World return Task<int>`` () = task {
         testRootCommand "--word Hello -w World" {
             description "Appends words together"
             inputs (
-                Input.Context(),
-                Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
+                //Input.Context(),
+                //Input.Option("--word", ["-w"], Array.empty, "A list of words to be appended"),
+                //Input.OptionMaybe("--separator", ["-s"], "A character that will separate the joined words.")
+                context,
+                option "--word" |> aliases ["-w"] |> defVal Array.empty |> desc "A list of words to be appended",
+                optionMaybe "--separator" |> aliases ["-s"] |> desc "A character that will separate the joined words."
             )
             setAction (fun (ctx, words, separator) ->
                 task {

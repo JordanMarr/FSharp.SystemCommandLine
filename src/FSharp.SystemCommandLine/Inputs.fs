@@ -59,7 +59,13 @@ let setDescription (description: string option) (symbol: #Symbol) =
     symbol
 
 module Input = 
+
+    let context = 
+        HandlerInput<ActionContext>(Context)
+
     let option<'T> (name: string) = Option<'T>(name) |> HandlerInput.OfOption
+
+    let optionA<'T> (name: string, aliases: string seq) = Option<'T>(name, aliases |> Seq.toArray) |> HandlerInput.OfOption
 
     let aliases (aliases: string seq) (hi: HandlerInput<'T>) = 
         hi.Source 
@@ -67,6 +73,12 @@ module Input =
             | ParsedOption o -> 
                 aliases |> Seq.iter o.Aliases.Add
                 hi
+            | _ -> hi
+
+    let alias (alias: string) (hi: HandlerInput<'T>) = 
+        hi.Source 
+        |> function 
+            | ParsedOption o -> o.Aliases.Add alias; hi
             | _ -> hi
                 
     let desc (description: string) (hi: HandlerInput<'T>) = 

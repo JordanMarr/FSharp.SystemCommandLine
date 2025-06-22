@@ -2,6 +2,7 @@
 
 open System.IO
 open FSharp.SystemCommandLine
+open Input
 
 let listCmd =
     let action (dir: DirectoryInfo) =

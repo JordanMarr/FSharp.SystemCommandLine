@@ -4,6 +4,7 @@ open NUnit.Framework
 open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
+open Input
 
 let mutable handlerCalled = false
 [<SetUp>] 
@@ -15,7 +16,8 @@ let tearDown () = handlerCalled =! true
 let ``01 --flag with no argument should be true`` () =
     testRootCommand "--flag" {
         description "Test"
-        inputs (Input.OptionMaybe<bool>("--flag", "True, false or none"))
+        //inputs (Input.OptionMaybe<bool>("--flag", "True, false or none"))
+        inputs (optionMaybe "--flag" |> desc "True, false or none")
         setAction (fun flag ->
             flag =! Some true
             handlerCalled <- true

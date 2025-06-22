@@ -1,7 +1,8 @@
 ﻿module ProgramTask
 
-open FSharp.SystemCommandLine
 open System.Threading.Tasks
+open FSharp.SystemCommandLine
+open Input
 
 let app (ctx, words: string array, separator: string) =
     task {
@@ -19,13 +20,12 @@ let app (ctx, words: string array, separator: string) =
     
 //[<EntryPoint>]
 let main argv = 
-    let ctx = Input.Context()
-    let words = Input.Option("word", ["--word"; "-w"], [||], "A list of words to be appended")
-    let separator = Input.Option("separator", ["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let words = option "--word" |> alias "-w" |> defVal [||] |> desc "A list of words to be appended"
+    let separator = option "--separator" |> alias "-s" |> defVal ", " |> desc "A character that will separate the joined words."
 
     rootCommand argv {
         description "Appends words together"
-        inputs (ctx, words, separator)
+        inputs (context, words, separator)
         setAction app
     }
     |> Async.AwaitTask
