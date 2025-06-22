@@ -20,7 +20,7 @@ let app (ctx, words: string array, separator: string) =
     
 //[<EntryPoint>]
 let main argv = 
-    let words = option "--word" |> alias "-w" |> def [||] |> desc "A list of words to be appended"
+    let words = option "--word" |> alias "-w" |> desc "A list of words to be appended"
     let separator = option "--separator" |> alias "-s" |> def ", " |> desc "A character that will separate the joined words."
 
     rootCommand argv {
