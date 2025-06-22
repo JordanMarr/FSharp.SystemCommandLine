@@ -16,10 +16,10 @@ let ``01 --word Hello -w World -s * return unit`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
-            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (words, separator) ->
+        setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! Some "*"
             handlerCalled <- true
@@ -31,10 +31,10 @@ let ``02 --word Hello -w World return unit`` () =
     testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
-            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
-            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (words, separator) ->
+        setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! None
             handlerCalled <- true
@@ -47,10 +47,10 @@ let ``03 --word Hello -w World -s * return int`` () =
         testRootCommand "--word Hello -w World -s *" {
             description "Appends words together"
             inputs (
-                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"), 
-                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+                Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
             )
-            setHandler (fun (words, separator) ->
+            setAction (fun (words, separator) ->
                 words =! [| "Hello"; "World" |]
                 separator =! Some "*"
                 handlerCalled <- true
@@ -66,10 +66,10 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
         testRootCommand "--word Hello -w World -s *" {
             description "Appends words together"
             inputs (
-                Input.Option(["--word"; "-w"], fun o -> o.SetDefaultValue Array.empty; o.Description <- "A list of words to be appended"),
-                Input.OptionMaybe(["--separator"; "-s"], fun o -> o.Description <- "A character that will separate the joined words.")
+                Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
             )
-            setHandler (fun (words, separator) ->
+            setAction (fun (words, separator) ->
                 words =! [| "Hello"; "World" |]
                 separator =! Some "*"
                 handlerCalled <- true

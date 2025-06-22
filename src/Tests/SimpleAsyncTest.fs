@@ -16,13 +16,11 @@ let ``01 --word Hello -w World -s * return Task`` () =
     testRootCommand "--word Hello -w World -s *" {
         description "Appends words together"
         inputs (
-            Input.Context(),
-            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+            Input.Option<string[]>("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (ctx, words, separator) -> 
+        setAction (fun (words, separator) -> 
             task {
-                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! Some "*"
                 handlerCalled <- true
@@ -35,13 +33,11 @@ let ``02 --word Hello -w World return Task`` () =
     testRootCommand "--word Hello -w World" {
         description "Appends words together"
         inputs (
-            Input.Context(),
-            Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
-            Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+            Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+            Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
         )
-        setHandler (fun (ctx, words, separator) ->
+        setAction (fun (words, separator) ->
             task {
-                let cancel = ctx.GetCancellationToken()
                 words =! [| "Hello"; "World" |]
                 separator =! None
                 handlerCalled <- true
@@ -57,13 +53,12 @@ let ``03 --word Hello -w World return Task<int>`` () = task {
             description "Appends words together"
             inputs (
                 Input.Context(),
-                Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended"),
-                Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+                Input.Option("word", ["--word"; "-w"], Array.empty, "A list of words to be appended"),
+                Input.OptionMaybe("separator", ["--separator"; "-s"], "A character that will separate the joined words.")
             )
-            setHandler (fun (ctx, words, separator) ->
+            setAction (fun (ctx, words, separator) ->
                 task {
-                    let cancel = ctx.GetCancellationToken()
-                    cancel.IsCancellationRequested =! false
+                    ctx.CancellationToken.IsCancellationRequested =! false
                     words =! [| "Hello"; "World" |]
                     separator =! None
                     handlerCalled <- true

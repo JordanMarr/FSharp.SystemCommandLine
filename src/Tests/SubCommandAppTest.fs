@@ -12,7 +12,7 @@ let listCmd (handler: DirectoryInfo -> unit) =
     command "list" {
         description "lists contents of a directory"
         inputs dir
-        setHandler handler
+        setAction handler
     }
 
 let deleteCmd (handler: DirectoryInfo * bool -> unit) = 
@@ -22,13 +22,13 @@ let deleteCmd (handler: DirectoryInfo * bool -> unit) =
     command "delete" {
         description "deletes a directory"
         inputs (dir, recursive)
-        setHandler handler
+        setAction handler
     }        
 
 let rootCmd argstr listCmdHandler deleteCmdHandler =
     testRootCommand argstr  {
         description "File System Manager"
-        setHandler id
+        noAction
         addCommand (listCmd listCmdHandler)
         addCommand (deleteCmd deleteCmdHandler)
     } 

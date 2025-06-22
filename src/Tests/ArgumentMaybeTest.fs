@@ -16,7 +16,7 @@ let ``01 Some jdoe`` () =
     testRootCommand "jdoe" {
         description "Maybe displays a name"
         inputs (Input.ArgumentMaybe<string>("Maybe a name"))
-        setHandler (fun name ->
+        setAction (fun name ->
             name =! Some "jdoe"
             handlerCalled <- true
         )
@@ -27,7 +27,7 @@ let ``02 None`` () =
     testRootCommand "" {
         description "Maybe displays a name"
         inputs (Input.ArgumentMaybe<string>("Maybe a name"))
-        setHandler (fun name ->
+        setAction (fun name ->
             name =! None
             handlerCalled <- true
         )
