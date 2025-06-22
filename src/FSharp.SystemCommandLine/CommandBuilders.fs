@@ -273,7 +273,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let g: 'G = getValue pr 6
                 let h: 'H = getValue pr 7
                 handler (a, b, c, d, e, f, g, h))
-        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
+        | _ -> invalidOp "Only 8 inputs are supported."
         cmd
 
     /// Sets a command handler that returns an `int` status code.
@@ -338,7 +338,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let g: 'G = getValue pr 6
                 let h: 'H = getValue pr 7
                 handler (a, b, c, d, e, f, g, h))
-        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
+        | _ -> invalidOp "Only 8 inputs are supported."
         cmd
 
     /// Sets a command handler that returns a `Task`.
@@ -404,7 +404,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
                 let g: 'G = getValue pr ct 6
                 let h: 'H = getValue pr ct 7
                 handler (a, b, c, d, e, f, g, h)))
-        | _ -> raise (NotImplementedException("Only 8 inputs are supported."))
+        | _ -> invalidOp "Only 8 inputs are supported."
         cmd
 
             
