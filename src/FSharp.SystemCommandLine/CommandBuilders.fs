@@ -198,6 +198,22 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.NoActionAsync (spec: CommandSpec<'Inputs, 'Output>) = 
         newHandler (fun _ -> Task.FromResult ()) spec
 
+    /// Sets the root command action to show help when no other sub-command is called. 
+    /// This action requires `Input.context` be set as the input.
+    [<CustomOperation("helpAction")>]
+    member this.HelpAction (spec: CommandSpec<ActionContext, 'Output>) =
+        newHandler (fun (ctx: ActionContext) -> 
+            Help.HelpAction().Invoke(ctx.ParseResult)
+        ) spec
+
+    /// Sets the root command action to show help when no other async sub-command is called. 
+    /// This action requires `Input.context` be set as the input.
+    [<CustomOperation("helpActionAsync")>]
+    member this.HelpActionAsync (spec: CommandSpec<ActionContext, 'Output>) =
+        newHandler (fun (ctx: ActionContext) -> 
+            Help.HelpAction().Invoke(ctx.ParseResult) |> Task.FromResult
+        ) spec
+
     [<CustomOperation("addGlobalOption")>]
     member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: HandlerInput) =
         { spec with GlobalInputs = spec.GlobalInputs @ [ globalInput ] }
@@ -230,21 +246,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     [<CustomOperation("addAliases")>]
     member this.AddAliases (spec: CommandSpec<'Inputs, 'Output>, aliases: string seq) =
         { spec with Aliases = spec.Aliases @ (aliases |> Seq.toList) }
-
-    [<Obsolete("'add' has been deprecated in favor of 'addInput'.")>]
-    [<CustomOperation("add")>]
-    member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value>) =
-        { spec with ExtraInputs = spec.ExtraInputs @ [ extraInput ] }
-
-    [<Obsolete("'add' has been deprecated in favor of 'addInputs'.")>]
-    [<CustomOperation("add")>]
-    member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput seq) =
-        { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> List.ofSeq) }
-
-    [<Obsolete("'add' has been deprecated in favor of 'addInputs'.")>]
-    [<CustomOperation("add")>]
-    member this.Add(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput<'Value> seq) =
-        { spec with ExtraInputs = spec.ExtraInputs @ (extraInput |> Seq.cast |> List.ofSeq) }
 
     /// Adds an extra input (when more than 8 inputs are required).
     [<CustomOperation("addInput")>]
