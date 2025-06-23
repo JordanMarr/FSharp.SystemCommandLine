@@ -1,4 +1,4 @@
-### FSharp.SystemCommandLine 
+### FSharp.SystemCommandLine (beta5)
 [![NuGet version (FSharp.SystemCommandLine)](https://img.shields.io/nuget/v/FSharp.SystemCommandLine.svg?style=flat-square)](https://www.nuget.org/packages/FSharp.SystemCommandLine/)
 
 The purpose of this library is to provide quality of life improvements when using the [`System.CommandLine`](https://github.com/dotnet/command-line-api) API in F#.
@@ -7,10 +7,10 @@ _[Click here to view the old beta 4 README](README-beta4.md)_
 
 ## Features
 
-* Mismatches between `inputs` and `setHandler` function parameters are caught at compile time
-* `Input.Option` helper method avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
-* `Input.OptionMaybe` and `Input.ArgumentMaybe` methods allow you to use F# `option` types in your handler function.
-* `Input.Context` method allows you to pass the `System.CommandLine.Invocation.InvocationContext` to your handler function.
+* Mismatches between `inputs` and `setAction` handler function parameters are caught at compile time
+* `Input.option` helper avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
+* `Input.optionMaybe` and `Input.argumentMaybe` helpers allow you to use F# `option` types in your handler function.
+* `Input.context` helper allows you to pass the `ActionContext` to your action function which is necessary for some operations.
 
 ## Examples
 
@@ -41,7 +41,7 @@ let main argv =
     }
 ```
 
-💥WARNING: You must declare `inputs` before `setHandler` or else the type checking will not work properly and you will get a build error!💥
+💥WARNING: You must declare `inputs` before `setAction` or else the type checking will not work properly and you will get a build error!💥
 
 ```batch
 > unzip.exe "c:\test\stuff.zip"
@@ -52,7 +52,7 @@ let main argv =
 ```
 
 
-_Notice that mismatches between the `setHandler` and the `inputs` are caught as a compile time error:_
+_Notice that mismatches between the `setAction` and the `inputs` are caught as a compile time error:_
 ![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
 
 
@@ -84,7 +84,7 @@ let main argv =
             argument "zipfile" |> desc "The file to unzip",
             optionMaybe "--output" |> alias "-o" |> desc "The output directory"
         )
-        setHandler unzip
+        setAction unzip
     }
 ```
 
@@ -536,7 +536,7 @@ let main argv =
         commandLineConfiguration {
             description "Appends words together"
             inputs (words, separator)
-            setHandler app
+            setAction app
         }
 
     let parseResult = cfg.Parse(argv)
@@ -608,7 +608,7 @@ let main argv =
             cfg.ResponseFileTokenReplacer <- null
         )
         inputs package
-        setHandler app
+        setAction app
     }
 ```
 
