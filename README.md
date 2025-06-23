@@ -571,11 +571,11 @@ let main argv =
     }
 ```
 
-## Customizing the Default Pipeline
+## Command Line Configuration
 
-System.CommandLine has a `CommandLineBuilder` that allows the user to customize various behaviors.
+System.CommandLine has a `CommandLineConfiguration` that allows the user to customize various behaviors.
 
-FSharp.SystemCommandLine is configured to use the built-in defaults (via `CommandLineBuilder().UseDefaults()`), but you can easily override them via the `usePipeline` custom operation which gives you access to the `CommandLineBuilder`. 
+FSharp.SystemCommandLine uses the defaults from `CommandLineConfiguration`, but you can override them via the `configure` custom operation which gives you access to the `CommandLineConfiguration`. 
 
 For example, the default behavior intercepts input strings that start with a "@" character via the "TryReplaceToken" feature. This will cause an issue if you need to accept input that starts with "@". Fortunately, you can disable this via `usePipeline`:
 
@@ -598,7 +598,7 @@ let main argv =
 
     // The package option needs to accept strings that start with "@" symbol.
     // For example, "--package @shoelace-style/shoelace".
-    // To accomplish this, we will need to modify the default pipeline settings below.
+    // To accomplish this, we will need to modify the configuration below.
     let package = option "--package" |> alias "-p" |> desc "A package name that may have a leading '@' character."
 
     rootCommand argv {
@@ -611,8 +611,3 @@ let main argv =
         setAction app
     }
 ```
-
-As you can see, there are a lot of options that can be configured here (note that you need to `open System.CommandLine.Builder`):
-
-![image](https://user-images.githubusercontent.com/1030435/199282781-1800b79c-7638-4242-8ca0-777d7237e20a.png)
-
