@@ -188,10 +188,15 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     member this.SetAction (spec: CommandSpec<'Inputs, 'Output>, action: 'Inputs -> 'Output) =
         newHandler action spec
 
-    /// Sets an empty handler action that does nothing. This is used when no action is required, such as when only sub-commands are defined.
+    /// Sets an empty handler action. This is used when no action is required, such as when only sub-commands are defined.
     [<CustomOperation("noAction")>]
     member this.NoAction (spec: CommandSpec<'Inputs, 'Output>) =
         newHandler (fun () -> ()) spec
+
+    /// Sets an empty async handler action. This is used when no action is required, such as when only sub-commands are defined.
+    [<CustomOperation("noActionAsync")>]
+    member this.NoActionAsync (spec: CommandSpec<'Inputs, 'Output>) = 
+        newHandler (fun _ -> Task.FromResult ()) spec
 
     [<CustomOperation("addGlobalOption")>]
     member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: HandlerInput) =
