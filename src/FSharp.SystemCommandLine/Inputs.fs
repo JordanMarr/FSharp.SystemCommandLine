@@ -244,5 +244,5 @@ type Input =
 
     /// Passes the `InvocationContext` to the handler.
     [<Obsolete "Use Input.context instead.">]
-    static member Context() = 
+    static member Context() : ActionContext = 
         invalidOp "This method has been removed."
