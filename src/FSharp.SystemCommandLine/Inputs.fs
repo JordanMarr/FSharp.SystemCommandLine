@@ -57,63 +57,43 @@ module Input =
     let option<'T> (name: string) = 
         Option<'T>(name) |> HandlerInput.OfOption
 
-    let aliases (aliases: string seq) (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> 
-                aliases |> Seq.iter o.Aliases.Add
-                hi
-            | _ -> hi
+    let editOption (edit: Option<'T> -> unit) (hi: HandlerInput<'T>) = 
+        match hi.Source with
+        | ParsedOption o -> o :?> Option<'T> |> edit
+        | _ -> ()
+        hi
 
+    let editArgument (edit: Argument<'T> -> unit) (hi: HandlerInput<'T>) = 
+        match hi.Source with
+        | ParsedArgument a -> a :?> Argument<'T> |> edit
+        | _ -> ()
+        hi
+
+    let aliases (aliases: string seq) (hi: HandlerInput<'T>) = 
+        hi |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
+        
     let alias (alias: string) (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> o.Aliases.Add alias; hi
-            | _ -> hi
+        hi |> editOption (fun o -> o.Aliases.Add alias)
                 
     let desc (description: string) (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> o.Description <- description; o :?> Option<'T> |> HandlerInput.OfOption<'T>
-            | ParsedArgument a -> a.Description <- description; a :?> Argument<'T> |> HandlerInput.OfArgument<'T>
-            | Context -> hi
+        hi 
+        |> editOption (fun o -> o.Description <- description)
+        |> editArgument (fun a -> a.Description <- description)
 
     let defaultValue (defaultValue: 'T) (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> 
-                let o = o :?> Option<'T>
-                o.DefaultValueFactory <- (fun _ -> defaultValue)
-                HandlerInput.OfOption<'T> o
-            | ParsedArgument a -> 
-                let a = a :?> Argument<'T>
-                a.DefaultValueFactory <- (fun _ -> defaultValue)
-                HandlerInput.OfArgument<'T> a
-            | Context -> hi
-
+        hi
+        |> editOption (fun o -> o.DefaultValueFactory <- (fun _ -> defaultValue))
+        |> editArgument (fun a -> a.DefaultValueFactory <- (fun _ -> defaultValue))
+        
     let def = defaultValue
 
     let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> 
-                let o = o :?> Option<'T>
-                o.DefaultValueFactory <- defaultValueFactory
-                HandlerInput.OfOption<'T> o
-            | ParsedArgument a -> 
-                let a = a :?> Argument<'T>
-                a.DefaultValueFactory <- defaultValueFactory
-                HandlerInput.OfArgument<'T> a
-            | Context -> hi
+        hi
+        |> editOption (fun o -> o.DefaultValueFactory <- defaultValueFactory)
+        |> editArgument (fun a -> a.DefaultValueFactory <- defaultValueFactory)
 
     let required (hi: HandlerInput<'T>) = 
-        hi.Source 
-        |> function 
-            | ParsedOption o -> 
-                let o = o :?> Option<'T>
-                o.Required <- true
-                HandlerInput.OfOption<'T> o
-            | _ -> hi
+        hi |> editOption (fun o -> o.Required <- true)
 
     let optionMaybe<'T> (name: string) = 
         let o = Option<'T option>(name, aliases = [||])
