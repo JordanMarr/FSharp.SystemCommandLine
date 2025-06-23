@@ -119,7 +119,7 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "dir |> desc "The directory to delete"
+    let dir = argument "dir" |> desc "The directory to delete"
     let recursive = option "--recursive" |> def false
 
     command "delete" {
