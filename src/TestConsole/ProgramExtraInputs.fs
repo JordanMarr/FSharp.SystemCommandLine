@@ -34,11 +34,9 @@ let app ctx =
     
 //[<EntryPoint>]
 let main argv = 
-    let ctx = Input.Context()
-
     rootCommand argv {
         description "Appends words together"
-        inputs ctx
+        inputs Input.context
         setAction app
         addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }
