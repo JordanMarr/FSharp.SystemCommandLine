@@ -3,6 +3,8 @@
 
 The purpose of this library is to provide quality of life improvements when using the [`System.CommandLine`](https://github.com/dotnet/command-line-api) API in F#.
 
+_[Click here to view the old beta 4 README](README-beta4.md)_
+
 ## Features
 
 * Mismatches between `inputs` and `setHandler` function parameters are caught at compile time
@@ -15,8 +17,9 @@ The purpose of this library is to provide quality of life improvements when usin
 ### Simple App
 
 ```F#
-open FSharp.SystemCommandLine
 open System.IO
+open FSharp.SystemCommandLine
+open Input
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if None
@@ -28,13 +31,13 @@ let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) =
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = Input.Argument<FileInfo>("The file to unzip")    
-    let outputDirMaybe = Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
+    let zipFile = argument "zipfile" |> desc "The file to unzip"
+    let outputDirMaybe = optionMaybe "--output" |> alias "-o" |> desc "The output directory"
 
     rootCommand argv {
         description "Unzips a .zip file"
-        inputs (zipFile, outputDirMaybe) // must be set before setHandler
-        setHandler unzip
+        inputs (zipFile, outputDirMaybe)
+        setAction unzip
     }
 ```
 
@@ -58,8 +61,9 @@ _Notice that mismatches between the `setHandler` and the `inputs` are caught as 
 You may optionally return a status code from your handler function.
 
 ```F#
-open FSharp.SystemCommandLine
 open System.IO
+open FSharp.SystemCommandLine
+open Input
 
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if None
@@ -77,8 +81,8 @@ let main argv =
     rootCommand argv {
         description "Unzips a .zip file"
         inputs (
-            Input.Argument<FileInfo>("The file to unzip"),
-            Input.OptionMaybe<DirectoryInfo>(["--output"; "-o"], "The output directory")
+            argument "zipfile" |> desc "The file to unzip",
+            optionMaybe "--output" |> alias "-o" |> desc "The output directory"
         )
         setHandler unzip
     }
@@ -90,25 +94,24 @@ let main argv =
 ```F#
 open System.IO
 open FSharp.SystemCommandLine
+open Input
 
 // Ex: fsm.exe list "c:\temp"
 let listCmd = 
-    let handler (dir: DirectoryInfo) = 
+    let action (dir: DirectoryInfo) = 
         if dir.Exists 
         then dir.EnumerateFiles() |> Seq.iter (fun f -> printfn "%s" f.Name)
         else printfn $"{dir.FullName} does not exist."
         
-    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to list")
-
     command "list" {
         description "lists contents of a directory"
-        inputs dir
-        setHandler handler
+        inputs (argument "dir" |> desc "The directory to list")
+        setAction action
     }
 
 // Ex: fsm.exe delete "c:\temp" --recursive
 let deleteCmd = 
-    let handler (dir: DirectoryInfo, recursive: bool) = 
+    let action (dir: DirectoryInfo, recursive: bool) = 
         if dir.Exists then 
             if recursive
             then printfn $"Recursively deleting {dir.FullName}"
@@ -116,23 +119,22 @@ let deleteCmd =
         else 
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument<DirectoryInfo>("dir", "The directory to delete")
-    let recursive = Input.Option<bool>("--recursive", false)
+    let dir = argument "dir |> desc "The directory to delete"
+    let recursive = option "--recursive" |> def false
 
     command "delete" {
         description "deletes a directory"
         inputs (dir, recursive)
-        setHandler handler
+        setAction action
     }
-        
-
+     
 [<EntryPoint>]
 let main argv = 
     rootCommand argv {
         description "File System Manager"
-        setHandler id
-        // if using async task sub commands, setHandler to `Task.FromResult`
-        // setHandler Task.FromResult         
+        noAction
+        // if using async task sub commands:
+        // noActionAsync
         addCommand listCmd
         addCommand deleteCmd
     }
@@ -164,13 +166,14 @@ You can pass the `InvocationContext` via the `Input.Context()` method.
 module Program
 
 open FSharp.SystemCommandLine
+open Input
 open System.Threading
 open System.Threading.Tasks
 open System.CommandLine.Invocation
 
-let app (ctx: InvocationContext, words: string array, separator: string) =
+let app (ctx: ActionContext, words: string array, separator: string) =
     task {
-        let cancel = ctx.GetCancellationToken()
+        let cancel = ctx.CancellationToken
         for i in [1..20] do
             if cancel.IsCancellationRequested then 
                 printfn "Cancellation Requested"
@@ -185,14 +188,14 @@ let app (ctx: InvocationContext, words: string array, separator: string) =
     
 [<EntryPoint>]
 let main argv = 
-    let ctx = Input.Context()
-    let words = Input.Option<string array>(["--word"; "-w"], [||], "A list of words to be appended")
-    let separator = Input.Option<string>(["--separator"; "-s"], ", ", "A character that will separate the joined words.")
+    let ctx = Input.context
+    let words = Input.option "--word" |> alias "-w" |> desc "A list of words to be appended"
+    let separator = Input.option "--separator" |> alias "-s" |> defaultValue ", " |> desc "A character that will separate the joined words."
 
     rootCommand argv {
         description "Appends words together"
         inputs (ctx, words, separator)
-        setHandler app
+        setAction app
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
@@ -200,21 +203,22 @@ let main argv =
 
 ### Example with more than 8 inputs
 Currently, a command handler function is limited to accept a tuple with no more than eight inputs.
-If you need more, you can pass in the InvocationContext to your handler and manually get as many input values as you like (assuming they have been registered via the rootCommand or command builder's `add` operation:
+If you need more, you can pass in the `ActionContext` to your action handler and manually get as many input values as you like (assuming they have been registered in the command builder's `addInputs` operation).
 
 ```F#
 module Program
 
 open FSharp.SystemCommandLine
+open Input
 
 module Parameters = 
-    let words = Input.Option<string[]>(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.OptionMaybe<string>(["--separator"; "-s"], "A character that will separate the joined words.")
+    let words = option "--word" |> alias "-w" |> desc "A list of words to be appended"
+    let separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
 
-let app (ctx: System.CommandLine.Invocation.InvocationContext) =
+let app ctx =
     // Manually parse as many parameters as you need
-    let words = Parameters.words.GetValue ctx
-    let separator = Parameters.separator.GetValue ctx
+    let words = Parameters.words.GetValue ctx.ParseResult
+    let separator = Parameters.separator.GetValue ctx.ParseResult
 
     // Do work
     let separator = separator |> Option.defaultValue ", "
@@ -225,8 +229,8 @@ let app (ctx: System.CommandLine.Invocation.InvocationContext) =
 let main argv = 
     rootCommand argv {
         description "Appends words together"
-        inputs (Input.Context())
-        setHandler app
+        inputs Input.context
+        setAction app
         addInputs [ Parameters.words; Parameters.separator ]
     }
 ```
@@ -245,6 +249,7 @@ This example requires the following nuget packages:
 open System
 open System.IO
 open FSharp.SystemCommandLine
+open Input
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Hosting
@@ -270,7 +275,7 @@ let buildHost (argv: string[]) =
         )
         .Build()        
 
-let exportHandler (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
+let export (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
     task {
         logger.Information($"Querying from {StartDate} to {EndDate}", startDate, endDate)            
         // Do export stuff...
@@ -282,30 +287,32 @@ let main argv =
     let logger = host.Services.GetService<ILogger>()
     let cfg = host.Services.GetService<IConfiguration>()
 
-    let connStr = Input.Option<string>(
-        aliases = ["-c"; "--connection-string"], 
-        defaultValue = cfg["ConnectionStrings:DB"],
-        description = "Database connection string")
+    let connStr =
+        Input.option "--connection-string"
+        |> Input.alias "-c"
+        |> Input.defaultValue (cfg["ConnectionStrings:DB"])
+        |> Input.desc "Database connection string"
 
-    let outputDir = Input.Option<DirectoryInfo>(
-        aliases = ["-o";"--output-directory"], 
-        defaultValue = DirectoryInfo(cfg["DefaultOutputDirectory"]), 
-        description = "Output directory folder.")
+    let outputDir =
+        Input.option "--output-directory"
+        |> Input.alias "-o"
+        |> Input.defaultValue (DirectoryInfo(cfg["DefaultOutputDirectory"]))
+        |> desc "Output directory folder."
 
-    let startDate = Input.Option<DateTime>(
-        name = "--start-date", 
-        defaultValue = DateTime.Today.AddDays(-7), 
-        description = "Start date (defaults to 1 week ago from today)")
+    let startDate =
+        Input.option "--start-date"
+        |> Input.defaultValue (DateTime.Today.AddDays(-7))
+        |> desc "Start date (defaults to 1 week ago from today)"
         
-    let endDate = Input.Option<DateTime>(
-        name = "--end-date", 
-        defaultValue = DateTime.Today, 
-        description = "End date (defaults to today)")
+    let endDate =
+        Input.option "--end-date"
+        |> Input.defaultValue DateTime.Today
+        |> Input.desc "End date (defaults to today)"
 
     rootCommand argv {
         description "Data Export"
         inputs (connStr, outputDir, startDate, endDate)
-        setHandler (exportHandler logger)
+        setAction (export logger)
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
@@ -320,22 +327,22 @@ module ProgramNestedSubCommands
 
 open System.IO
 open FSharp.SystemCommandLine
-open System.CommandLine.Invocation
+open Input
 
 module Global = 
-    let enableLogging = Input.Option<bool>("--enable-logging", false)
-    let logFile = Input.Option<FileInfo>("--log-file", FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> def false
+    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log")
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
     let options: HandlerInput seq = [ enableLogging; logFile ] 
 
-    let bind (ctx: InvocationContext) = 
-        { EnableLogging = enableLogging.GetValue ctx
-          LogFile = logFile.GetValue ctx }
+    let bind (ctx: ActionContext) = 
+        { EnableLogging = enableLogging.GetValue ctx.ParseResult
+          LogFile = logFile.GetValue ctx.ParseResult }
 
 let listCmd =
-    let handler (ctx: InvocationContext, dir: DirectoryInfo) =
+    let action (ctx: InvocationContext, dir: DirectoryInfo) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -346,17 +353,18 @@ let listCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("directory", DirectoryInfo(@"c:\default"))
-
     command "list" {
         description "lists contents of a directory"
-        inputs (Input.Context(), dir)
-        setHandler handler
+        inputs (
+            Input.context,
+            argument "directory" |> def (DirectoryInfo @"c:\default")
+        )
+        setAction action
         addAlias "ls"
     }
 
 let deleteCmd =
-    let handler (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
+    let action (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -369,36 +377,34 @@ let deleteCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = Input.Argument("directory", DirectoryInfo(@"c:\default"))
-    let recursive = Input.Option("--recursive", false)
+    let dir = Input.argument "directory" |> def (DirectoryInfo @"c:\default")
+    let recursive = Input.option "--recursive" |> def false
 
     command "delete" {
         description "deletes a directory"
-        inputs (Input.Context(), dir, recursive)
-        setHandler handler
+        inputs (Input.context, dir, recursive)
+        setAction action
         addAlias "del"
     }
 
 let ioCmd = 
     command "io" {
         description "Contains IO related subcommands."
-        setHandler id
+        noAction
         addCommands [ deleteCmd; listCmd ]
     }
 
 [<EntryPoint>]
 let main argv =
-    let ctx = Input.Context()
-    
-    let parser = 
-        rootCommandParser {
+    let cfg = 
+        commandLineConfiguration {
             description "Sample app for System.CommandLine"
-            setHandler id
+            noAction
             addGlobalOptions Global.options
             addCommand ioCmd
         }
 
-    let parseResult = parser.Parse(argv)
+    let parseResult = cfg.Parse(argv)
 
     // Get global option value from the parseResult
     let loggingEnabled = Global.enableLogging.GetValue parseResult
@@ -427,6 +433,7 @@ open Microsoft.Extensions.DependencyInjection
 open Serilog
 open EvolveDb.Configuration
 open FSharp.SystemCommandLine
+open Input
 open System.CommandLine.Invocation
 open System.CommandLine.Help
 
@@ -450,7 +457,7 @@ let buildHost (argv: string[]) =
         .Build()
 
 let repairCmd (logger: ILogger) = 
-    let handler (env: string) =
+    let action (env: string) =
         task {
             logger.Information($"Environment: {env}")
             logger.Information("Starting EvolveDb Repair (correcting checksums).")
@@ -466,12 +473,12 @@ let repairCmd (logger: ILogger) =
 
     command "repair" {
         description "Corrects checksums in the database."
-        inputs (Input.Argument<string>("env", "The keyvault environment: [dev, beta, prod]."))
-        setHandler handler
+        inputs (argument "env" |> desc "The keyvault environment: [dev, beta, prod].")
+        setAction action
     }
 
 let migrateCmd (logger: ILogger) =
-    let handler (env: string) =
+    let action (env: string) =
         task {
             logger.Information($"Environment: {env}")
             logger.Information("Starting EvolveDb Migrate.")
@@ -487,13 +494,9 @@ let migrateCmd (logger: ILogger) =
 
     command "migrate" {
         description "Migrates the database."
-        inputs (Input.Argument<string>("env", "The keyvault environment: [dev, beta, prod]."))
-        setHandler handler
+        inputs (argument "env" |> desc "The keyvault environment: [dev, beta, prod].")
+        setAction action
     }
-
-let showHelp (ctx: InvocationContext) =
-    let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
-    ctx.HelpBuilder.Write(hc)
 
 [<EntryPoint>]
 let main argv =
@@ -502,8 +505,8 @@ let main argv =
 
     rootCommand argv {
         description "Database Migrations"
-        inputs (Input.Context())
-        setHandler (showHelp)
+        inputs Input.context    // Required input for helpAction
+        helpAction              // Show --help if no sub-command is called
         addCommand (repairCmd logger)
         addCommand (migrateCmd logger)
     }
@@ -516,6 +519,7 @@ If you want to manually invoke your root command, use the `rootCommandParser` CE
 
 ```F#
 open FSharp.SystemCommandLine
+open Input
 open System.CommandLine.Parsing
 
 let app (words: string array, separator: string option) =
@@ -525,17 +529,18 @@ let app (words: string array, separator: string option) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = Input.Option(["--word"; "-w"], Array.empty, "A list of words to be appended")
-    let separator = Input.OptionMaybe(["--separator"; "-s"], "A character that will separate the joined words.")
+    let words = option "--word" |> alias -w" |> desc "A list of words to be appended"
+    let separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
 
-    let parser = 
-        rootCommandParser {
+    let cfg = 
+        commandLineConfiguration {
             description "Appends words together"
             inputs (words, separator)
             setHandler app
         }
 
-    parser.Parse(argv).Invoke()
+    let parseResult = cfg.Parse(argv)
+    parseResult.Invoke()
 ```
 
 ### Showing Help as the Default
@@ -545,27 +550,23 @@ A common design is to show help information if no commands have been passed:
 open System.CommandLine.Invocation
 open System.CommandLine.Help
 open FSharp.SystemCommandLine
+open Input
 
 let helloCmd = 
-    let handler name = printfn $"Hello, {name}."
-    let name = Input.Argument("Name")
+    let action name = printfn $"Hello, %s{name}."
+    let name = argument "Name"
     command "hello" {
         description "Says hello."
         inputs name
-        setHandler handler
+        setAction action
     }
 
 [<EntryPoint>]
 let main argv = 
-    let showHelp (ctx: InvocationContext) =
-        let hc = HelpContext(ctx.HelpBuilder, ctx.Parser.Configuration.RootCommand, System.Console.Out)
-        ctx.HelpBuilder.Write(hc)
-        
-    let ctx = Input.Context()    
     rootCommand argv {
         description "Says hello or shows help by default."
-        inputs ctx
-        setHandler showHelp
+        inputs Input.context
+        helpAction
         addCommand helloCmd
     }
 ```
@@ -582,7 +583,7 @@ For example, the default behavior intercepts input strings that start with a "@"
 module TokenReplacerExample
 
 open FSharp.SystemCommandLine
-open System.CommandLine.Builder // Necessary when overriding the builder via usePipeline
+open Input
 
 let app (package: string) =
     if package.StartsWith("@") then
@@ -598,74 +599,20 @@ let main argv =
     // The package option needs to accept strings that start with "@" symbol.
     // For example, "--package @shoelace-style/shoelace".
     // To accomplish this, we will need to modify the default pipeline settings below.
-    let package = Input.Option([ "--package"; "-p" ], "A package name that may have a leading '@' character.")
+    let package = option "--package" |> alias "-p" |> desc "A package name that may have a leading '@' character."
 
     rootCommand argv {
         description "Can be called with a leading '@' package"
-
-        usePipeline (fun builder -> 
+        configure (fun cfg -> 
             // Override default token replacer to ignore `@` processing
-            builder.UseTokenReplacer(fun _ _ _ -> false)
+            cfg.ResponseFileTokenReplacer <- null
         )
-        
         inputs package
         setHandler app
     }
-
 ```
 
 As you can see, there are a lot of options that can be configured here (note that you need to `open System.CommandLine.Builder`):
 
 ![image](https://user-images.githubusercontent.com/1030435/199282781-1800b79c-7638-4242-8ca0-777d7237e20a.png)
 
-
-## Setting Input Properties Manually
-
-Sometimes it may be necessary to access the underlying `System.CommandLine` base input properties manually to take advantage of features like custom validation. You can do this by using overloads of `Input.Argument`, `Input.Option` and `Input.OptionMaybe` that provide a `configure` argument. 
-The `configure` argument is a function that allows you to modify the underlying `System.CommandLine` `Option<'T>` or `Argument<'T>`.
-
-```F#
-module Program
-
-open FSharp.SystemCommandLine
-
-let app (name: string) =
-    printfn $"Hello, {name}"
-    
-[<EntryPoint>]
-let main argv = 
-
-    let name = 
-        Input.Option<string>("--name", fun o -> 
-            o.Description <- "User name"
-            o.SetDefaultValue "-- NotSet --"
-            o.AddValidator(fun result -> 
-                let nameValue = result.GetValueForOption(o)
-                if System.String.IsNullOrWhiteSpace(nameValue)
-                then result.ErrorMessage <- "Name cannot be an empty string."
-                elif nameValue.Length > 10
-                then result.ErrorMessage <- "Name cannot exceed more than 10 characters."
-            )
-        )
-    
-    rootCommand argv {
-        description "Provides a friendly greeting."
-        inputs name
-        setHandler app
-    }
-```
-
-Alternatively, you can manually create a `System.CommandLine` `Option<'T>` or `Argument<'T>` and then convert it for use with a `CommandBuilder` via the `Input.OfOption` or `Input.OfArgument` helper methods.
-
-Note that you can also import the `FSharp.SystemCommandLine.Aliases` namespace to use the `Arg<'T>` and `Opt<'T>` aliases:
-
-```F# 
-
-let connectionString = 
-    System.CommandLine.Option<string>(
-        getDefaultValue = (fun () -> "conn string"),
-        aliases = [| "-cs";"--connectionString" |],
-        description = "An optional connection string to the server to import into"
-    )
-    |> Input.OfOption
-```
