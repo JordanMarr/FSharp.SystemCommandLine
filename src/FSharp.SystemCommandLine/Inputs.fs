@@ -78,7 +78,7 @@ module Input =
             | ParsedArgument a -> a.Description <- description; a :?> Argument<'T> |> HandlerInput.OfArgument<'T>
             | Context -> hi
 
-    let def (defaultValue: 'T) (hi: HandlerInput<'T>) = 
+    let defaultValue (defaultValue: 'T) (hi: HandlerInput<'T>) = 
         hi.Source 
         |> function 
             | ParsedOption o -> 
@@ -90,6 +90,8 @@ module Input =
                 a.DefaultValueFactory <- (fun _ -> defaultValue)
                 HandlerInput.OfArgument<'T> a
             | Context -> hi
+
+    let def = defaultValue
 
     let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (hi: HandlerInput<'T>) = 
         hi.Source 
@@ -153,91 +155,91 @@ type Input =
 
     /// Converts a System.CommandLine.Option<'T> for usage with the CommandBuilder.
     [<Obsolete("Use Input.ofOption instead")>]
-    static member OfOption<'T>(o: Option<'T>) = 
+    static member OfOption<'T>(o: Option<'T>) : HandlerInput<'T> = 
         invalidOp "This method has been removed."
 
     /// Converts a System.CommandLine.Argument<'T> for usage with the CommandBuilder.
     [<Obsolete("Use Input.ofArgument instead")>]
-    static member OfArgument<'T>(a: Argument<'T>) = 
+    static member OfArgument<'T>(a: Argument<'T>) : HandlerInput<'T> = 
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T with the ability to manually configure the underlying properties.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(name: string, configure: Option<'T> -> unit) =
+    static member Option<'T>(name: string, configure: Option<'T> -> unit) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T with the ability to manually configure the underlying properties.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(aliases: string seq, configure: Option<'T> -> unit) =
+    static member Option<'T>(aliases: string seq, configure: Option<'T> -> unit) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI argument of type 'T with the ability to manually configure the underlying properties.
     [<Obsolete "Use Input.argument instead.">]
-    static member Argument<'T>(name: string, configure: Argument<'T> -> unit) =
+    static member Argument<'T>(name: string, configure: Argument<'T> -> unit) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(name: string, ?description: string) =
+    static member Option<'T>(name: string, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(aliases: string seq, ?description: string) =
+    static member Option<'T>(aliases: string seq, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
     
     /// Creates a CLI option of type 'T with a default value.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(name: string, defaultValue: 'T, ?description: string) =
+    static member Option<'T>(name: string, defaultValue: 'T, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T with a default value.
     [<Obsolete "Use Input.option instead.">]
-    static member Option<'T>(aliases: string seq, defaultValue: 'T, ?description: string) =
+    static member Option<'T>(aliases: string seq, defaultValue: 'T, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T that is required.
     [<Obsolete "Use Input.option + Input.required instead.">]
-    static member OptionRequired<'T>(aliases: string seq, ?description: string) =
+    static member OptionRequired<'T>(aliases: string seq, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
         
     /// Creates a CLI option of type 'T that is required.
     [<Obsolete "Use Input.option + Input.required instead.">]
-    static member OptionRequired<'T>(name: string, ?description: string) =
+    static member OptionRequired<'T>(name: string, ?description: string) : HandlerInput<'T> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
     [<Obsolete "Use Input.optionMaybe instead.">]
-    static member OptionMaybe<'T>(aliases: string seq, configure: Option<'T option> -> unit) =
+    static member OptionMaybe<'T>(aliases: string seq, configure: Option<'T option> -> unit) : HandlerInput<'T option> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T option with the ability to manually configure the underlying properties.
     [<Obsolete "Use Input.optionMaybe instead.">]
-    static member OptionMaybe<'T>(name: string, configure: Option<'T option> -> unit) =
+    static member OptionMaybe<'T>(name: string, configure: Option<'T option> -> unit) : HandlerInput<'T option> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T option.
     [<Obsolete "Use Input.optionMaybe instead.">]
-    static member OptionMaybe<'T>(aliases: string seq, ?description: string) =
+    static member OptionMaybe<'T>(aliases: string seq, ?description: string) : HandlerInput<'T option> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI option of type 'T option.
-    static member OptionMaybe<'T>(name: string, ?description: string) =
+    static member OptionMaybe<'T>(name: string, ?description: string) : HandlerInput<'T option> =
         invalidOp "This method has been removed."
 
     /// Creates a CLI argument of type 'T.
     [<Obsolete "Use Input.argument instead.">]
-    static member Argument<'T>(name: string, ?description: string) = 
+    static member Argument<'T>(name: string, ?description: string) : HandlerInput<'T> = 
         invalidOp "This method has been removed."
 
     /// Creates a CLI argument of type 'T with a default value.
     [<Obsolete "Use Input.argument instead.">]
-    static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) = 
+    static member Argument<'T>(name: string, defaultValue: 'T, ?description: string) : HandlerInput<'T> = 
         invalidOp "This method has been removed."
     
     /// Creates a CLI argument of type 'T option.
     [<Obsolete "Use Input.argumentMaybe instead.">]
-    static member ArgumentMaybe<'T>(name: string, ?description: string) = 
+    static member ArgumentMaybe<'T>(name: string, ?description: string) : HandlerInput<'T option> = 
         invalidOp "This method has been removed."
 
     /// Passes the `InvocationContext` to the handler.

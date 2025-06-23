@@ -4,16 +4,16 @@ module ProgramExtraInputs
 open FSharp.SystemCommandLine
 open Input
 
-let a = option "-a" |> def "a?"
-let b = option "-b" |> def "b?"
-let c = option "-c" |> def "c?"
-let d = option "-d" |> def "d?"
-let e = option "-e" |> def "e?"
-let f = option "-1" |> def 0
-let g = option "-2" |> def 0
-let h = option "-3" |> def 0 // NOTE: "-h" is taken via Help pipeline defaults
-let i = option "-4" |> def 0
-let j = option "-5" |> def 0
+let a = option "-a" |> defaultValue "a?"
+let b = option "-b" |> defaultValue "b?"
+let c = option "-c" |> defaultValue "c?"
+let d = option "-d" |> defaultValue "d?"
+let e = option "-e" |> defaultValue "e?"
+let f = option "-1" |> defaultValue 0
+let g = option "-2" |> defaultValue 0
+let h = option "-3" |> defaultValue 0 // NOTE: "-h" is taken via Help pipeline defaults
+let i = option "-4" |> defaultValue 0
+let j = option "-5" |> defaultValue 0
 
 let app ctx =
     [
