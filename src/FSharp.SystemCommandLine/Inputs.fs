@@ -19,11 +19,6 @@ type ActionContext =
         ParseResult: ParseResult
         CancellationToken: System.Threading.CancellationToken
     }
-    static member Create(parseResult: ParseResult) = 
-        {   
-            ParseResult = parseResult
-            CancellationToken = System.Threading.CancellationToken.None 
-        }
 
 type ActionInputSource = 
     | ParsedOption of Option
@@ -57,43 +52,43 @@ module Input =
     let option<'T> (name: string) = 
         Option<'T>(name) |> ActionInput.OfOption
 
-    let editOption (edit: Option<'T> -> unit) (hi: ActionInput<'T>) = 
-        match hi.Source with
+    let editOption (edit: Option<'T> -> unit) (input: ActionInput<'T>) = 
+        match input.Source with
         | ParsedOption o -> o :?> Option<'T> |> edit
         | _ -> ()
-        hi
+        input
 
-    let editArgument (edit: Argument<'T> -> unit) (hi: ActionInput<'T>) = 
-        match hi.Source with
+    let editArgument (edit: Argument<'T> -> unit) (input: ActionInput<'T>) = 
+        match input.Source with
         | ParsedArgument a -> a :?> Argument<'T> |> edit
         | _ -> ()
-        hi
+        input
 
-    let aliases (aliases: string seq) (hi: ActionInput<'T>) = 
-        hi |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
+    let aliases (aliases: string seq) (input: ActionInput<'T>) = 
+        input |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
         
-    let alias (alias: string) (hi: ActionInput<'T>) = 
-        hi |> editOption (fun o -> o.Aliases.Add alias)
+    let alias (alias: string) (input: ActionInput<'T>) = 
+        input |> editOption (fun o -> o.Aliases.Add alias)
                 
-    let desc (description: string) (hi: ActionInput<'T>) = 
-        hi 
+    let desc (description: string) (input: ActionInput<'T>) = 
+        input 
         |> editOption (fun o -> o.Description <- description)
         |> editArgument (fun a -> a.Description <- description)
 
-    let defaultValue (defaultValue: 'T) (hi: ActionInput<'T>) = 
-        hi
+    let defaultValue (defaultValue: 'T) (input: ActionInput<'T>) = 
+        input
         |> editOption (fun o -> o.DefaultValueFactory <- (fun _ -> defaultValue))
         |> editArgument (fun a -> a.DefaultValueFactory <- (fun _ -> defaultValue))
         
     let def = defaultValue
 
-    let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (hi: ActionInput<'T>) = 
-        hi
+    let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
+        input
         |> editOption (fun o -> o.DefaultValueFactory <- defaultValueFactory)
         |> editArgument (fun a -> a.DefaultValueFactory <- defaultValueFactory)
 
-    let required (hi: ActionInput<'T>) = 
-        hi |> editOption (fun o -> o.Required <- true)
+    let required (input: ActionInput<'T>) = 
+        input |> editOption (fun o -> o.Required <- true)
 
     let optionMaybe<'T> (name: string) = 
         let o = Option<'T option>(name, aliases = [||])
@@ -123,6 +118,31 @@ module Input =
             | _ :: _ -> failwith "F# Option can only be used with a single argument."
         )
         ActionInput.OfArgument<'T option> a
+
+    let validate (validate: 'T -> Result<unit, string>) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> 
+            o.Validators.Add(fun res -> 
+                let value = res.GetValue<'T>(o.Name)
+                match validate value with
+                | Ok () -> ()
+                | Error err -> res.AddError(err)
+            )
+        )
+        |> editArgument (fun a -> 
+            a.Validators.Add(fun res -> 
+                let value = res.GetValue<'T>(a.Name)
+                match validate value with
+                | Ok () -> ()
+                | Error err -> res.AddError(err)
+            )
+        )
+
+    let addValidator (validator: Parsing.SymbolResult -> unit) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.Validators.Add(validator))
+        |> editArgument (fun a -> a.Validators.Add(validator))
+
 
     let ofOption (o: Option<'T>) = 
         ActionInput.OfOption<'T> o

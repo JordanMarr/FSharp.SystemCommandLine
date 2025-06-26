@@ -115,3 +115,34 @@ let ``06 Token Replacer`` () =
         )
     } =! 0
     
+[<Test>]
+let ``07 - Validators`` () = 
+    handlerCalled <- true // Set to true to avoid false negatives in the test
+    let args = args "-w delete -s *"
+    let cfg = 
+        commandLineConfiguration {
+            description "Appends words together"
+            inputs (
+                option<string[]> "--word" 
+                |> alias "-w" 
+                |> desc "A list of words to be appended"
+                |> required
+                |> validate (fun words -> 
+                    if words |> Array.contains "delete" 
+                    then Error "Word 'delete' is not allowed." 
+                    else Ok ()
+                ),
+
+                optionMaybe<string> "--separator" 
+                |> alias "-s" 
+                |> desc "A character that will separate the joined words."
+            )
+
+            setAction (fun (words, separator) ->
+                () // Should not be called due to validation failure
+            )
+        }
+
+    printfn $"{cfg.Error}"
+    let result = cfg.Invoke(args)
+    result =! 1 // Expecting a failure due to the separator validation
