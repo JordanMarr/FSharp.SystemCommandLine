@@ -99,9 +99,9 @@ For example, this is how the existing `alias` and `desc` functions were created:
 
 You could just as easily create a custom `Input.validateFileExists` function:
 ```fsharp
-let validateFileExists (input: ActionInput<'T>) = 
+let validateFileExists (input: ActionInput<System.IO.FileInfo>) = 
     input    
-    |> validate (fun file -> 
+    |> Input.validate (fun file -> 
         if file.Exists then Ok () 
         else Error $"File '{file.FullName}' does not exist."
     )
