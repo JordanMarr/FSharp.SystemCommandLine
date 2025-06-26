@@ -13,9 +13,7 @@ _[Click here to view the old beta 4 README](README-beta4.md)_
 * `Input.context` helper allows you to pass the `ActionContext` to your action function which is necessary for some operations.
 * `Input.validate` helper allows you to validate against parsed value using the F# `Result` type.
 
-## Examples
-
-### Simple App
+## Example
 
 ```F#
 open System.IO
@@ -62,6 +60,62 @@ let main argv =
 _Notice that mismatches between the `setAction` and the `inputs` are caught as a compile time error:_
 ![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
 
+## Input API
+The new `Input` module contains functions for the underlying System.CommandLine `Option` and `Argument` properties. 
+* `context` passes an `ActionContext` containing a `ParseResult` and `CancellationToken` to the action
+* `argument` creates a named `Argument<'T>`
+* `argumentMaybe` creates a named `Argument<'T option>` that defaults to `None`.
+* `option` creates a named `Option<'T>`
+* `optionMaybe` creates a named `Option<'T option>` that defaults to `None`.
+* `alias` adds an `Alias` to an `Option`
+* `aliases` adds one or more aliases to an `Option`
+* `desc` adds a description to an `Option` or `Argument`
+* `defaultValue` or `def` provides a default value to an `Option` or `Argument`
+* `defFactor` assigns a default value factor to an `Option` or `Argument`
+* `required` marks an `Option` as required
+* `validate` allows you to return a `Result<unit, string>` for the parsed value
+* `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
+* `editOption` allows you to pass a function to edit the underlying `Option`
+* `editArgument` allows you to pass a function to edit the underlying `Argument`
+* `ofOption` allows you to pass a manually created `Option`
+* `ofArgument` allows you to pass a manually created `Argument`
+
+### Extensibility
+You can easily compose your own custom `Input` functions with `editOption` and `editArgument`.
+For example, this is how the existing `alias` and `desc` functions were created:
+
+```fsharp
+    let alias (alias: string) (input: ActionInput<'T>) = 
+        input
+        |> editOption (fun o -> o.Aliases.Add alias)
+                
+    let desc (description: string) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.Description <- description)
+        |> editArgument (fun a -> a.Description <- description)
+```
+* _Since `alias` can only apply to `Option`, it only calls `editOption`_
+* _Since `desc` can apply to both `Option` and `Argument`, you need to use both_
+
+You could just as easily create a custom `Input.validateFileExists` function:
+```fsharp
+let validateFileExists (input: ActionInput<'T>) = 
+    input    
+    |> validate (fun file -> 
+        if file.Exists then Ok () 
+        else Error $"File '{file.FullName}' does not exist."
+    )
+```
+
+And then use it like this:
+```fsharp
+let zipFile =
+    argument "zipfile"
+    |> desc "The file to unzip"
+    |> validateFileExists
+```
+
+## More Examples
 
 ### Simple App that Returns a Status Code
 
