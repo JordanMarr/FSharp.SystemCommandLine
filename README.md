@@ -71,7 +71,7 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `aliases` adds one or more aliases to an `Option`
 * `desc` adds a description to an `Option` or `Argument`
 * `defaultValue` or `def` provides a default value to an `Option` or `Argument`
-* `defFactor` assigns a default value factor to an `Option` or `Argument`
+* `defFactory` assigns a default value factor to an `Option` or `Argument`
 * `required` marks an `Option` as required
 * `validate` allows you to return a `Result<unit, string>` for the parsed value
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
