@@ -10,7 +10,7 @@ module Global =
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
-    let options: HandlerInput seq = [ enableLogging; logFile ] 
+    let options: ActionInput seq = [ enableLogging; logFile ] 
 
     let bind parseResult = 
         { EnableLogging = enableLogging.GetValue parseResult

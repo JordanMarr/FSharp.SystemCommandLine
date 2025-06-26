@@ -9,15 +9,15 @@ open System.CommandLine.Parsing
 
 let private def<'T> = Unchecked.defaultof<'T>
 
-/// Gets the underlying value of a `HandlerInput` based on its source.
-let private parseInput<'V> (handlerInput: HandlerInput) (pr: ParseResult) (cancelToken: CancellationToken) =
+/// Gets the underlying value of a `ActionInput` based on its source.
+let private parseInput<'V> (handlerInput: ActionInput) (pr: ParseResult) (cancelToken: CancellationToken) =
     match handlerInput.Source with
     | ParsedOption o -> pr.GetValue<'V>(o :?> Option<'V>)
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
 
 /// Adds global options to a command, ensuring they are recursive.
-let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: Command) =
+let private addGlobalOptionsToCommand (globalOptions: ActionInput list) (cmd: Command) =
     for g in globalOptions do
         match g.Source with
         | ParsedOption o -> 
@@ -30,13 +30,13 @@ let private addGlobalOptionsToCommand (globalOptions: HandlerInput list) (cmd: C
 type CommandSpec<'Inputs, 'Output> = 
     {
         Description: string
-        Inputs: HandlerInput list
-        GlobalInputs: HandlerInput list
+        Inputs: ActionInput list
+        GlobalInputs: ActionInput list
         Handler: 'Inputs -> 'Output
         Aliases: string list
         SubCommands: System.CommandLine.Command list
         /// Registers extra inputs that can be parsed via the InvocationContext if more than 8 are required.
-        ExtraInputs: HandlerInput list
+        ExtraInputs: ActionInput list
     }
     static member Default = 
         { 
@@ -64,7 +64,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         }
 
     /// Converts up to 8 handler inputs into a tuple of the specified action input type.
-    let inputsToTuple (pr: ParseResult) (ct: CancellationToken) (inputs: HandlerInput list) =
+    let inputsToTuple (pr: ParseResult) (ct: CancellationToken) (inputs: ActionInput list) =
         match inputs.Length with
         | 0 -> 
             box ()
@@ -140,42 +140,42 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, a: HandlerInput<'A>) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, a: ActionInput<'A>) =
         { newHandler def<'A -> 'Output> spec with Inputs = [ a ] }
     
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>)) =
         { newHandler def<'A * 'B -> 'Output> spec with Inputs = [ a; b ] }
 
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>)) =
         { newHandler def<'A * 'B * 'C -> 'Output> spec with Inputs = [ a; b; c ] }
         
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>, d: HandlerInput<'D>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>, d: ActionInput<'D>)) =
         { newHandler def<'A * 'B * 'C * 'D -> 'Output> spec with Inputs = [ a; b; c; d ] }
             
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>, d: HandlerInput<'D>, e: HandlerInput<'E>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>, d: ActionInput<'D>, e: ActionInput<'E>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E -> 'Output> spec with Inputs = [ a; b; c; d; e ] }
 
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>, d: HandlerInput<'D>, e: HandlerInput<'E>, f: HandlerInput<'F>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>, d: ActionInput<'D>, e: ActionInput<'E>, f: ActionInput<'F>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F -> 'Output> spec with Inputs = [ a; b; c; d; e; f ] }
 
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>, d: HandlerInput<'D>, e: HandlerInput<'E>, f: HandlerInput<'F>, g: HandlerInput<'G>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>, d: ActionInput<'D>, e: ActionInput<'E>, f: ActionInput<'F>, g: ActionInput<'G>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g ] }
 
     /// A tuple of inputs (max. 8) that must exactly match the handler function inputs.
     [<CustomOperation("inputs")>]
-    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: HandlerInput<'A>, b: HandlerInput<'B>, c: HandlerInput<'C>, d: HandlerInput<'D>, e: HandlerInput<'E>, f: HandlerInput<'F>, g: HandlerInput<'G>, h: HandlerInput<'H>)) =
+    member this.Inputs (spec: CommandSpec<'T, 'Output>, (a: ActionInput<'A>, b: ActionInput<'B>, c: ActionInput<'C>, d: ActionInput<'D>, e: ActionInput<'E>, f: ActionInput<'F>, g: ActionInput<'G>, h: ActionInput<'H>)) =
         { newHandler def<'A * 'B * 'C * 'D * 'E * 'F * 'G * 'H -> 'Output> spec with Inputs = [ a; b; c; d; e; f; g; h ] }
 
     /// Sets a handler function that takes a tuple of inputs (max. 8). NOTE: This must be set after the inputs.
@@ -215,11 +215,11 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         ) spec
 
     [<CustomOperation("addGlobalOption")>]
-    member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: HandlerInput) =
+    member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: ActionInput) =
         { spec with GlobalInputs = spec.GlobalInputs @ [ globalInput ] }
 
     [<CustomOperation("addGlobalOptions")>]
-    member this.AddGlobalOptions (spec: CommandSpec<'Inputs, 'Output>, globalInputs: HandlerInput seq) =
+    member this.AddGlobalOptions (spec: CommandSpec<'Inputs, 'Output>, globalInputs: ActionInput seq) =
         { spec with GlobalInputs = spec.GlobalInputs @ (globalInputs |> List.ofSeq) }
 
     [<Obsolete("'setCommand' has been deprecated in favor of 'addCommand' or 'addCommands'.")>]
@@ -249,12 +249,12 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
     /// Adds an extra input (when more than 8 inputs are required).
     [<CustomOperation("addInput")>]
-    member this.AddInput(spec: CommandSpec<'Inputs, 'Output>, extraInput: HandlerInput) =
+    member this.AddInput(spec: CommandSpec<'Inputs, 'Output>, extraInput: ActionInput) =
         { spec with ExtraInputs = spec.ExtraInputs @ [ extraInput ] }
 
     /// Adds extra inputs (when more than 8 inputs are required).
     [<CustomOperation("addInputs")>]
-    member this.AddInputs(spec: CommandSpec<'Inputs, 'Output>, extraInputs: HandlerInput seq) =
+    member this.AddInputs(spec: CommandSpec<'Inputs, 'Output>, extraInputs: ActionInput seq) =
         { spec with ExtraInputs = spec.ExtraInputs @ (extraInputs |> List.ofSeq) }
 
     /// Sets general properties on the command.
