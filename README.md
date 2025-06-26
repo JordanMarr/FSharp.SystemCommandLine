@@ -24,19 +24,25 @@ open Input
 let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
     // Default to the zip file dir if None
     let outputDir = defaultArg outputDirMaybe zipFile.Directory
-
-    if zipFile.Exists
-    then printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
-    else printfn $"File does not exist: {zipFile.FullName}"
+    printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}..."
     
 [<EntryPoint>]
 let main argv = 
-    let zipFile = argument "zipfile" |> desc "The file to unzip"
-    let outputDirMaybe = optionMaybe "--output" |> alias "-o" |> desc "The output directory"
-
     rootCommand argv {
         description "Unzips a .zip file"
-        inputs (zipFile, outputDirMaybe)
+        inputs (
+            argument "zipfile"
+            |> desc "The file to unzip"
+            |> validate (fun zipFile ->
+                if zipFile.Exists
+                then Ok ()
+                else Error $"File does not exist: {zipFile.FullName}"
+            ),
+
+            optionMaybe "--output"
+            |> alias "-o"
+            |> desc "The output directory"
+        )
         setAction unzip
     }
 ```
