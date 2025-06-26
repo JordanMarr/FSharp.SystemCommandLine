@@ -11,6 +11,7 @@ _[Click here to view the old beta 4 README](README-beta4.md)_
 * `Input.option` helper avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
 * `Input.optionMaybe` and `Input.argumentMaybe` helpers allow you to use F# `option` types in your handler function.
 * `Input.context` helper allows you to pass the `ActionContext` to your action function which is necessary for some operations.
+* `Input.validate` helper allows you to validate against parsed value using the F# `Result` type.
 
 ## Examples
 
