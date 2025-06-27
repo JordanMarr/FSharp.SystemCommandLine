@@ -74,6 +74,8 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `defFactory` assigns a default value factor to an `Option` or `Argument`
 * `required` marks an `Option` as required
 * `validate` allows you to return a `Result<unit, string>` for the parsed value
+* `validateFileExists` ensures that the `FileInfo` exists
+* `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
 * `editOption` allows you to pass a function to edit the underlying `Option`
 * `editArgument` allows you to pass a function to edit the underlying `Argument`
@@ -97,7 +99,7 @@ For example, this is how the existing `alias` and `desc` functions were created:
 * _Since `alias` can only apply to `Option`, it only calls `editOption`_
 * _Since `desc` can apply to both `Option` and `Argument`, you need to use both_
 
-You could just as easily create a custom `Input.validateFileExists` function:
+Here is the definition of the built-in `Input.validateFileExists` function which was built with the existing `validate` function:
 ```fsharp
 let validateFileExists (input: ActionInput<System.IO.FileInfo>) = 
     input    
