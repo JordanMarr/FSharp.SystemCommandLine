@@ -32,15 +32,17 @@ let main argv =
         inputs (
             argument "zipfile"
             |> desc "The file to unzip"
+            |> validateFileExists
             |> validate (fun zipFile ->
-                if zipFile.Exists
+                if zipFile.Length <= 500000
                 then Ok ()
-                else Error $"File does not exist: {zipFile.FullName}"
+                else Error $"File cannot be bigger than 500 KB"
             ),
 
             optionMaybe "--output"
             |> alias "-o"
             |> desc "The output directory"
+            |> validateDirectoryExists
         )
         setAction unzip
     }
