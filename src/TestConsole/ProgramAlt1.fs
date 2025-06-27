@@ -21,7 +21,6 @@ let action (parseResult: ParseResult) (cancel: CancellationToken) = task {
     return 5
 }
 
-//[<EntryPoint>]
 let main (argv: string[]) = 
     let cmd = RootCommand()
     cmd.Description <- "My sample app"

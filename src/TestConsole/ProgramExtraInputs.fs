@@ -32,7 +32,6 @@ let app ctx =
     |> printfn "Result: %s"
     0
     
-//[<EntryPoint>]
 let main argv = 
     rootCommand argv {
         description "Appends words together"

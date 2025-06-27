@@ -11,7 +11,6 @@ let app (package: string) =
         eprintfn "The package name does not start with a leading @"
         1
 
-//[<EntryPoint>]
 let main argv =
 
     // The package option needs to accept strings that start with "@" symbol.

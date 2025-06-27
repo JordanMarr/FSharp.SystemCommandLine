@@ -46,50 +46,65 @@ type ActionInput<'T>(inputType: ActionInputSource) =
 
 module Input = 
 
+    /// Injects an `ActionContext` into the action which contains the `ParseResult` and a cancellation token.
     let context = 
         ActionInput<ActionContext>(Context)
 
+    /// Creates a named option. Example: `option "--file-name"`
     let option<'T> (name: string) = 
         Option<'T>(name) |> ActionInput.OfOption
 
+    /// Edits the underlying System.CommandLine.Option<'T>.
     let editOption (edit: Option<'T> -> unit) (input: ActionInput<'T>) = 
         match input.Source with
         | ParsedOption o -> o :?> Option<'T> |> edit
         | _ -> ()
         input
 
+    /// Edits the underlying System.CommandLine.Argument<'T>.
     let editArgument (edit: Argument<'T> -> unit) (input: ActionInput<'T>) = 
         match input.Source with
         | ParsedArgument a -> a :?> Argument<'T> |> edit
         | _ -> ()
         input
 
+    /// Adds one or more aliases to an option.
     let aliases (aliases: string seq) (input: ActionInput<'T>) = 
         input |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
         
+    /// Adds an alias to an option.
     let alias (alias: string) (input: ActionInput<'T>) = 
         input |> editOption (fun o -> o.Aliases.Add alias)
                 
-    let desc (description: string) (input: ActionInput<'T>) = 
+    /// Sets the description of an option or argument.
+    let description (description: string) (input: ActionInput<'T>) = 
         input 
         |> editOption (fun o -> o.Description <- description)
         |> editArgument (fun a -> a.Description <- description)
 
+    /// An alias for `description` to set the description of the input.
+    let desc = description
+
+    /// Sets the default value of an option or argument.
     let defaultValue (defaultValue: 'T) (input: ActionInput<'T>) = 
         input
         |> editOption (fun o -> o.DefaultValueFactory <- (fun _ -> defaultValue))
         |> editArgument (fun a -> a.DefaultValueFactory <- (fun _ -> defaultValue))
         
+    /// An alias for `defaultValue` to set the default value of an option or argument.
     let def = defaultValue
 
-    let defFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
+    /// Sets the default value factory of an option or argument.
+    let defaultValueFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
         input
         |> editOption (fun o -> o.DefaultValueFactory <- defaultValueFactory)
         |> editArgument (fun a -> a.DefaultValueFactory <- defaultValueFactory)
 
+    /// Marks an option as required.
     let required (input: ActionInput<'T>) = 
         input |> editOption (fun o -> o.Required <- true)
 
+    /// Creates a named option of type `Option<'T option>` that defaults to `None`.
     let optionMaybe<'T> (name: string) = 
         let o = Option<'T option>(name, aliases = [||])
         let isBool = typeof<'T> = typeof<bool>
@@ -104,10 +119,12 @@ module Input =
         o.DefaultValueFactory <- (fun _ -> None)
         ActionInput.OfOption<'T option> o
 
+    /// Creates a named argument. Example: `argument "file-name"`
     let argument<'T> (name: string) = 
         let a = Argument<'T>(name)
         ActionInput.OfArgument<'T> a
 
+    /// Creates a named argument of type `Argument<'T option>` that defaults to `None`.
     let argumentMaybe<'T> (name: string) = 
         let a = Argument<'T option>(name)
         a.DefaultValueFactory <- (fun _ -> None)
@@ -119,6 +136,7 @@ module Input =
         )
         ActionInput.OfArgument<'T option> a
 
+    /// Adds a validator that validates the parsed value of an option or argument.
     let validate (validate: 'T -> Result<unit, string>) (input: ActionInput<'T>) = 
         input 
         |> editOption (fun o -> 
@@ -138,15 +156,33 @@ module Input =
             )
         )
 
+    /// Validates that the file exists.
+    let validateFileExists (input: ActionInput<System.IO.FileInfo>) = 
+        input    
+        |> validate (fun file -> 
+            if file.Exists then Ok () 
+            else Error $"File '{file.FullName}' does not exist."
+        )
+
+    /// Validates that the directory exists.
+    let validateDirectoryExists (input: ActionInput<System.IO.DirectoryInfo>) = 
+        input    
+        |> validate (fun dir -> 
+            if dir.Exists then Ok () 
+            else Error $"Directory '{dir.FullName}' does not exist."
+        )
+
+    /// Adds a validator for the given `Parsing.SymbolResult`.
     let addValidator (validator: Parsing.SymbolResult -> unit) (input: ActionInput<'T>) = 
         input 
         |> editOption (fun o -> o.Validators.Add(validator))
         |> editArgument (fun a -> a.Validators.Add(validator))
 
-
+    /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 
         ActionInput.OfOption<'T> o
 
+    /// Converts an `Argument<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofArgument (a: Argument<'T>) = 
         ActionInput.OfArgument<'T> a
 

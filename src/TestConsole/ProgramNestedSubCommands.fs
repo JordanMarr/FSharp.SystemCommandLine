@@ -68,7 +68,6 @@ let ioCmd =
         addCommands [ deleteCmd; listCmd ]
     }
 
-//[<EntryPoint>]
 let main (argv: string[]) =
     let cfg = 
         commandLineConfiguration {
