@@ -94,7 +94,7 @@ let ``05 empty array`` () =
 
 /// In beta5, the action handler is never called if an input starts with "@", even if ResponseFileTokenReplacer is set to null.
 [<Test>]
-let ``06 Token Replacer`` () = 
+let ``06 - rootCommand should use configuration`` () = 
     testRootCommand "--package @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
@@ -114,9 +114,42 @@ let ``06 Token Replacer`` () =
                 1 // failure
         )
     } =! 0
+
+[<Test>]
+let ``07 - Child command should use configuration`` () = 
+    let getCmd = 
+        command "get" {
+            description "Get a package by name"
+            inputs (
+                argument<string> "package" 
+                |> desc "A package with a leading @ name"
+            )
+            setAction (fun (package: string) ->
+                handlerCalled <- true
+                if package.StartsWith("@") then
+                    printfn $"{package}"
+                    0 // success
+                else
+                    eprintfn "The package name does not start with a leading @"
+                    1 // failure
+            )
+        }
+
+    testRootCommand "get @shoelace-style/shoelace" {
+        description "Can be called with a leading @ package"
+        configure (fun cfg -> 
+            // Skip @ processing
+            //cfg.UseTokenReplacer(fun _ _ _ -> false)
+            //cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
+            cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> true)
+            cfg
+        )        
+        noAction
+        addCommand getCmd
+    } =! 0
     
 [<Test>]
-let ``07 - Validators`` () = 
+let ``08 - Validators`` () = 
     handlerCalled <- true // Set to true to avoid false negatives in the test
     let args = args "-w delete -s *"
     let cfg = 

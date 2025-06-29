@@ -25,15 +25,24 @@ open FSharp.SystemCommandLine
 open Input
 open System.CommandLine.Parsing
 
-let main argv =
-    let app (package: string) =
-        if package.StartsWith("@") then
-            printfn $"{package}"
-            0
-        else
-            eprintfn "The package name does not start with a leading @"
-            1
+let getCmd = 
+    command "get" {
+        description "Get a package by name"
+        inputs (
+            argument<string> "package" 
+            |> desc "A package with a leading @ name"
+        )
+        setAction (fun (package: string) ->
+            if package.StartsWith("@") then
+                printfn $"{package}"
+                0 // success
+            else
+                eprintfn "The package name does not start with a leading @"
+                1 // failure
+        )
+    }
 
+let main argv =
     rootCommand argv {
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
@@ -43,24 +52,6 @@ let main argv =
             cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> true)
             cfg
         )        
-        inputs (
-            // The package option needs to accept strings that start with "@" symbol.
-            // For example, "--package @shoelace-style/shoelace".
-            // To accomplish this, we will need to modify the default pipeline settings below.
-            option<string> "--package" 
-            |> aliases ["-p"] 
-            |> desc "A package with a leading @ name"
-            |> editOption (fun o ->
-                o.CustomParser <- (fun res -> 
-                    // Custom parser to allow leading @ in the package name
-                    let value = res.GetValueOrDefault<string>()
-                    if value.StartsWith("@") 
-                    then value
-                    else 
-                        res.AddError("oops")
-                        "---"
-                )
-            )
-        )
-        setAction app
+        noAction
+        addCommand getCmd
     }
