@@ -34,7 +34,7 @@ let getCmd =
         )
         setAction (fun (package: string) ->
             if package.StartsWith("@") then
-                printfn $"{package}"
+                printfn $"package name: '{package}'"
                 0 // success
             else
                 eprintfn "The package name does not start with a leading @"
@@ -48,7 +48,6 @@ let main argv =
         configure (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
-            cfg
         )        
         noAction
         addCommand getCmd
