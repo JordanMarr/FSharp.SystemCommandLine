@@ -124,7 +124,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             invalidOp "Only 8 inputs are supported."
         
 
-    //member val CommandLineBuilder = CommandLineBuilder().UseDefaults() with get, set
     member val CommandLineConfiguration = new CommandLineConfiguration(new RootCommand()) with get, set
 
     member this.Yield _ =
@@ -397,7 +396,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetHandlerUnit spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        CommandLineParser.Parse(rootCommand, args).Invoke()
+        rootCommand.Parse(args, this.CommandLineConfiguration).Invoke()        
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
@@ -406,8 +405,8 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetGeneralProperties spec
             |> this.SetHandlerInt spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
-        
-        CommandLineParser.Parse(rootCommand, args).Invoke()
+                
+        rootCommand.Parse(args, this.CommandLineConfiguration).Invoke()
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
@@ -417,7 +416,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetHandlerTask spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        CommandLineParser.Parse(rootCommand, args).InvokeAsync()
+        rootCommand.Parse(args, this.CommandLineConfiguration).InvokeAsync()
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
@@ -427,7 +426,7 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetHandlerTaskInt spec
             |> addGlobalOptionsToCommand spec.GlobalInputs
         
-        CommandLineParser.Parse(rootCommand, args).InvokeAsync()
+        rootCommand.Parse(args, this.CommandLineConfiguration).InvokeAsync()
        
 
 /// Builds a `System.CommandLine.Command`.

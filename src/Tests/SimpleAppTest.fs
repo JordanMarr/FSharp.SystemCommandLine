@@ -5,6 +5,7 @@ open Swensen.Unquote
 open FSharp.SystemCommandLine
 open Utils
 open Input
+open System.CommandLine.Parsing
 
 let mutable handlerCalled = false
 [<SetUp>] 
@@ -92,14 +93,13 @@ let ``05 empty array`` () =
     } =! 0
 
 /// In beta5, the action handler is never called if an input starts with "@", even if ResponseFileTokenReplacer is set to null.
-[<Test; Ignore "Ignore failing test">]
+[<Test>]
 let ``06 Token Replacer`` () = 
     testRootCommand "--package @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
             // Skip @ processing
-            //cfg.UseTokenReplacer(fun _ _ _ -> false) // Removed in beta5
-            cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
+            cfg.ResponseFileTokenReplacer <- null
             //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> false)
         )
         //inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
