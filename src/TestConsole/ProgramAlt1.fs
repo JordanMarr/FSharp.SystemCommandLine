@@ -4,7 +4,6 @@ open System.IO
 open System.CommandLine
 open FSharp.SystemCommandLine.Aliases
 open System.Threading
-open System.Threading.Tasks
 
 let intOption = Opt<int>("int-option", [|"--int-option"|], Description = "An option whose argument is parsed as an int")
 intOption.DefaultValueFactory <- fun _ -> 42

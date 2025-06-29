@@ -18,7 +18,7 @@ module SCL =
         cmd.Add(packageOpt)
         cmd.SetAction(action)
 
-        cmd.Parse(argv).Invoke()
+        cmd.Parse(argv, cfg).Invoke()
 
 
 open FSharp.SystemCommandLine
