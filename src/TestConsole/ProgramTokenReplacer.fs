@@ -47,9 +47,7 @@ let main argv =
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
             // Skip @ processing
-            //cfg.UseTokenReplacer(fun _ _ _ -> false)
-            //cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
-            cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> true)
+            cfg.ResponseFileTokenReplacer <- null
             cfg
         )        
         noAction
