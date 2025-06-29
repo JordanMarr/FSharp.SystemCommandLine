@@ -100,7 +100,6 @@ let ``06 - rootCommand should use configuration`` () =
         configure (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
-            //cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> false)
         )
         //inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
         inputs (option "--package" |> aliases ["-p"] |> desc "A package with a leading @ name")
@@ -139,10 +138,7 @@ let ``07 - Child command should use configuration`` () =
         description "Can be called with a leading @ package"
         configure (fun cfg -> 
             // Skip @ processing
-            //cfg.UseTokenReplacer(fun _ _ _ -> false)
-            //cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
-            cfg.ResponseFileTokenReplacer <- new TryReplaceToken(fun _ _ _ -> true)
-            cfg
+            cfg.ResponseFileTokenReplacer <- null
         )        
         noAction
         addCommand getCmd
