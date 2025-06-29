@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="Utils.fs" />
+    <Compile Include="GlobalOptionsTest.fs" />
     <Compile Include="SubCommandAppTest.fs" />
     <Compile Include="ArgumentMaybeTest.fs" />
     <Compile Include="OptionMaybeStringTest.fs" />
