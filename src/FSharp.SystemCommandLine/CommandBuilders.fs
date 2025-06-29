@@ -202,17 +202,19 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// This action requires `Input.context` be set as the input.
     [<CustomOperation("helpAction")>]
     member this.HelpAction (spec: CommandSpec<ActionContext, 'Output>) =
-        newHandler (fun (ctx: ActionContext) -> 
-            Help.HelpAction().Invoke(ctx.ParseResult)
-        ) spec
+        { newHandler 
+            (fun (ctx: ActionContext) -> Help.HelpAction().Invoke(ctx.ParseResult)) spec
+            with Inputs = [ Input.context ]  // Ensure the context is set as input
+        }
 
     /// Sets the root command action to show help when no other async sub-command is called. 
     /// This action requires `Input.context` be set as the input.
     [<CustomOperation("helpActionAsync")>]
     member this.HelpActionAsync (spec: CommandSpec<ActionContext, 'Output>) =
-        newHandler (fun (ctx: ActionContext) -> 
-            Help.HelpAction().Invoke(ctx.ParseResult) |> Task.FromResult
-        ) spec
+        { newHandler 
+            (fun (ctx: ActionContext) -> Help.HelpAction().Invoke(ctx.ParseResult) |> Task.FromResult) spec
+            with Inputs = [ Input.context ]  // Ensure the context is set as input
+        }
 
     [<CustomOperation("addGlobalOption")>]
     member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: ActionInput) =

@@ -64,7 +64,8 @@ let deleteCmd =
 let ioCmd = 
     command "io" {
         description "Contains IO related subcommands."
-        noAction
+        //inputs Input.context
+        helpActionAsync
         addCommands [ deleteCmd; listCmd ]
     }
 
