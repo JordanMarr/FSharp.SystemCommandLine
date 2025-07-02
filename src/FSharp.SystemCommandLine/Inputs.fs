@@ -141,18 +141,30 @@ module Input =
         input 
         |> editOption (fun o -> 
             o.Validators.Add(fun res -> 
-                let value = res.GetValue<'T>(o.Name)
-                match validate value with
-                | Ok () -> ()
-                | Error err -> res.AddError(err)
+                try
+                    let value = res.GetValue<'T>(o.Name)
+                    match validate value with
+                    | Ok () -> ()
+                    | Error err -> res.AddError(err)
+                with 
+                | :? InvalidOperationException ->
+                    // res.GetValue<'T> will fire this ex when a customParser adds an error.
+                    // In this case, the validation error will already be displayed.
+                    () 
             )
         )
         |> editArgument (fun a -> 
             a.Validators.Add(fun res -> 
-                let value = res.GetValue<'T>(a.Name)
-                match validate value with
-                | Ok () -> ()
-                | Error err -> res.AddError(err)
+                try
+                    let value = res.GetValue<'T>(a.Name)
+                    match validate value with
+                    | Ok () -> ()
+                    | Error err -> res.AddError(err)
+                with 
+                | :? InvalidOperationException ->
+                    // res.GetValue<'T> will fire this ex when a customParser adds an error.
+                    // In this case, the validation error will already be displayed.
+                    () 
             )
         )
 
@@ -177,6 +189,24 @@ module Input =
         input 
         |> editOption (fun o -> o.Validators.Add(validator))
         |> editArgument (fun a -> a.Validators.Add(validator))
+
+    /// Parses the input using a custom parser function.
+    let customParser (parser: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.CustomParser <- parser)
+        |> editArgument (fun a -> a.CustomParser <- parser)
+
+    /// Creates a custom parser based on the result of the provided parser function.
+    let tryParse (parser: Parsing.ArgumentResult -> Result<'T, string>) (input: ActionInput<'T>) = 
+        input 
+        |> customParser (fun argResult ->             
+            match parser argResult with
+            | Ok value -> 
+                value
+            | Error err -> 
+                argResult.AddError(err)
+                Unchecked.defaultof<'T>
+        )
 
     /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 
