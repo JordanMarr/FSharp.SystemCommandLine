@@ -79,6 +79,8 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `validateFileExists` ensures that the `FileInfo` exists
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
+* `customParser` allows you to parse the input tokens using a custom parser function.
+* `tryParse` allows you to parse the input tokens using a custom parser `Result<'T, string>` function.
 * `editOption` allows you to pass a function to edit the underlying `Option`
 * `editArgument` allows you to pass a function to edit the underlying `Argument`
 * `ofOption` allows you to pass a manually created `Option`
