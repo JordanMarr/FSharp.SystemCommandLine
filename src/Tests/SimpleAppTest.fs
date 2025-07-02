@@ -183,17 +183,17 @@ let ``08 - Validators`` () =
 
 [<Test>]
 let ``09 tryParser Directory Info`` () = 
-    testRootCommand "--directory .." {
+    testRootCommand "--directory \"c:/fake\"" {
         description "Custom parser for directory info"
         inputs (
-            option<System.IO.DirectoryInfo> "--directory" 
+            option "--directory" 
             |> desc "A directory path"
             |> required
             |> tryParse (fun res ->
                 let path = res.Tokens[0].Value
-                if path = ".."
-                then Error "'..' is not a valid directory"
-                else Ok (System.IO.DirectoryInfo path)
+                if System.IO.Directory.Exists path
+                then Ok (System.IO.DirectoryInfo path)
+                else Error $"'{path}' is not a valid directory."
             )
         )
         setAction (fun dir ->
