@@ -7,11 +7,9 @@ open Utils
 open Input
 open System.CommandLine.Parsing
 
-let mutable handlerCalled = false
+let mutable actionCalled = false
 [<SetUp>] 
-let setup () = handlerCalled <- false
-[<TearDown>] 
-let tearDown () = handlerCalled =! true
+let setup () = actionCalled <- false
 
 [<Test>]
 let ``01 --word Hello -w World -s * return unit`` () =    
@@ -26,9 +24,10 @@ let ``01 --word Hello -w World -s * return unit`` () =
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! Some "*"
-            handlerCalled <- true
+            actionCalled <- true
         )
     } =! 0
+    actionCalled =! true
 
 [<Test>]
 let ``02 --word Hello -w World return unit`` () =    
@@ -41,9 +40,10 @@ let ``02 --word Hello -w World return unit`` () =
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! None
-            handlerCalled <- true
+            actionCalled <- true
         )
     } =! 0
+    actionCalled =! true
 
 [<Test>]
 let ``03 --word Hello -w World -s * return int`` () =    
@@ -56,10 +56,11 @@ let ``03 --word Hello -w World -s * return int`` () =
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! Some "*"
-            handlerCalled <- true
+            actionCalled <- true
             5
         )
     } =! 5
+    actionCalled =! true
 
 [<Test>]
 let ``04 --word Hello -w World -s * return int using manual configured options`` () =    
@@ -72,10 +73,11 @@ let ``04 --word Hello -w World -s * return int using manual configured options``
         setAction (fun (words, separator) ->
             words =! [| "Hello"; "World" |]
             separator =! Some "*"
-            handlerCalled <- true
+            actionCalled <- true
             5
         )
     } =! 5
+    actionCalled =! true
 
 [<Test>]
 let ``05 empty array`` () = 
@@ -88,9 +90,10 @@ let ``05 empty array`` () =
         setAction (fun (words, separator) ->
             words =! [||]
             separator =! Some "*"
-            handlerCalled <- true
+            actionCalled <- true
         )
     } =! 0
+    actionCalled =! true
 
 /// In beta5, the action handler is never called if an input starts with "@", even if ResponseFileTokenReplacer is set to null.
 [<Test>]
@@ -104,7 +107,7 @@ let ``06 - rootCommand should use configuration`` () =
         //inputs (Input.Option<string>("package", [ "--package"; "-p" ], "A package with a leading @ name"))
         inputs (option "--package" |> aliases ["-p"] |> desc "A package with a leading @ name")
         setAction (fun (package: string) ->
-            handlerCalled <- true
+            actionCalled <- true
             if package.StartsWith("@") then
                 printfn $"{package}"
                 0 // success
@@ -113,6 +116,7 @@ let ``06 - rootCommand should use configuration`` () =
                 1 // failure
         )
     } =! 0
+    actionCalled =! true
 
 [<Test>]
 let ``07 - Child command should use configuration`` () = 
@@ -124,7 +128,7 @@ let ``07 - Child command should use configuration`` () =
                 |> desc "A package with a leading @ name"
             )
             setAction (fun (package: string) ->
-                handlerCalled <- true
+                actionCalled <- true
                 if package.StartsWith("@") then
                     printfn $"{package}"
                     0 // success
@@ -143,10 +147,10 @@ let ``07 - Child command should use configuration`` () =
         noAction
         addCommand getCmd
     } =! 0
+    actionCalled =! true
     
 [<Test>]
 let ``08 - Validators`` () = 
-    handlerCalled <- true // Set to true to avoid false negatives in the test
     let args = args "-w delete -s *"
     let cfg = 
         commandLineConfiguration {
@@ -175,3 +179,25 @@ let ``08 - Validators`` () =
     printfn $"{cfg.Error}"
     let result = cfg.Invoke(args)
     result =! 1 // Expecting a failure due to the separator validation
+    actionCalled =! false
+
+[<Test>]
+let ``09 tryParser Directory Info`` () = 
+    testRootCommand "--directory .." {
+        description "Custom parser for directory info"
+        inputs (
+            option<System.IO.DirectoryInfo> "--directory" 
+            |> desc "A directory path"
+            |> required
+            |> tryParse (fun res ->
+                let path = res.Tokens[0].Value
+                if path = ".."
+                then Error "'..' is not a valid directory"
+                else Ok (System.IO.DirectoryInfo path)
+            )
+        )
+        setAction (fun dir ->
+            printfn $"Directory: {dir}"
+        )
+    } =! 1 // Should fail
+    actionCalled =! false
