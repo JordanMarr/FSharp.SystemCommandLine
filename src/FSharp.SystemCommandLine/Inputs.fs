@@ -94,6 +94,16 @@ module Input =
     /// An alias for `defaultValue` to set the default value of an option or argument.
     let def = defaultValue
 
+    /// Sets the default value of an option or argument.
+    let defaultValueMaybe (defaultValue: 'T option) (input: ActionInput<'T>) =
+        match defaultValue with
+        | Some defaultValue' ->
+            input
+            |> editOption (fun o -> o.DefaultValueFactory <- (fun _ -> defaultValue'))
+            |> editArgument (fun a -> a.DefaultValueFactory <- (fun _ -> defaultValue'))
+        | None ->
+            input
+
     /// Sets the default value factory of an option or argument.
     let defaultValueFactory (defaultValueFactory: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
         input
