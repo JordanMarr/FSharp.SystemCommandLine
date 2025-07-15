@@ -20,10 +20,12 @@ module SCL =
 
         cmd.Parse(argv, cfg).Invoke()
 
+    let run () = 
+        "--package @shoelace-style/shoelace" |> Utils.args |> main
+
 
 open FSharp.SystemCommandLine
 open Input
-open System.CommandLine.Parsing
 
 let getCmd = 
     command "get" {
@@ -52,3 +54,6 @@ let main argv =
         noAction
         addCommand getCmd
     }
+
+let run () = 
+    "get @shoelace-style/shoelace" |> Utils.args |> main

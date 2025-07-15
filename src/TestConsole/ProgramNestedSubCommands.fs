@@ -84,4 +84,7 @@ let main (argv: string[]) =
     printfn $"ROOT: Logging enabled: {loggingEnabled}"
 
     parseResult.Invoke()
+
+let run () = 
+    "io list \"c:/data/\" --enable-logging" |> Utils.args |> main
     

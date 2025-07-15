@@ -39,3 +39,6 @@ let main argv =
         setAction app
         addInputs [ a; b; c; d; e; f; g; h; i; j ]
     }
+
+let run () = 
+    "-a A -b B -c C -d D -e E -1 1 -2 2 -3 3 -4 4 -5 5" |> Utils.args |> main

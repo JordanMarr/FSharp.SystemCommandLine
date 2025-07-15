@@ -31,3 +31,6 @@ let main (argv: string[]) =
     cmd.Parse(argv).InvokeAsync()
     |> Async.AwaitTask
     |> Async.RunSynchronously
+
+let run () = 
+    "--int-option 1 --bool-option true --file-option \"c:\test\"" |> Utils.args |> main

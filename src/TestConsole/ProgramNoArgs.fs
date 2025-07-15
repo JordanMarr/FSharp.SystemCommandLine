@@ -10,5 +10,7 @@ let main argv =
         description "My sample app"
         setAction app
     }
-    
+
+let run () = 
+    "" |> Utils.args |> main
         

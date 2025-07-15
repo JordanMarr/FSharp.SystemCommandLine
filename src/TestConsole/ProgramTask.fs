@@ -29,3 +29,6 @@ let main argv =
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
+
+let run () = 
+    "-w hello -w world" |> Utils.args |> main

@@ -46,3 +46,6 @@ let main argv =
         noAction
         addCommands [ listCmd; deleteCmd ]
     }
+
+let run () = 
+    "list c:/data/" |> Utils.args |> main
