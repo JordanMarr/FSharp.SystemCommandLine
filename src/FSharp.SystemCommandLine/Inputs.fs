@@ -190,6 +190,11 @@ module Input =
         |> editOption (fun o -> o.Validators.Add(validator))
         |> editArgument (fun a -> a.Validators.Add(validator))
 
+    let acceptOnlyFromAmong (acceptedValues: string seq) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.AcceptOnlyFromAmong(acceptedValues |> Seq.toArray) |> ignore)
+        |> editArgument (fun a -> a.AcceptOnlyFromAmong(acceptedValues |> Seq.toArray) |> ignore)
+
     /// Parses the input using a custom parser function.
     let customParser (parser: Parsing.ArgumentResult -> 'T) (input: ActionInput<'T>) = 
         input 
@@ -207,6 +212,17 @@ module Input =
                 argResult.AddError(err)
                 Unchecked.defaultof<'T>
         )
+
+    /// Sets the arity of an option or argument.
+    let arity (arity: ArgumentArity) (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.Arity <- arity)
+        |> editArgument (fun a -> a.Arity <- arity)
+
+    /// Sets a value that indicates whether multiple arguments are allowed for each option identifier token. (Defaults to 'false'.)
+    let allowMultipleArgumentsPerToken (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun a -> a.AllowMultipleArgumentsPerToken <- true)
 
     /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 
