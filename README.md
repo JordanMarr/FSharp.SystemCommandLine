@@ -64,11 +64,14 @@ _Notice that mismatches between the `setAction` and the `inputs` are caught as a
 
 ## Input API
 The new `Input` module contains functions for the underlying System.CommandLine `Option` and `Argument` properties. 
+### Inputs
 * `context` passes an `ActionContext` containing a `ParseResult` and `CancellationToken` to the action
 * `argument` creates a named `Argument<'T>`
 * `argumentMaybe` creates a named `Argument<'T option>` that defaults to `None`.
 * `option` creates a named `Option<'T>`
 * `optionMaybe` creates a named `Option<'T option>` that defaults to `None`.
+
+### Input Properties
 * `alias` adds an `Alias` to an `Option`
 * `aliases` adds one or more aliases to an `Option`
 * `desc` adds a description to an `Option` or `Argument`
@@ -79,8 +82,12 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `validateFileExists` ensures that the `FileInfo` exists
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
+* `acceptOnlyFromAmong` validates the allowed values for an `Option` or `Argument`
 * `customParser` allows you to parse the input tokens using a custom parser function.
 * `tryParse` allows you to parse the input tokens using a custom parser `Result<'T, string>` function.
+* `arity` sets the arity of an `Option` or `Argument`
+* `allowMultipleArgumentsPerToken`  allows multiple values for an `Option` or `Argument`. (Defaults to 'false' if not set.)
+* `hidden` hides an option or argument from the help output
 * `editOption` allows you to pass a function to edit the underlying `Option`
 * `editArgument` allows you to pass a function to edit the underlying `Argument`
 * `ofOption` allows you to pass a manually created `Option`
