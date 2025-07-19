@@ -224,6 +224,12 @@ module Input =
         input 
         |> editOption (fun a -> a.AllowMultipleArgumentsPerToken <- true)
 
+    /// Hides an option or argument from the help output.
+    let hidden (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.Hidden <- true)
+        |> editArgument (fun a -> a.Hidden <- true)
+
     /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 
         ActionInput.OfOption<'T> o
