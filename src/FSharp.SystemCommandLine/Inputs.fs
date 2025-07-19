@@ -222,7 +222,7 @@ module Input =
     /// Sets a value that indicates whether multiple arguments are allowed for each option identifier token. (Defaults to 'false'.)
     let allowMultipleArgumentsPerToken (input: ActionInput<'T>) = 
         input 
-        |> editOption (fun a -> a.AllowMultipleArgumentsPerToken <- true)
+        |> editOption (fun o -> o.AllowMultipleArgumentsPerToken <- true)
 
     /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 
