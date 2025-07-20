@@ -100,6 +100,12 @@ module Input =
         |> editOption (fun o -> o.DefaultValueFactory <- defaultValueFactory)
         |> editArgument (fun a -> a.DefaultValueFactory <- defaultValueFactory)
 
+    /// The name used in help output to describe the option or argument.
+    let helpName (helpName: string) (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.HelpName <- helpName)
+        |> editArgument (fun a -> a.HelpName <- helpName)
+
     /// Marks an option as required.
     let required (input: ActionInput<'T>) = 
         input |> editOption (fun o -> o.Required <- true)

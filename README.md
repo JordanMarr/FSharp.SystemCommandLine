@@ -77,6 +77,7 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `desc` adds a description to an `Option` or `Argument`
 * `defaultValue` or `def` provides a default value to an `Option` or `Argument`
 * `defFactory` assigns a default value factor to an `Option` or `Argument`
+* `helpName` adds the name used in help output to describe the option or argument.
 * `required` marks an `Option` as required
 * `validate` allows you to return a `Result<unit, string>` for the parsed value
 * `validateFileExists` ensures that the `FileInfo` exists
