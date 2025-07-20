@@ -68,6 +68,12 @@ module Input =
         | _ -> ()
         input
 
+    /// Configures the option or argument to accept only values representing legal file paths.
+    let acceptLegalFilePathsOnly (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.AcceptLegalFilePathsOnly() |> ignore)
+        |> editArgument (fun a -> a.AcceptLegalFilePathsOnly() |> ignore)
+
     /// Adds one or more aliases to an option.
     let aliases (aliases: string seq) (input: ActionInput<'T>) = 
         input |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
