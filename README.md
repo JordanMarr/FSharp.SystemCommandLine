@@ -411,14 +411,14 @@ module Global =
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
-    let options: HandlerInput seq = [ enableLogging; logFile ] 
+    let options: ActionInput seq = [ enableLogging; logFile ]
 
     let bind (ctx: ActionContext) = 
         { EnableLogging = enableLogging.GetValue ctx.ParseResult
           LogFile = logFile.GetValue ctx.ParseResult }
 
 let listCmd =
-    let action (ctx: InvocationContext, dir: DirectoryInfo) =
+    let action (ctx: ActionContext, dir: DirectoryInfo) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -440,7 +440,7 @@ let listCmd =
     }
 
 let deleteCmd =
-    let action (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
+    let action (ctx: ActionContext, dir: DirectoryInfo, recursive: bool) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -471,7 +471,7 @@ let ioCmd =
     }
 
 [<EntryPoint>]
-let main argv =
+let main (argv: string array) =
     let cfg = 
         commandLineConfiguration {
             description "Sample app for System.CommandLine"
