@@ -102,7 +102,14 @@ module Input =
 
     /// Marks an option as required.
     let required (input: ActionInput<'T>) = 
-        input |> editOption (fun o -> o.Required <- true)
+        input 
+        |> editOption (fun o -> o.Required <- true)
+
+    /// Marks an argument as required. 
+    /// When set to true, this option will be applied to its immediate parent command or commands and recursively to their subcommands.
+    let recursive (input: ActionInput<'T>) = 
+        input
+        |> editOption (fun o -> o.Recursive <- true)
 
     /// Creates a named option of type `Option<'T option>` that defaults to `None`.
     let optionMaybe<'T> (name: string) = 
