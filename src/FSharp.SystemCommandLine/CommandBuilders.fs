@@ -37,6 +37,7 @@ type CommandSpec<'Inputs, 'Output> =
         SubCommands: System.CommandLine.Command list
         /// Registers extra inputs that can be parsed via the InvocationContext if more than 8 are required.
         ExtraInputs: ActionInput list
+        Hidden: bool
     }
     static member Default = 
         { 
@@ -47,6 +48,7 @@ type CommandSpec<'Inputs, 'Output> =
             ExtraInputs = []
             Handler = def<unit -> 'Output> // Support unit -> 'Output handler by default
             SubCommands = []
+            Hidden = false
         }
 
 /// Contains shared operations for building a `rootCommand`, `command` or `commandLineConfiguration` CE.
@@ -61,6 +63,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             ExtraInputs = spec.ExtraInputs
             Handler = handler
             SubCommands = spec.SubCommands
+            Hidden = spec.Hidden
         }
 
     /// Converts up to 8 handler inputs into a tuple of the specified action input type.
@@ -275,6 +278,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         )
         spec.SubCommands |> List.iter cmd.Add
         spec.Aliases |> List.iter cmd.Aliases.Add
+        cmd.Hidden <- spec.Hidden
         cmd
 
     /// Sets a command handler that returns `unit`.
@@ -433,6 +437,11 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
     
+    /// Hides the command from the help output.
+    [<CustomOperation("hidden")>]
+    member this.Hidden (spec: CommandSpec<'Inputs, 'Output>) =
+        { spec with Hidden = true }
+
     /// Returns a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) = 
         Command(name)

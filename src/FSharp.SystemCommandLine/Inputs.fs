@@ -68,6 +68,12 @@ module Input =
         | _ -> ()
         input
 
+    /// Configures the option or argument to accept only values representing legal file paths.
+    let acceptLegalFilePathsOnly (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.AcceptLegalFilePathsOnly() |> ignore)
+        |> editArgument (fun a -> a.AcceptLegalFilePathsOnly() |> ignore)
+
     /// Adds one or more aliases to an option.
     let aliases (aliases: string seq) (input: ActionInput<'T>) = 
         input |> editOption (fun o -> aliases |> Seq.iter o.Aliases.Add)
@@ -99,6 +105,12 @@ module Input =
         input
         |> editOption (fun o -> o.DefaultValueFactory <- defaultValueFactory)
         |> editArgument (fun a -> a.DefaultValueFactory <- defaultValueFactory)
+
+    /// The name used in help output to describe the option or argument.
+    let helpName (helpName: string) (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.HelpName <- helpName)
+        |> editArgument (fun a -> a.HelpName <- helpName)
 
     /// Marks an option as required.
     let required (input: ActionInput<'T>) = 
@@ -229,7 +241,13 @@ module Input =
     /// Sets a value that indicates whether multiple arguments are allowed for each option identifier token. (Defaults to 'false'.)
     let allowMultipleArgumentsPerToken (input: ActionInput<'T>) = 
         input 
-        |> editOption (fun a -> a.AllowMultipleArgumentsPerToken <- true)
+        |> editOption (fun o -> o.AllowMultipleArgumentsPerToken <- true)
+
+    /// Hides an option or argument from the help output.
+    let hidden (input: ActionInput<'T>) = 
+        input 
+        |> editOption (fun o -> o.Hidden <- true)
+        |> editArgument (fun a -> a.Hidden <- true)
 
     /// Converts an `Option<'T>` to an `ActionInput<'T>` for usage with the command builders.
     let ofOption (o: Option<'T>) = 

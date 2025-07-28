@@ -64,23 +64,32 @@ _Notice that mismatches between the `setAction` and the `inputs` are caught as a
 
 ## Input API
 The new `Input` module contains functions for the underlying System.CommandLine `Option` and `Argument` properties. 
+### Inputs
 * `context` passes an `ActionContext` containing a `ParseResult` and `CancellationToken` to the action
 * `argument` creates a named `Argument<'T>`
 * `argumentMaybe` creates a named `Argument<'T option>` that defaults to `None`.
 * `option` creates a named `Option<'T>`
 * `optionMaybe` creates a named `Option<'T option>` that defaults to `None`.
+
+### Input Properties
+* `acceptLegalFilePathsOnly` sets the option or argument to accept only values representing legal file paths.
 * `alias` adds an `Alias` to an `Option`
 * `aliases` adds one or more aliases to an `Option`
 * `desc` adds a description to an `Option` or `Argument`
 * `defaultValue` or `def` provides a default value to an `Option` or `Argument`
 * `defFactory` assigns a default value factor to an `Option` or `Argument`
+* `helpName` adds the name used in help output to describe the option or argument.
 * `required` marks an `Option` as required
 * `validate` allows you to return a `Result<unit, string>` for the parsed value
 * `validateFileExists` ensures that the `FileInfo` exists
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
+* `acceptOnlyFromAmong` validates the allowed values for an `Option` or `Argument`
 * `customParser` allows you to parse the input tokens using a custom parser function.
 * `tryParse` allows you to parse the input tokens using a custom parser `Result<'T, string>` function.
+* `arity` sets the arity of an `Option` or `Argument`
+* `allowMultipleArgumentsPerToken`  allows multiple values for an `Option` or `Argument`. (Defaults to 'false' if not set.)
+* `hidden` hides an option or argument from the help output
 * `editOption` allows you to pass a function to edit the underlying `Option`
 * `editArgument` allows you to pass a function to edit the underlying `Argument`
 * `ofOption` allows you to pass a manually created `Option`
@@ -402,14 +411,14 @@ module Global =
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
-    let options: HandlerInput seq = [ enableLogging; logFile ] 
+    let options: ActionInput seq = [ enableLogging; logFile ]
 
     let bind (ctx: ActionContext) = 
         { EnableLogging = enableLogging.GetValue ctx.ParseResult
           LogFile = logFile.GetValue ctx.ParseResult }
 
 let listCmd =
-    let action (ctx: InvocationContext, dir: DirectoryInfo) =
+    let action (ctx: ActionContext, dir: DirectoryInfo) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -431,7 +440,7 @@ let listCmd =
     }
 
 let deleteCmd =
-    let action (ctx: InvocationContext, dir: DirectoryInfo, recursive: bool) =
+    let action (ctx: ActionContext, dir: DirectoryInfo, recursive: bool) =
         let options = Global.bind ctx
         if options.EnableLogging then 
             printfn $"Logging enabled to {options.LogFile.FullName}"
@@ -462,7 +471,7 @@ let ioCmd =
     }
 
 [<EntryPoint>]
-let main argv =
+let main (argv: string array) =
     let cfg = 
         commandLineConfiguration {
             description "Sample app for System.CommandLine"
