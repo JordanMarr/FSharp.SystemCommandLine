@@ -16,22 +16,10 @@ let private parseInput<'V> (handlerInput: ActionInput) (pr: ParseResult) (cancel
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
 
-/// Adds global options to a command, ensuring they are recursive.
-let private addGlobalOptionsToCommand (globalOptions: ActionInput list) (cmd: Command) =
-    for g in globalOptions do
-        match g.Source with
-        | ParsedOption o -> 
-            o.Recursive <- true // Ensure global options are recursive
-            cmd.Add(o)
-        | ParsedArgument _ -> () // cmd.Add(a) // TODO: Should arguments be added globally?
-        | Context -> () 
-    cmd
-
 type CommandSpec<'Inputs, 'Output> = 
     {
         Description: string
         Inputs: ActionInput list
-        GlobalInputs: ActionInput list
         Handler: 'Inputs -> 'Output
         Aliases: string list
         SubCommands: System.CommandLine.Command list
@@ -43,7 +31,6 @@ type CommandSpec<'Inputs, 'Output> =
         { 
             Description = "My Command"
             Inputs = []
-            GlobalInputs = []
             Aliases = []
             ExtraInputs = []
             Handler = def<unit -> 'Output> // Support unit -> 'Output handler by default
@@ -58,7 +45,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         {
             Description = spec.Description
             Inputs = spec.Inputs
-            GlobalInputs = spec.GlobalInputs
             Aliases = spec.Aliases
             ExtraInputs = spec.ExtraInputs
             Handler = handler
@@ -216,14 +202,6 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             Help.HelpAction().Invoke(ctx.ParseResult) |> Task.FromResult
         ) spec
 
-    [<CustomOperation("addGlobalOption")>]
-    member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: ActionInput) =
-        { spec with GlobalInputs = spec.GlobalInputs @ [ globalInput ] }
-
-    [<CustomOperation("addGlobalOptions")>]
-    member this.AddGlobalOptions (spec: CommandSpec<'Inputs, 'Output>, globalInputs: ActionInput seq) =
-        { spec with GlobalInputs = spec.GlobalInputs @ (globalInputs |> List.ofSeq) }
-
     [<Obsolete("'setCommand' has been deprecated in favor of 'addCommand' or 'addCommands'.")>]
     [<CustomOperation("setCommand")>] 
     member this.SetCommand (spec: CommandSpec<'Inputs, 'Output>, subCommand: System.CommandLine.Command) =
@@ -238,6 +216,20 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     [<CustomOperation("addCommands")>]
     member this.AddCommands (spec: CommandSpec<'Inputs, 'Output>, subCommands: System.CommandLine.Command seq) =
         { spec with SubCommands = spec.SubCommands @ (subCommands |> Seq.toList) }
+
+    [<Obsolete("'addGlobalInput' has been deprecated in favor of using `addInputs` with 'recursive' options.")>]
+    [<CustomOperation("addGlobalOption")>]
+    member this.AddGlobalOption (spec: CommandSpec<'Inputs, 'Output>, globalInput: ActionInput) =
+        this.AddInputs(spec, [ globalInput ])
+
+    [<Obsolete("'addGlobalInputs' has been deprecated in favor of using `addInputs` with 'recursive' options.")>]
+    [<CustomOperation("addGlobalOptions")>]
+    member this.AddGlobalOptions (spec: CommandSpec<'Inputs, 'Output>, globalInputs: ActionInput seq) =
+        for gi in globalInputs do
+            match gi.Source with
+            | ParsedOption o -> o.Recursive <- true
+            | _ -> () // Ignore non-option inputs
+        this.AddInputs(spec, globalInputs)
 
     /// Adds an alias to the command.
     [<CustomOperation("addAlias")>]
@@ -343,7 +335,6 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
         this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
         this.CommandLineConfiguration
 
@@ -352,7 +343,6 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
         this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
         this.CommandLineConfiguration
 
@@ -361,7 +351,6 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
         this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
         |> ignore
         this.CommandLineConfiguration
 
@@ -398,7 +387,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             this.CommandLineConfiguration.RootCommand
             |> this.SetGeneralProperties spec
             |> this.SetHandlerUnit spec
-            |> addGlobalOptionsToCommand spec.GlobalInputs
         
         rootCommand.Parse(args, this.CommandLineConfiguration).Invoke()        
 
@@ -408,7 +396,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             this.CommandLineConfiguration.RootCommand
             |> this.SetGeneralProperties spec
             |> this.SetHandlerInt spec
-            |> addGlobalOptionsToCommand spec.GlobalInputs
                 
         rootCommand.Parse(args, this.CommandLineConfiguration).Invoke()
 
@@ -418,7 +405,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             this.CommandLineConfiguration.RootCommand
             |> this.SetGeneralProperties spec
             |> this.SetHandlerTask spec
-            |> addGlobalOptionsToCommand spec.GlobalInputs
         
         rootCommand.Parse(args, this.CommandLineConfiguration).InvokeAsync()
 
@@ -428,7 +414,6 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             this.CommandLineConfiguration.RootCommand
             |> this.SetGeneralProperties spec
             |> this.SetHandlerTaskInt spec
-            |> addGlobalOptionsToCommand spec.GlobalInputs
         
         rootCommand.Parse(args, this.CommandLineConfiguration).InvokeAsync()
        
@@ -447,21 +432,18 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerUnit spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
-        |> addGlobalOptionsToCommand spec.GlobalInputs
 
 
 /// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method using computation expression syntax.

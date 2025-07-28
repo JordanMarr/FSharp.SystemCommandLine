@@ -8,8 +8,8 @@ open Swensen.Unquote
 open Utils
 
 module Global = 
-    let enableLogging = option "--enable-logging" |> def false
-    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> recursive
+    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log") |> recursive
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
@@ -76,6 +76,6 @@ let ``01 - Global options with nested commands`` () =
     testRootCommand "io list \"c:/data/\" --enable-logging" {
         description "Contains IO related subcommands."
         noAction
-        addGlobalOptions Global.options
+        addInputs Global.options
         addCommand ioCmd
     } =! 0
