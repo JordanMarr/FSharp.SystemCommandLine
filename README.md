@@ -80,6 +80,7 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `defFactory` assigns a default value factor to an `Option` or `Argument`
 * `helpName` adds the name used in help output to describe the option or argument.
 * `required` marks an `Option` as required
+* `recursive` when set the option is applied to the immiediate command and recursively to subcommands.
 * `validate` allows you to return a `Result<unit, string>` for the parsed value
 * `validateFileExists` ensures that the `FileInfo` exists
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
