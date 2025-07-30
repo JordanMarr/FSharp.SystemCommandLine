@@ -72,6 +72,7 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `optionMaybe` creates a named `Option<'T option>` that defaults to `None`.
 
 ### Input Properties
+* `acceptLegalFileNamesOnly` sets the option or argument to accept only values representing legal file names.
 * `acceptLegalFilePathsOnly` sets the option or argument to accept only values representing legal file paths.
 * `alias` adds an `Alias` to an `Option`
 * `aliases` adds one or more aliases to an `Option`
