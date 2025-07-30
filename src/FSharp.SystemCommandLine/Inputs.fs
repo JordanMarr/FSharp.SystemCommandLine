@@ -68,6 +68,12 @@ module Input =
         | _ -> ()
         input
 
+    /// Configures the option or argument to accept only values representing legal file names.
+    let acceptLegalFileNamesOnly (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.AcceptLegalFileNamesOnly() |> ignore)
+        |> editArgument (fun a -> a.AcceptLegalFileNamesOnly() |> ignore)
+
     /// Configures the option or argument to accept only values representing legal file paths.
     let acceptLegalFilePathsOnly (input: ActionInput<'T>) =
         input
