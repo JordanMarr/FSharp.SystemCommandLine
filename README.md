@@ -231,13 +231,13 @@ let main argv =
     Recursively deleting c:\_github\FSharp.SystemCommandLine\src\FSharp.SystemCommandLine
 ```
 
-### Passing the InvocationContext
+### Passing Context to Action
 
-You may need to pass the `InvocationContext` to your handler function for the following reasons:
-* You need to get `CancellationToken`, `IConsole` or `ParseResult`
-* If you have more than 8 inputs, you will need to manually get the parsed values via the `InvocationContext`.
+You may need to pass the `ActionContext` to your handler function for the following reasons:
+* You need to access to the `CancellationToken` for an asynchronous action.
+* You need to manually parse values via the `ParseResult`. (This is necessary if you have more than 8 inputs.)
 
-You can pass the `InvocationContext` via the `Input.Context()` method.
+You can pass the `ActionContext` via the `Input.Context()` method.
 
 ```F#
 module Program
