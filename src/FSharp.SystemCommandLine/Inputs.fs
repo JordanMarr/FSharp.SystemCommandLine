@@ -44,6 +44,30 @@ type ActionInput<'T>(inputType: ActionInputSource) =
         | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValue
         | Context -> parseResult |> unbox<'T>
 
+type Arity =
+    | ArgumentArity of min: int * max: int
+    | ExactlyOne
+    | MaximumNumberOfValues of max: int
+    | MinimumNumberOfValues of min: int
+    | OneOrMore
+    | Zero
+    | ZeroOrMore
+    | ZeroOrOne
+
+module Arity =
+
+    let toArgumentArity (arity: Arity) =
+        match arity with
+        | ArgumentArity (min, max) -> (min, max)
+        | ExactlyOne -> (1, 1)
+        | MaximumNumberOfValues max -> (0,  max)
+        | MinimumNumberOfValues min -> (min, 100_000)
+        | OneOrMore -> (1, 100_000)
+        | Zero -> (0, 0)
+        | ZeroOrMore -> (0, 100_000)
+        | ZeroOrOne -> (0, 1)
+        |> System.CommandLine.ArgumentArity
+
 module Input = 
 
     /// Injects an `ActionContext` into the action which contains the `ParseResult` and a cancellation token.
@@ -134,7 +158,7 @@ module Input =
             | [ token ] -> MaybeParser.parseTokenValue token.Value
             | _ :: _ -> failwith "F# Option can only be used with a single argument."
         )
-        o.Arity <- ArgumentArity(0, 1)
+        o.Arity <- ArgumentArity (0, 1) |> Arity.toArgumentArity
         o.DefaultValueFactory <- (fun _ -> None)
         ActionInput.OfOption<'T option> o
 
@@ -233,10 +257,10 @@ module Input =
         )
 
     /// Sets the arity of an option or argument.
-    let arity (arity: ArgumentArity) (input: ActionInput<'T>) = 
-        input 
-        |> editOption (fun o -> o.Arity <- arity)
-        |> editArgument (fun a -> a.Arity <- arity)
+    let arity (arity: Arity) (input: ActionInput<'T>) =
+        input
+        |> editOption (fun o -> o.Arity <- arity |> Arity.toArgumentArity)
+        |> editArgument (fun a -> a.Arity <- arity |> Arity.toArgumentArity)
 
     /// Sets a value that indicates whether multiple arguments are allowed for each option identifier token. (Defaults to 'false'.)
     let allowMultipleArgumentsPerToken (input: ActionInput<'T>) = 
