@@ -54,9 +54,8 @@ type Arity =
     | ZeroOrMore
     | ZeroOrOne
 
-module Arity =
-
-    let toArgumentArity (arity: Arity) =
+    /// Implicitly convert an Arity DU to an ArgumentArity instance.
+    static member inline op_Implicit(arity: Arity) : ArgumentArity = 
         match arity with
         | ArgumentArity (min, max) -> (min, max)
         | ExactlyOne -> (1, 1)
@@ -67,6 +66,18 @@ module Arity =
         | ZeroOrMore -> (0, 100_000)
         | ZeroOrOne -> (0, 1)
         |> System.CommandLine.ArgumentArity
+
+    /// Implicitly convert an ArgumentArity instance to an Arity DU.
+    static member inline op_Implicit(argumentArity: ArgumentArity) : Arity = 
+        match argumentArity.MinimumNumberOfValues, argumentArity.MaximumNumberOfValues with
+        | 0, 0 -> Zero
+        | 0, max when max = 100_000 -> ZeroOrMore
+        | min, max when min = max -> ExactlyOne
+        | min, max when min = 1 && max = 100_000 -> OneOrMore
+        | min, max when min > 0 && max = 100_000 -> MinimumNumberOfValues min
+        | min, max when min = 0 && max < 100_000 -> MaximumNumberOfValues max
+        | _ -> ArgumentArity (argumentArity.MinimumNumberOfValues, argumentArity.MaximumNumberOfValues)
+
 
 module Input = 
 
@@ -164,7 +175,7 @@ module Input =
             | [ token ] -> MaybeParser.parseTokenValue token.Value
             | _ :: _ -> failwith "F# Option can only be used with a single argument."
         )
-        o.Arity <- ArgumentArity (0, 1) |> Arity.toArgumentArity
+        o.Arity <- ArgumentArity (0, 1)
         o.DefaultValueFactory <- (fun _ -> None)
         ActionInput.OfOption<'T option> o
 
@@ -265,8 +276,8 @@ module Input =
     /// Sets the arity of an option or argument.
     let arity (arity: Arity) (input: ActionInput<'T>) =
         input
-        |> editOption (fun o -> o.Arity <- arity |> Arity.toArgumentArity)
-        |> editArgument (fun a -> a.Arity <- arity |> Arity.toArgumentArity)
+        |> editOption (fun o -> o.Arity <- arity)
+        |> editArgument (fun a -> a.Arity <- arity)
 
     /// Sets a value that indicates whether multiple arguments are allowed for each option identifier token. (Defaults to 'false'.)
     let allowMultipleArgumentsPerToken (input: ActionInput<'T>) = 

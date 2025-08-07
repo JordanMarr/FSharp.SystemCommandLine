@@ -14,6 +14,7 @@ let main argv =
             option "--word" 
             |> alias "-w" 
             |> desc "A list of words to be appended" 
+            |> arity OneOrMore
             |> acceptOnlyFromAmong [ "hello" ; "world" ], 
 
             optionMaybe "--separator"
