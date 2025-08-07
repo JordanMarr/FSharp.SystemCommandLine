@@ -71,6 +71,7 @@ type Arity =
     static member inline op_Implicit(argumentArity: ArgumentArity) : Arity = 
         match argumentArity.MinimumNumberOfValues, argumentArity.MaximumNumberOfValues with
         | 0, 0 -> Zero
+        | 0, 1 -> ZeroOrOne
         | 0, max when max = 100_000 -> ZeroOrMore
         | min, max when min = max -> ExactlyOne
         | min, max when min = 1 && max = 100_000 -> OneOrMore
