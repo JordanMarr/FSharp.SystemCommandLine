@@ -81,5 +81,28 @@ let ``03 --word Hello -w World return Task<int>`` () = task {
     returnedCode =! 5
 }
 
+[<Test>]
+let ``04  --fail test`` () = task {
 
+    let failCmd = 
+        command "fail" {
+            description "Will fail"
+            inputs (optionMaybe<bool> "--sample")
+            setAction (fun (sample: bool option) ->
+                task {
+                    handlerCalled <- true
+                    return 1 // should fail
+                }
+            )
+        }
+
+    let! returnedCode = 
+        testRootCommand "fail --sample true" {
+            description "Sample of swallowing exit code"
+            noActionAsync
+            addCommand failCmd
+        }
+    
+    returnedCode =! 1
+}
 
