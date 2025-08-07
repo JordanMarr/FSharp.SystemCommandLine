@@ -346,11 +346,19 @@ type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() 
         |> ignore
         this.CommandLineConfiguration
 
-    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
-    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
+    /// Executes a Command with a handler that returns a Task<unit>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
         this.CommandLineConfiguration.RootCommand
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
+        |> ignore
+        this.CommandLineConfiguration
+
+    /// Executes a Command with a handler that returns a Task<int>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
+        this.CommandLineConfiguration.RootCommand
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerTaskInt spec
         |> ignore
         this.CommandLineConfiguration
 
@@ -439,11 +447,17 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         |> this.SetGeneralProperties spec
         |> this.SetHandlerInt spec
 
-    /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
-    member this.Run (spec: CommandSpec<'Inputs, Task<'ReturnValue>>) =
+    /// Executes a Command with a handler that returns a Task<unit>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
         Command(name)
         |> this.SetGeneralProperties spec
         |> this.SetHandlerTask spec
+
+    /// Executes a Command with a handler that returns a Task<int>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
+        Command(name)
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerTaskInt spec
 
 
 /// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method using computation expression syntax.
