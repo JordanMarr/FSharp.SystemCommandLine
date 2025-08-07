@@ -47,8 +47,6 @@ type ActionInput<'T>(inputType: ActionInputSource) =
 type Arity =
     | ArgumentArity of min: int * max: int
     | ExactlyOne
-    | MaximumNumberOfValues of max: int
-    | MinimumNumberOfValues of min: int
     | OneOrMore
     | Zero
     | ZeroOrMore
@@ -59,8 +57,6 @@ type Arity =
         match arity with
         | ArgumentArity (min, max) -> (min, max)
         | ExactlyOne -> (1, 1)
-        | MaximumNumberOfValues max -> (0,  max)
-        | MinimumNumberOfValues min -> (min, 100_000)
         | OneOrMore -> (1, 100_000)
         | Zero -> (0, 0)
         | ZeroOrMore -> (0, 100_000)
@@ -74,8 +70,6 @@ type Arity =
         | 0, max when max = 100_000 -> ZeroOrMore
         | min, max when min = max -> ExactlyOne
         | min, max when min = 1 && max = 100_000 -> OneOrMore
-        | min, max when min > 0 && max = 100_000 -> MinimumNumberOfValues min
-        | min, max when min = 0 && max < 100_000 -> MaximumNumberOfValues max
         | _ -> ArgumentArity (argumentArity.MinimumNumberOfValues, argumentArity.MaximumNumberOfValues)
 
 
