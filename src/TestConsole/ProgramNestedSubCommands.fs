@@ -3,10 +3,11 @@
 open System.IO
 open FSharp.SystemCommandLine
 open Input
+open System.Threading
 
 module Global = 
-    let enableLogging = option "--enable-logging" |> def false
-    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> recursive |> def false
+    let logFile = option "--log-file" |> recursive |> def (FileInfo @"c:\temp\default.log")
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
 
@@ -64,7 +65,7 @@ let deleteCmd =
 let ioCmd = 
     command "io" {
         description "Contains IO related subcommands."
-        noAction
+        noAction        
         addCommands [ deleteCmd; listCmd ]
     }
 
@@ -73,17 +74,18 @@ let main (argv: string[]) =
         commandLineConfiguration {
             description "Sample app for System.CommandLine"
             noAction
-            addGlobalOptions Global.options
+            addInputs Global.options
             addCommand ioCmd
         }
 
-    //let parseResult = CommandLineParser.Parse(cfg.RootCommand, argv)
     let parseResult = cfg.Parse(argv)
 
     let loggingEnabled = Global.enableLogging.GetValue parseResult
     printfn $"ROOT: Logging enabled: {loggingEnabled}"
 
-    parseResult.Invoke()
+    use cts = new CancellationTokenSource() 
+    let parseResult = cfg.Parse(argv)
+    parseResult.InvokeAsync(cts.Token)
 
 let run () = 
     "io list \"c:/data/\" --enable-logging" |> Utils.args |> main
