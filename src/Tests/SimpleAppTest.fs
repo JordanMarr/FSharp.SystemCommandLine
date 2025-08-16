@@ -153,7 +153,7 @@ let ``07 - Child command should use configuration`` () =
 let ``08 - Validators`` () = 
     let args = args "-w delete -s *"
     let cfg = 
-        commandLineConfiguration {
+        rootCommand' {
             description "Appends words together"
             inputs (
                 option<string[]> "--word" 

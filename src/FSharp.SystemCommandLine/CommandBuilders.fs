@@ -311,8 +311,8 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         cmd
 
             
-/// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method.
-type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+/// Builds a `System.RootCommand` that will be returned to the user for manual execution.
+type RootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
         
         /// Allows modification of the CommandLineConfiguration.
@@ -448,14 +448,14 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         |> this.SetHandlerTaskInt spec
 
 
-/// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method using computation expression syntax.
-let commandLineConfiguration<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
-    CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
+/// Builds a `System.CommandLine.RootCommand` that will be returned to the user for manual execution.
+let rootCommand'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
+    RootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
 
-/// Builds and executes a `System.CommandLine.RootCommand` using computation expression syntax.
+/// Builds a self-executing `System.CommandLine.RootCommand`.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array)= 
     RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args)
 
-/// Builds a `System.CommandLine.Command` using computation expression syntax.
+/// Builds a `System.CommandLine.Command`.
 let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> (name: string) = 
     CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name)

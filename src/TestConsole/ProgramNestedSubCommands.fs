@@ -71,7 +71,7 @@ let ioCmd =
 
 let main (argv: string[]) =
     let rootCmd = 
-        commandLineConfiguration {
+        rootCommand' {
             description "Sample app for System.CommandLine"
             noAction
             addInputs Global.options
