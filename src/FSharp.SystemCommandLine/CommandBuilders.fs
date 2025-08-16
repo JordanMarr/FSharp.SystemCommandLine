@@ -312,7 +312,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
             
 /// Builds a `System.RootCommand` that will be returned to the user for manual execution.
-type RootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+type ManualExecutingRootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
         
         /// Allows modification of the CommandLineConfiguration.
@@ -448,14 +448,15 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
         |> this.SetHandlerTaskInt spec
 
 
-/// Builds a `System.CommandLine.RootCommand` that will be returned to the user for manual execution.
-let rootCommand'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
-    RootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
-
-/// Builds a self-executing `System.CommandLine.RootCommand`.
+/// Builds a self-invoking `System.CommandLine.RootCommand`.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array)= 
     RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args)
 
 /// Builds a `System.CommandLine.Command`.
 let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> (name: string) = 
     CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name)
+
+module ManualInvocation = 
+    /// Builds a `System.CommandLine.RootCommand` that will be returned to the user for manual invocation.
+    let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
+        ManualExecutingRootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()

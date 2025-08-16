@@ -69,9 +69,11 @@ let ioCmd =
         addCommands [ deleteCmd; listCmd ]
     }
 
+open ManualInvocation
+
 let main (argv: string[]) =
     let rootCmd = 
-        rootCommand' {
+        rootCommand {
             description "Sample app for System.CommandLine"
             noAction
             addInputs Global.options

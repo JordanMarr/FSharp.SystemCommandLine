@@ -148,12 +148,12 @@ let ``07 - Child command should use configuration`` () =
         addCommand getCmd
     } =! 0
     actionCalled =! true
-    
+
 [<Test>]
 let ``08 - Validators`` () = 
     let args = args "-w delete -s *"
-    let cfg = 
-        rootCommand' {
+    let rootCmd = 
+        ManualInvocation.rootCommand {
             description "Appends words together"
             inputs (
                 option<string[]> "--word" 
@@ -176,8 +176,10 @@ let ``08 - Validators`` () =
             )
         }
 
-    printfn $"{cfg.Error}"
-    let result = cfg.Invoke(args)
+    let parseResult = rootCmd.Parse(args)
+    printfn $"{parseResult.Errors}"
+    
+    let result = parseResult.Invoke()
     result =! 1 // Expecting a failure due to the separator validation
     actionCalled =! false
 
