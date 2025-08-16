@@ -69,23 +69,24 @@ let ioCmd =
         addCommands [ deleteCmd; listCmd ]
     }
 
+open ManualInvocation
+
 let main (argv: string[]) =
-    let cfg = 
-        commandLineConfiguration {
+    let rootCmd = 
+        rootCommand {
             description "Sample app for System.CommandLine"
             noAction
             addInputs Global.options
             addCommand ioCmd
         }
 
-    let parseResult = cfg.Parse(argv)
+    let parseResult = rootCmd.Parse(argv)
 
     let loggingEnabled = Global.enableLogging.GetValue parseResult
     printfn $"ROOT: Logging enabled: {loggingEnabled}"
 
     use cts = new CancellationTokenSource() 
-    let parseResult = cfg.Parse(argv)
-    parseResult.InvokeAsync(cts.Token)
+    parseResult.InvokeAsync(cancellationToken = cts.Token)
 
 let run () = 
     "io list \"c:/data/\" --enable-logging" |> Utils.args |> main

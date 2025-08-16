@@ -100,7 +100,7 @@ let ``05 empty array`` () =
 let ``06 - rootCommand should use configuration`` () = 
     testRootCommand "--package @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
         )
@@ -140,7 +140,7 @@ let ``07 - Child command should use configuration`` () =
 
     testRootCommand "get @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
         )        
@@ -148,12 +148,12 @@ let ``07 - Child command should use configuration`` () =
         addCommand getCmd
     } =! 0
     actionCalled =! true
-    
+
 [<Test>]
 let ``08 - Validators`` () = 
     let args = args "-w delete -s *"
-    let cfg = 
-        commandLineConfiguration {
+    let rootCmd = 
+        ManualInvocation.rootCommand {
             description "Appends words together"
             inputs (
                 option<string[]> "--word" 
@@ -176,8 +176,10 @@ let ``08 - Validators`` () =
             )
         }
 
-    printfn $"{cfg.Error}"
-    let result = cfg.Invoke(args)
+    let parseResult = rootCmd.Parse(args)
+    printfn $"{parseResult.Errors}"
+    
+    let result = parseResult.Invoke()
     result =! 1 // Expecting a failure due to the separator validation
     actionCalled =! false
 

@@ -10,10 +10,10 @@ let main _ =
     
     //ProgramAlt1.run ()
     //ProgramNoArgs.run ()
-    ProgramNestedSubCommands.run () |> Async.AwaitTask |> Async.RunSynchronously // Also contains global options
+    //ProgramNestedSubCommands.run () |> Async.AwaitTask |> Async.RunSynchronously // Also contains global options
     //ProgramSubCommand.run ()
     //ProgramTask.run ()
     //ProgramTokenReplacer.SCL.run ()
-    //ProgramTokenReplacer.run ()
+    ProgramTokenReplacer.run ()
     //ProgramExtraInputs.run ()
     //ProgramAppendWords.run ()
