@@ -46,10 +46,10 @@ let getCmd =
 let main argv =
     rootCommand argv {
         description "Can be called with a leading @ package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
-        )        
+        )
         noAction
         addCommand getCmd
     }

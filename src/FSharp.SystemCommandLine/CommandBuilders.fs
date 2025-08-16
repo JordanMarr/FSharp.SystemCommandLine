@@ -21,6 +21,7 @@ type CommandSpec<'Inputs, 'Output> =
     {
         RootCommand: RootCommand
         ParserConfiguration: ParserConfiguration
+        InvocationConfiguration: InvocationConfiguration
         Description: string
         Inputs: ActionInput list
         Handler: 'Inputs -> 'Output
@@ -34,6 +35,7 @@ type CommandSpec<'Inputs, 'Output> =
         { 
             RootCommand = RootCommand()
             ParserConfiguration = ParserConfiguration()
+            InvocationConfiguration = InvocationConfiguration()
             Description = "My Command"
             Inputs = []
             Aliases = []
@@ -50,6 +52,7 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
         {
             RootCommand = spec.RootCommand
             ParserConfiguration = spec.ParserConfiguration
+            InvocationConfiguration = spec.InvocationConfiguration
             Description = spec.Description
             Inputs = spec.Inputs
             Aliases = spec.Aliases
@@ -312,21 +315,32 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
             
 /// Builds a `System.RootCommand` that will be returned to the user for manual execution.
-type ManualExecutingRootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+type ManualExecutingRootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
         
-        /// Allows modification of the CommandLineConfiguration.
+    /// Allows modification of the ParserConfiguration.
+    [<Obsolete("'configure' has been deprecated in favor of 'configureParser' or 'configureInvocation'.")>]
     [<CustomOperation("configure")>]
     member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> unit) =
         configure spec.ParserConfiguration
         spec
 
-    /// Allows modification of the CommandLineConfiguration.
+    /// Allows modification of the ParserConfiguration.
+    [<Obsolete("'configure' has been deprecated in favor of 'configureParser' or 'configureInvocation'.")>]
     [<CustomOperation("configure")>]
     member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> ParserConfiguration) =
-        { spec with 
-            ParserConfiguration = configure spec.ParserConfiguration 
-        }
+        { spec with ParserConfiguration = configure spec.ParserConfiguration }
+     
+    /// Allows modification of the ParserConfiguration.
+    [<CustomOperation("configureParser")>]
+    member this.ConfigureParser (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> unit) =
+        configure spec.ParserConfiguration
+        spec
+
+    /// Allows modification of the ParserConfiguration.
+    [<CustomOperation("configureParser")>]
+    member this.ConfigureParser (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> ParserConfiguration) =
+        { spec with ParserConfiguration = configure spec.ParserConfiguration }
 
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
@@ -364,19 +378,41 @@ type ManualExecutingRootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>
 /// Builds and executes a `System.CommandLine.RootCommand`.
 type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array) = 
     inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
-    
-    /// Allows modification of the CommandLineConfiguration.
+
+    /// Allows modification of the ParserConfiguration.
+    [<Obsolete("'configure' has been deprecated in favor of 'configureParser' or 'configureInvocation'.")>]
     [<CustomOperation("configure")>]
     member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> unit) =
         configure spec.ParserConfiguration
         spec
 
-    /// Allows modification of the CommandLineConfiguration.
+    /// Allows modification of the ParserConfiguration.
+    [<Obsolete("'configure' has been deprecated in favor of 'configureParser' or 'configureInvocation'.")>]
     [<CustomOperation("configure")>]
     member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> ParserConfiguration) =
-        { spec with 
-            ParserConfiguration = configure spec.ParserConfiguration 
-        }
+        { spec with ParserConfiguration = configure spec.ParserConfiguration }
+     
+    /// Allows modification of the ParserConfiguration.
+    [<CustomOperation("configureParser")>]
+    member this.ConfigureParser (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> unit) =
+        configure spec.ParserConfiguration
+        spec
+
+    /// Allows modification of the ParserConfiguration.
+    [<CustomOperation("configureParser")>]
+    member this.ConfigureParser (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> ParserConfiguration) =
+        { spec with ParserConfiguration = configure spec.ParserConfiguration }
+
+    /// Allows modification of the InvocationConfiguration.
+    [<CustomOperation("configureInvocation")>]
+    member this.ConfigureInvocation (spec: CommandSpec<'Inputs, 'Output>, configure: InvocationConfiguration -> unit) =
+        configure spec.InvocationConfiguration
+        spec
+
+    /// Allows modification of the InvocationConfiguration.
+    [<CustomOperation("configureInvocation")>]
+    member this.ConfigureInvocation (spec: CommandSpec<'Inputs, 'Output>, configure: InvocationConfiguration -> InvocationConfiguration) =
+        { spec with InvocationConfiguration = configure spec.InvocationConfiguration }
         
     /// Executes a Command with a handler that returns unit.
     member this.Run (spec: CommandSpec<'Inputs, unit>) =
@@ -385,7 +421,9 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetGeneralProperties spec
             |> this.SetHandlerUnit spec
         
-        rootCommand.Parse(args, spec.ParserConfiguration).Invoke()        
+        rootCommand
+            .Parse(args, spec.ParserConfiguration)
+            .Invoke(spec.InvocationConfiguration)        
 
     /// Executes a Command with a handler that returns int.
     member this.Run (spec: CommandSpec<'Inputs, int>) =
@@ -394,7 +432,9 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetGeneralProperties spec
             |> this.SetHandlerInt spec
                 
-        rootCommand.Parse(args, spec.ParserConfiguration).Invoke()
+        rootCommand
+            .Parse(args, spec.ParserConfiguration)
+            .Invoke(spec.InvocationConfiguration)
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
@@ -403,7 +443,9 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetGeneralProperties spec
             |> this.SetHandlerTask spec
         
-        rootCommand.Parse(args, spec.ParserConfiguration).InvokeAsync()
+        rootCommand
+            .Parse(args, spec.ParserConfiguration)
+            .InvokeAsync(spec.InvocationConfiguration)
 
     /// Executes a Command with a handler that returns a Task<unit> or Task<int>.
     member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
@@ -412,7 +454,9 @@ type RootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string ar
             |> this.SetGeneralProperties spec
             |> this.SetHandlerTaskInt spec
         
-        rootCommand.Parse(args, spec.ParserConfiguration).InvokeAsync()
+        rootCommand
+            .Parse(args, spec.ParserConfiguration)
+            .InvokeAsync(spec.InvocationConfiguration)
        
 /// Builds a `System.CommandLine.Command`.
 type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) = 
@@ -459,4 +503,4 @@ let command<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> (name: string) =
 module ManualInvocation = 
     /// Builds a `System.CommandLine.RootCommand` that will be returned to the user for manual invocation.
     let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
-        ManualExecutingRootCommandBuilder'<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
+        ManualExecutingRootCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()

@@ -100,7 +100,7 @@ let ``05 empty array`` () =
 let ``06 - rootCommand should use configuration`` () = 
     testRootCommand "--package @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
         )
@@ -140,7 +140,7 @@ let ``07 - Child command should use configuration`` () =
 
     testRootCommand "get @shoelace-style/shoelace" {
         description "Can be called with a leading @ package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Skip @ processing
             cfg.ResponseFileTokenReplacer <- null
         )        
