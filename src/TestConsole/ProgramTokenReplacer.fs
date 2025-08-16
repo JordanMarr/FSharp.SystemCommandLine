@@ -10,15 +10,14 @@ module SCL =
         printfn $"The value for --package is: %s{package}"
 
     let main (argv: string[]) = 
-        let cfg = new CommandLineConfiguration(new RootCommand())
-        cfg.ResponseFileTokenReplacer <- null // in beta5, you must set ResponseFileTokenReplacer to null to skip @ processing
-        let cmd = cfg.RootCommand
-
+        let cmd = RootCommand()
+        let cfg = ParserConfiguration(ResponseFileTokenReplacer = null) // Set to null to skip "@" processing
         cmd.Description <- "My sample app"
         cmd.Add(packageOpt)
         cmd.SetAction(action)
 
-        cmd.Parse(argv, cfg).Invoke()
+        let parseResult = cmd.Parse(argv, cfg)
+        parseResult.Invoke()
 
     let run () = 
         "--package @shoelace-style/shoelace" |> Utils.args |> main

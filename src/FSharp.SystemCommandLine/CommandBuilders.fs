@@ -312,50 +312,53 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
 
             
 /// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method.
-//type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
-//    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
+type CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() = 
+    inherit BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
         
-//    [<CustomOperation("configure")>]
-//    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> unit) =
-//        subCommand this.CommandLineConfiguration
-//        spec
+        /// Allows modification of the CommandLineConfiguration.
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> unit) =
+        configure spec.ParserConfiguration
+        spec
 
-//    [<CustomOperation("configure")>]
-//    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, subCommand: CommandLineConfiguration -> CommandLineConfiguration) =
-//        this.CommandLineConfiguration <- subCommand this.CommandLineConfiguration
-//        spec
+    /// Allows modification of the CommandLineConfiguration.
+    [<CustomOperation("configure")>]
+    member this.Configure (spec: CommandSpec<'Inputs, 'Output>, configure: ParserConfiguration -> ParserConfiguration) =
+        { spec with 
+            ParserConfiguration = configure spec.ParserConfiguration 
+        }
 
-//    /// Executes a Command with a handler that returns unit.
-//    member this.Run (spec: CommandSpec<'Inputs, unit>) =
-//        this.CommandLineConfiguration.RootCommand
-//        |> this.SetGeneralProperties spec
-//        |> this.SetHandlerUnit spec
-//        |> ignore
-//        this.CommandLineConfiguration
+    /// Executes a Command with a handler that returns unit.
+    member this.Run (spec: CommandSpec<'Inputs, unit>) =
+        spec.RootCommand
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerUnit spec
+        |> ignore
+        spec.RootCommand
 
-//    /// Executes a Command with a handler that returns int.
-//    member this.Run (spec: CommandSpec<'Inputs, int>) =
-//        this.CommandLineConfiguration.RootCommand
-//        |> this.SetGeneralProperties spec
-//        |> this.SetHandlerInt spec
-//        |> ignore
-//        this.CommandLineConfiguration
+    /// Executes a Command with a handler that returns int.
+    member this.Run (spec: CommandSpec<'Inputs, int>) =
+        spec.RootCommand
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerInt spec
+        |> ignore
+        spec.RootCommand
 
-//    /// Executes a Command with a handler that returns a Task<unit>.
-//    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
-//        this.CommandLineConfiguration.RootCommand
-//        |> this.SetGeneralProperties spec
-//        |> this.SetHandlerTask spec
-//        |> ignore
-//        this.CommandLineConfiguration
+    /// Executes a Command with a handler that returns a Task<unit>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<unit>>) =
+        spec.RootCommand
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerTask spec
+        |> ignore
+        spec.RootCommand
 
-//    /// Executes a Command with a handler that returns a Task<int>.
-//    member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
-//        this.CommandLineConfiguration.RootCommand
-//        |> this.SetGeneralProperties spec
-//        |> this.SetHandlerTaskInt spec
-//        |> ignore
-//        this.CommandLineConfiguration
+    /// Executes a Command with a handler that returns a Task<int>.
+    member this.Run (spec: CommandSpec<'Inputs, Task<int>>) =
+        spec.RootCommand
+        |> this.SetGeneralProperties spec
+        |> this.SetHandlerTaskInt spec
+        |> ignore
+        spec.RootCommand
 
         
 /// Builds and executes a `System.CommandLine.RootCommand`.
@@ -446,8 +449,8 @@ type CommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(name: string) =
 
 
 /// Builds a `System.CommandLineConfiguration` that can be passed to the `CommandLineParser.Parse` static method using computation expression syntax.
-//let commandLineConfiguration<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
-//    CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
+let commandLineConfiguration<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output> = 
+    CommandLineConfigurationBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>()
 
 /// Builds and executes a `System.CommandLine.RootCommand` using computation expression syntax.
 let rootCommand<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>(args: string array)= 
