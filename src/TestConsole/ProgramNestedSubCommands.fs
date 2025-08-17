@@ -6,22 +6,17 @@ open Input
 open System.Threading
 
 module Global = 
-    let enableLogging = option "--enable-logging" |> recursive |> def false
-    let logFile = option "--log-file" |> recursive |> def (FileInfo @"c:\temp\default.log")
+    let enableLogging = option "--enable-logging" |> def false
+    let logFile = option "--log-file" |> def (FileInfo @"c:\temp\default.log")
 
     type Options = { EnableLogging: bool; LogFile: FileInfo }
-
     let options: ActionInput seq = [ enableLogging; logFile ] 
 
-    let bind parseResult = 
-        { EnableLogging = enableLogging.GetValue parseResult
-          LogFile = logFile.GetValue parseResult }
-
 let listCmd =
-    let action (ctx, dir: DirectoryInfo) =
-        let options = Global.bind ctx.ParseResult
-        if options.EnableLogging then 
-            printfn $"Logging enabled to {options.LogFile.FullName}"
+    // NOTE: A global option is directly passed as input in this example.
+    let action (dir: DirectoryInfo, enableLogging: bool) = 
+        if enableLogging then 
+            printfn $"Logging enabled."
 
         if dir.Exists then
             dir.EnumerateFiles()
@@ -29,28 +24,27 @@ let listCmd =
         else
             printfn $"{dir.FullName} does not exist."
 
-    let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
+    let dir = argument "directory" |> validateDirectoryExists  // |> def (DirectoryInfo @"c:\default")
 
     command "list" {
         description "lists contents of a directory"
-        inputs (context, dir)
+        inputs (dir, Global.enableLogging)
         setAction action
         addAlias "ls"
     }
 
 let deleteCmd =
+    // NOTE: Global options are accessed via the context in this example.
     let action (ctx, dir: DirectoryInfo, recursive: bool) =
-        let options = Global.bind ctx.ParseResult
-        if options.EnableLogging then 
-            printfn $"Logging enabled to {options.LogFile.FullName}"
+        let enableLogging = Global.enableLogging.GetValue ctx.ParseResult
+        let logFile = Global.logFile.GetValue ctx.ParseResult
+
+        if enableLogging then 
+            printfn $"Logging enabled to {logFile.FullName}."
         
-        if dir.Exists then
-            if recursive then
-                printfn $"Recursively deleting {dir.FullName}"
-            else
-                printfn $"Deleting {dir.FullName}"
-        else
-            printfn $"{dir.FullName} does not exist."
+        if recursive 
+        then printfn $"Recursively deleting {dir.FullName}"
+        else printfn $"Deleting {dir.FullName}"
 
     let dir = argument "directory" |> def (DirectoryInfo @"c:\default")
     let recursive = option "--recursive" |> def false
@@ -87,7 +81,10 @@ let main (argv: string[]) =
 
     use cts = new CancellationTokenSource() 
     parseResult.InvokeAsync(cancellationToken = cts.Token)
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
 
 let run () = 
     "io list \"c:/data/\" --enable-logging" |> Utils.args |> main
+    //"io list \"--enable-logging" |> Utils.args |> main
     
