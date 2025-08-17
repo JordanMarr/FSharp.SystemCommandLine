@@ -591,9 +591,13 @@ let main argv =
 
 ```
 
-### Creating a Root Command Parser
+### Manually Invoking a Root Command
 
-If you want to manually invoke your root command, use the `rootCommandParser` CE (because the `rootCommand` CE is auto-executing).
+If you want to manually invoke your root command, use the `ManualInvocation.rootCommand` computation expression.
+
+NOTES: 
+* `ManualInvocation.rootCommand` does not take the CLI args as an input.
+* `ManualInvocation.rootCommand` does not auto-execute.
 
 ```F#
 open FSharp.SystemCommandLine
@@ -610,16 +614,23 @@ let main argv =
     let words = option "--word" |> alias -w" |> desc "A list of words to be appended"
     let separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
 
-    let cfg = 
-        commandLineConfiguration {
+    let cmd = 
+        ManualInvocation.rootCommand {
             description "Appends words together"
             inputs (words, separator)
             setAction app
         }
 
-    let parseResult = cfg.Parse(argv)
-    parseResult.Invoke()
+    let parseResult = cmd.Parse(argv)
+
+    // parseResult.InvokeAsync()
+    parseResult.Invoke() 
 ```
+
+Notes about invocation:
+* At this point, you can call `parseResult.Invoke()` or `parseResult.InvokeAsync()`
+* You can optionally pass in an `InvocationConfiguration`:
+  * `parseResult.Invoke(InvocationConfiguration(EnableDefaultExceptionHandler = false))`
 
 ### Showing Help as the Default
 A common design is to show help information if no commands have been passed:
@@ -649,11 +660,12 @@ let main argv =
     }
 ```
 
-## Command Line Configuration
+## Configuration
 
-System.CommandLine has a `CommandLineConfiguration` that allows the user to customize various behaviors.
+System.CommandLine (>= v2 beta7) has `ParserConfiguration` and `InvocationConfiguration` to  allow the user to customize various behaviors.
 
-FSharp.SystemCommandLine uses the defaults from `CommandLineConfiguration`, but you can override them via the `configure` custom operation which gives you access to the `CommandLineConfiguration`. 
+* FSharp.SystemCommandLine `configureParser` gives you access to the underlying `ParserConfiguration`.
+* FSharp.SystemCommandLine `configureInvocation` gives you access to the underlying `InvocationConfiguration`. NOTE: This operation is not available on the `ManualInvocation.rootCommand`..
 
 For example, the default behavior intercepts input strings that start with a "@" character via the "TryReplaceToken" feature. This will cause an issue if you need to accept input that starts with "@". Fortunately, you can disable this via `usePipeline`:
 
@@ -681,9 +693,12 @@ let main argv =
 
     rootCommand argv {
         description "Can be called with a leading '@' package"
-        configure (fun cfg -> 
+        configureParser (fun cfg -> 
             // Override default token replacer to ignore `@` processing
             cfg.ResponseFileTokenReplacer <- null
+        )
+        configureInvocation (fun cfg ->
+            cfg.EnableDefaultExceptionHandler <- false
         )
         inputs package
         setAction app
