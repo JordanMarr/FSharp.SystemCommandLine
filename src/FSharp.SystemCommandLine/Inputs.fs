@@ -160,18 +160,40 @@ module Input =
         |> editOption (fun o -> o.Recursive <- true)
 
     /// Creates a named option of type `Option<'T option>` that defaults to `None`.
-    let optionMaybe<'T> (name: string) = 
+    let optionMaybe<'T> (name: string) =
         let o = Option<'T option>(name, aliases = [||])
         let isBool = typeof<'T> = typeof<bool>
-        o.CustomParser <- (fun result -> 
-            match result.Tokens |> Seq.toList with
-            | [] when isBool -> true |> unbox<'T> |> Some
-            | [] -> None
+
+        o.Arity <- ArgumentArity (0, 1)
+
+        o.CustomParser <- (fun result ->
+            let tokens = result.Tokens |> Seq.toList
+            match tokens with
+            | [] ->
+                // In rc.1, when there are no tokens, return None and let DefaultValueFactory handle it
+                None
             | [ token ] -> MaybeParser.parseTokenValue token.Value
             | _ :: _ -> failwith "F# Option can only be used with a single argument."
         )
-        o.Arity <- ArgumentArity (0, 1)
-        o.DefaultValueFactory <- (fun _ -> None)
+
+        o.DefaultValueFactory <- (fun argResult ->
+            // Check if this is a bool option that was explicitly specified without a value
+            if isBool then
+                // argResult.Parent should be the OptionResult
+                match argResult.Parent with
+                | :? Parsing.OptionResult as optionResult ->
+                    // Check if option was specified on command line without a value
+                    if optionResult.IdentifierTokenCount > 0 && argResult.Tokens.Count = 0 then
+                        // Option was specified (e.g., --flag) without a value
+                        true |> unbox<'T> |> Some
+                    else
+                        None
+                | _ -> 
+                    None
+            else
+                None
+        )
+
         ActionInput.OfOption<'T option> o
 
     /// Creates a named argument. Example: `argument "file-name"`
