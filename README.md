@@ -134,38 +134,9 @@ let zipFile =
 
 ## More Examples
 
-### Simple App that Returns a Status Code
+### Returning a Status Code
 
-You may optionally return a status code from your handler function.
-
-```F#
-open System.IO
-open FSharp.SystemCommandLine
-open Input
-
-let unzip (zipFile: FileInfo, outputDirMaybe: DirectoryInfo option) = 
-    // Default to the zip file dir if None
-    let outputDir = defaultArg outputDirMaybe zipFile.Directory
-
-    if zipFile.Exists then
-        printfn $"Unzipping {zipFile.Name} to {outputDir.FullName}"
-        0 // Program successfully completed.
-    else 
-        printfn $"File does not exist: {zipFile.FullName}"
-        2 // The system cannot find the file specified.
-    
-[<EntryPoint>]
-let main argv = 
-    rootCommand argv {
-        description "Unzips a .zip file"
-        inputs (
-            argument "zipfile" |> desc "The file to unzip",
-            optionMaybe "--output" |> alias "-o" |> desc "The output directory"
-        )
-        setAction unzip
-    }
-```
-
+You may optionally return a status code from your handler function by returning an `int`.
 
 ### App with SubCommands
 
@@ -235,40 +206,23 @@ let main argv =
 ### Passing Context to Action
 
 You may need to pass the `ActionContext` to your handler function for the following reasons:
-* You need to access to the `CancellationToken` for an asynchronous action.
+* You need access to the `CancellationToken` for an asynchronous action.
 * You need to manually parse values via the `ParseResult`. (This is necessary if you have more than 8 inputs.)
 
-You can pass the `ActionContext` via the `Input.Context()` method.
+You can pass the `ActionContext` via the `Input.context` value.
 
 ```F#
-module Program
-
-open FSharp.SystemCommandLine
-open Input
-open System.Threading
-open System.Threading.Tasks
-open System.CommandLine.Invocation
-
 let app (ctx: ActionContext, words: string array, separator: string) =
     task {
         let cancel = ctx.CancellationToken
-        for i in [1..20] do
-            if cancel.IsCancellationRequested then 
-                printfn "Cancellation Requested"
-                raise (new System.OperationCanceledException())
-            else 
-                printfn $"{i}"
-                do! Task.Delay(1000)
-
-        System.String.Join(separator, words)
-        |> printfn "Result: %s"
+        // Use cancellation token for async work...
     }
-    
+
 [<EntryPoint>]
-let main argv = 
+let main argv =
     let ctx = Input.context
     let words = Input.option "--word" |> alias "-w" |> desc "A list of words to be appended"
-    let separator = Input.option "--separator" |> alias "-s" |> defaultValue ", " |> desc "A character that will separate the joined words."
+    let separator = Input.option "--separator" |> alias "-s" |> defaultValue ", "
 
     rootCommand argv {
         description "Appends words together"
@@ -279,7 +233,28 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
-### Example with more than 8 inputs
+### Showing Help as the Default
+
+A common design is to show help information if no commands have been passed:
+
+```F#
+[<EntryPoint>]
+let main argv =
+    rootCommand argv {
+        description "Shows help by default."
+        inputs Input.context
+        helpAction
+        addCommand helloCmd
+    }
+```
+
+---
+
+## Advanced Examples
+
+<details>
+<summary><b>More than 8 inputs</b></summary>
+
 Currently, a command handler function is limited to accept a tuple with no more than eight inputs.
 If you need more, you can pass in the `ActionContext` to your action handler and manually get as many input values as you like (assuming they have been registered in the command builder's `addInputs` operation).
 
@@ -289,7 +264,7 @@ module Program
 open FSharp.SystemCommandLine
 open Input
 
-module Parameters = 
+module Parameters =
     let words = option "--word" |> alias "-w" |> desc "A list of words to be appended"
     let separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
 
@@ -302,9 +277,9 @@ let app ctx =
     let separator = separator |> Option.defaultValue ", "
     System.String.Join(separator, words) |> printfn "Result: %s"
     0
-    
+
 [<EntryPoint>]
-let main argv = 
+let main argv =
     rootCommand argv {
         description "Appends words together"
         inputs Input.context
@@ -313,7 +288,10 @@ let main argv =
     }
 ```
 
-### Example using Microsoft.Extensions.Hosting
+</details>
+
+<details>
+<summary><b>Microsoft.Extensions.Hosting</b></summary>
 
 This example requires the following nuget packages:
 
@@ -396,9 +374,12 @@ let main argv =
     |> Async.RunSynchronously
 ```
 
-### Global Options
+</details>
 
-This example shows to create global options to all child commands. 
+<details>
+<summary><b>Global Options</b></summary>
+
+This example shows how to create global options for all child commands. 
 
 ```F#
 module ProgramNestedSubCommands
@@ -491,7 +472,10 @@ let main (argv: string array) =
     parseResult.Invoke()
 ```
 
-### Database Migrations Example
+</details>
+
+<details>
+<summary><b>Database Migrations Example</b></summary>
 
 This real-life example for running database migrations demonstrates the following features:
 * Uses Microsoft.Extensions.Hosting.
@@ -588,10 +572,12 @@ let main argv =
         addCommand (repairCmd logger)
         addCommand (migrateCmd logger)
     }
-
 ```
 
-### Manually Invoking a Root Command
+</details>
+
+<details>
+<summary><b>Manually Invoking a Root Command</b></summary>
 
 If you want to manually invoke your root command, use the `ManualInvocation.rootCommand` computation expression.
 
@@ -611,7 +597,7 @@ let app (words: string array, separator: string option) =
     
 [<EntryPoint>]
 let main argv = 
-    let words = option "--word" |> alias -w" |> desc "A list of words to be appended"
+    let words = option "--word" |> alias "-w" |> desc "A list of words to be appended"
     let separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
 
     let cmd = 
@@ -632,33 +618,9 @@ Notes about invocation:
 * You can optionally pass in an `InvocationConfiguration`:
   * `parseResult.Invoke(InvocationConfiguration(EnableDefaultExceptionHandler = false))`
 
-### Showing Help as the Default
-A common design is to show help information if no commands have been passed:
+</details>
 
-```F#
-open System.CommandLine.Invocation
-open System.CommandLine.Help
-open FSharp.SystemCommandLine
-open Input
-
-let helloCmd = 
-    let action name = printfn $"Hello, %s{name}."
-    let name = argument "Name"
-    command "hello" {
-        description "Says hello."
-        inputs name
-        setAction action
-    }
-
-[<EntryPoint>]
-let main argv = 
-    rootCommand argv {
-        description "Says hello or shows help by default."
-        inputs Input.context
-        helpAction
-        addCommand helloCmd
-    }
-```
+---
 
 ## Configuration
 
