@@ -368,7 +368,7 @@ let main argv =
     rootCommand argv {
         description "Data Export"
         inputs (connStr, outputDir, startDate, endDate)
-        setAction (export logger)
+        setAction (fun () -> export logger)
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
@@ -569,8 +569,8 @@ let main argv =
         description "Database Migrations"
         inputs Input.context    // Required input for helpAction
         helpAction              // Show --help if no sub-command is called
-        addCommand (repairCmd logger)
-        addCommand (migrateCmd logger)
+        addCommand (fun () -> repairCmd logger)
+        addCommand (fun () -> migrateCmd logger)
     }
 ```
 
