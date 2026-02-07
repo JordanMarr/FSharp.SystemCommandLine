@@ -14,6 +14,7 @@ let private parseInput<'V> (handlerInput: ActionInput) (pr: ParseResult) (cancel
     | ParsedOption o -> pr.GetValue<'V>(o :?> Option<'V>)
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
+    | Injection value -> value |> unbox<'V>
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -265,14 +266,14 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             match input.Source with
             | ParsedOption o -> cmd.Add o
             | ParsedArgument a -> cmd.Add a
-            | Context -> ()
+            | Context | Injection _ -> ()
         )
         spec.ExtraInputs
         |> Seq.iter (fun input ->
             match input.Source with
             | ParsedOption o -> cmd.Add o
             | ParsedArgument a -> cmd.Add a
-            | Context -> ()
+            | Context | Injection _ -> ()
         )
         spec.SubCommands |> List.iter cmd.Add
         spec.Aliases |> List.iter cmd.Aliases.Add

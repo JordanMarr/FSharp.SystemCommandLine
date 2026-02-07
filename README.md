@@ -11,6 +11,7 @@ _[Click here to view the old beta 4 README](README-beta4.md)_
 * `Input.option` helper avoids the need to use the `System.CommandLine.Option` type directly (which conflicts with the F# `Option` type) 
 * `Input.optionMaybe` and `Input.argumentMaybe` helpers allow you to use F# `option` types in your handler function.
 * `Input.context` helper allows you to pass the `ActionContext` to your action function which is necessary for some operations.
+* `Input.inject` helper allows you to inject pre-resolved dependencies (e.g., loggers, services) into your action function alongside parsed CLI inputs.
 * `Input.validate` helper allows you to validate against parsed value using the F# `Result` type.
 
 ## Example
@@ -70,6 +71,7 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `argumentMaybe` creates a named `Argument<'T option>` that defaults to `None`.
 * `option` creates a named `Option<'T>`
 * `optionMaybe` creates a named `Option<'T option>` that defaults to `None`.
+* `inject` wraps a pre-resolved dependency value for injection into the action inputs tuple.
 
 ### Input Properties
 * `acceptLegalFileNamesOnly` sets the option or argument to accept only values representing legal file names.
@@ -285,6 +287,37 @@ let main argv =
         inputs Input.context
         setAction app
         addInputs [ Parameters.words; Parameters.separator ]
+    }
+```
+
+</details>
+
+<details>
+<summary><b>Injecting Dependencies</b></summary>
+
+You can use `Input.inject` to pass pre-resolved dependencies into your action handler alongside parsed CLI inputs. This is useful for injecting loggers, database connections, or any other service.
+
+```F#
+open Serilog
+open FSharp.SystemCommandLine
+open Input
+
+[<EntryPoint>]
+let main argv =
+    let logger =
+        LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger()
+        |> Input.inject
+
+    let name = option<string> "--name" |> desc "Your name"
+
+    rootCommand argv {
+        description "Greets a user"
+        inputs (logger, name)
+        setAction (fun (logger: ILogger, name) ->
+            logger.Information("Hello, {Name}!", name)
+        )
     }
 ```
 

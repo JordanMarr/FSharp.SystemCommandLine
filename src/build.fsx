@@ -1,14 +1,15 @@
-#r "nuget: Fun.Build, 1.0.5"
+#r "nuget: Fun.Build, 1.1.17"
 
 open Fun.Build
 
 let src = __SOURCE_DIRECTORY__
+let fsproj = $"{src}/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj"
 
-pipeline "CI Build" {
+pipeline "Build" {
 
     stage "Build FSharp.SystemCommandLine.sln" {
-        run $"dotnet restore {src}/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj"
-        run $"dotnet build {src}/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj --configuration Release"
+        run $"dotnet restore {fsproj}"
+        run $"dotnet build {fsproj} --configuration Release"
     }
 
     stage "Run Tests" {
@@ -16,6 +17,26 @@ pipeline "CI Build" {
     }
     
     runIfOnlySpecified false
+}
+
+open System.Xml.Linq
+
+pipeline "Publish" {
+
+    stage "Pack" {
+        run $"dotnet pack {fsproj} --configuration Release"
+    }
+
+    stage "Push to NuGet" {
+        run (fun _ -> 
+            let version = XDocument.Load(fsproj).Descendants(XName.Get "Version") |> Seq.head |> _.Value
+            let nupkg = $"{src}/FSharp.SystemCommandLine/bin/Release/FSharp.SystemCommandLine.%s{version}.nupkg"
+            let nugetKey = System.Environment.GetEnvironmentVariable("NUGET_KEY")
+            $"dotnet nuget push %s{nupkg} --source https://api.nuget.org/v3/index.json --api-key %s{nugetKey} --skip-duplicate"
+        )
+    }
+
+    runIfOnlySpecified true
 }
 
 tryPrintPipelineCommandHelp ()

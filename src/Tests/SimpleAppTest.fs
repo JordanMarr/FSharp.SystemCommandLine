@@ -203,3 +203,44 @@ let ``09 tryParser Directory Info`` () =
         )
     } =! 1 // Should fail
     actionCalled =! false
+
+type AppSettings = { ConnectionString: string; MaxRetries: int }
+
+[<Test>]
+let ``10 - Input_inject should pass a dependency into the action`` () =
+    let settings = { ConnectionString = "Server=localhost"; MaxRetries = 3 }
+
+    testRootCommand "--name Jordan" {
+        description "Inject a dependency"
+        inputs (
+            option<string> "--name" |> desc "Your name",
+            inject settings
+        )
+        setAction (fun (name, injectedSettings) ->
+            name =! "Jordan"
+            injectedSettings =! settings
+            actionCalled <- true
+        )
+    } =! 0
+    actionCalled =! true
+
+type Env = { GetRandom: int -> int -> int }
+
+[<Test>]
+let ``11 - Input_inject should allow injecting behavior into a pure action`` () =
+    let env = { GetRandom = fun min max -> 42 }
+
+    testRootCommand "--count 5" {
+        description "Generate random numbers"
+        inputs (
+            inject env,
+            option<int> "--count" |> desc "How many numbers to generate"
+        )
+        setAction (fun (env, count) ->
+            let result = env.GetRandom 1 100
+            count =! 5
+            result =! 42
+            actionCalled <- true
+        )
+    } =! 0
+    actionCalled =! true

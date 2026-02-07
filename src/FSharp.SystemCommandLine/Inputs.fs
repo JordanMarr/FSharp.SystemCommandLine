@@ -20,10 +20,11 @@ type ActionContext =
         CancellationToken: System.Threading.CancellationToken
     }
 
-type ActionInputSource = 
+type ActionInputSource =
     | ParsedOption of Option
     | ParsedArgument of Argument
     | Context
+    | Injection of obj
 
 type ActionInput(source: ActionInputSource) = 
     member this.Source = source
@@ -43,6 +44,7 @@ type ActionInput<'T>(inputType: ActionInputSource) =
         | ParsedOption o -> o :?> Option<'T> |> parseResult.GetValue
         | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValue
         | Context -> parseResult |> unbox<'T>
+        | Injection value -> value |> unbox<'T>
 
 type Arity =
     | ArgumentArity of min: int * max: int
@@ -77,8 +79,12 @@ type Arity =
 module Input = 
 
     /// Injects an `ActionContext` into the action which contains the `ParseResult` and a cancellation token.
-    let context = 
+    let context =
         ActionInput<ActionContext>(Context)
+
+    /// Injects a dependency value into the action inputs tuple.
+    let inject<'T> (value: 'T) =
+        ActionInput<'T>(Injection (box value))
 
     /// Creates a named option. Example: `option "--file-name"`
     let option<'T> (name: string) = 
