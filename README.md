@@ -364,17 +364,20 @@ let buildHost (argv: string[]) =
         )
         .Build()        
 
-let export (logger: ILogger) (connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
+let export (logger: ILogger, connStr: string, outputDir: DirectoryInfo, startDate: DateTime, endDate: DateTime) =
     task {
-        logger.Information($"Querying from {StartDate} to {EndDate}", startDate, endDate)            
+        logger.Information($"Querying from {StartDate} to {EndDate}", startDate, endDate)
         // Do export stuff...
     }
 
 [<EntryPoint>]
 let main argv =
     let host = buildHost argv
-    let logger = host.Services.GetService<ILogger>()
-    let cfg = host.Services.GetService<IConfiguration>()
+    let cfg = host.Services.GetRequiredService<IConfiguration>()\
+
+    let logger = 
+        host.Services.GetRequiredService<ILogger>() 
+        |> Input.inject
 
     let connStr =
         Input.option "--connection-string"
@@ -392,7 +395,7 @@ let main argv =
         Input.option "--start-date"
         |> Input.defaultValue (DateTime.Today.AddDays(-7))
         |> desc "Start date (defaults to 1 week ago from today)"
-        
+
     let endDate =
         Input.option "--end-date"
         |> Input.defaultValue DateTime.Today
@@ -400,8 +403,8 @@ let main argv =
 
     rootCommand argv {
         description "Data Export"
-        inputs (connStr, outputDir, startDate, endDate)
-        setAction (fun () -> export logger)
+        inputs (logger, connStr, outputDir, startDate, endDate)
+        setAction export
     }
     |> Async.AwaitTask
     |> Async.RunSynchronously
