@@ -1,0 +1,43 @@
+# Publishes FSharp.SystemCommandLine to nuget.org using Trusted Publishing (OIDC).
+# No stored API key: NuGet/login exchanges a GitHub-issued OIDC token for a
+# short-lived (1 hour) API key, validated against the trusted publishing policy
+# configured on nuget.org for this repository + workflow file.
+#
+# Trigger manually from the Actions tab (Run workflow) after bumping <Version>
+# in the fsproj. The version in the fsproj determines the published version.
+
+name: Publish to NuGet
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: windows-2022
+
+    permissions:
+      id-token: write # required for GitHub OIDC token issuance (Trusted Publishing)
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Test
+        run: dotnet test src/Tests/Tests.fsproj --configuration Release
+
+      - name: Pack
+        run: dotnet pack src/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj --configuration Release --output artifacts
+
+      - name: NuGet login (OIDC -> temp API key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: "jordan marr" # nuget.org profile name (not email)
+
+      - name: Push
+        run: dotnet nuget push artifacts/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
