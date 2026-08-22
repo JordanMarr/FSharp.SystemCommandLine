@@ -25,26 +25,39 @@ type ActionInputSource =
     | ParsedArgument of Argument
     | Context
     | Injection of obj
+    /// A single input composed of multiple constituent inputs via the `input { }` builder.
+    | Composed of inputs: ActionInput list * read: (ParseResult -> System.Threading.CancellationToken -> obj)
 
-type ActionInput(source: ActionInputSource) = 
+and ActionInput(source: ActionInputSource) =
     member this.Source = source
+
+    /// Recursively flattens a `Composed` input into its registerable constituent inputs.
+    member this.Flatten() : ActionInput list =
+        match this.Source with
+        | Composed (inputs, _) -> inputs |> List.collect (fun input -> input.Flatten())
+        | _ -> [ this ]
 
 type ActionInput<'T>(inputType: ActionInputSource) =
     inherit ActionInput(inputType)
-    
+
     /// Converts a System.CommandLine.Option<'T> for usage with the CommandBuilder.
     static member OfOption<'T>(o: Option<'T>) = o :> Option |> ParsedOption |> ActionInput<'T>
-    
+
     /// Converts a System.CommandLine.Argument<'T> for usage with the CommandBuilder.
     static member OfArgument<'T>(a: Argument<'T>) = a :> Argument |> ParsedArgument |> ActionInput<'T>
-        
+
     /// Gets the value of an Option or Argument from the Parser.
-    member this.GetValue(parseResult: ParseResult) =
+    member this.GetValue(parseResult: ParseResult) : 'T =
+        this.GetValue(parseResult, System.Threading.CancellationToken.None)
+
+    /// Gets the value of an Option or Argument from the Parser, with a cancellation token made available to `Input.context`.
+    member this.GetValue(parseResult: ParseResult, cancellationToken: System.Threading.CancellationToken) : 'T =
         match this.Source with
         | ParsedOption o -> o :?> Option<'T> |> parseResult.GetValue
         | ParsedArgument a -> a :?> Argument<'T> |> parseResult.GetValue
-        | Context -> parseResult |> unbox<'T>
+        | Context -> { ParseResult = parseResult; CancellationToken = cancellationToken } |> box |> unbox<'T>
         | Injection value -> value |> unbox<'T>
+        | Composed (_, read) -> read parseResult cancellationToken |> unbox<'T>
 
 type Arity =
     | ArgumentArity of min: int * max: int
