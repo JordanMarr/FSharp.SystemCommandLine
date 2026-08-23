@@ -333,7 +333,7 @@ let main argv =
 
 You may need to pass the `ActionContext` to your handler function for the following reasons:
 * You need access to the `CancellationToken` for an asynchronous action.
-* You need to manually parse values via the `ParseResult`. (This is necessary if you have more than 8 inputs.)
+* You need to manually parse values via the `ParseResult`. (Note that for more than 8 inputs, the [`input { }` CE](#composing-inputs-with-input--) is now the recommended approach.)
 
 You can pass the `ActionContext` via the `Input.context` value.
 
@@ -381,7 +381,9 @@ let main argv =
 <details>
 <summary><b>More than 8 inputs</b></summary>
 
-Currently, a command handler function is limited to accept a tuple with no more than eight inputs.
+> 💡 As of v2.2.0, the recommended way to handle more than 8 inputs is the [`input { }` computation expression](#composing-inputs-with-input--), which composes any number of inputs into a single typed value with no manual parsing. The technique below still works and remains useful when you need direct access to the `ParseResult`.
+
+The `inputs` tuple is limited to no more than eight inputs.
 If you need more, you can pass in the `ActionContext` to your action handler and manually get as many input values as you like (assuming they have been registered in the command builder's `addInputs` operation).
 
 ```F#
