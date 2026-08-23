@@ -154,6 +154,31 @@ A good rule of thumb for choosing the `return` shape:
 * **Standalone function, few inputs** → tuple (existing functions work unchanged)
 * **Standalone function, many inputs** → define a named record type — a command complex enough for a standalone action deserves a named contract, and the action's signature becomes self-documenting. (Annotating a standalone function with an anonymous record type is also legal, but you end up restating the shape at both ends — at that point a named type costs the same and reads better.)
 
+The named record version looks like this:
+
+```F#
+type UnzipArgs = {
+    ZipFile: FileInfo
+    OutputDir: DirectoryInfo option
+}
+
+let unzip (args: UnzipArgs) =
+    let outputDir = defaultArg args.OutputDir args.ZipFile.Directory
+    printfn $"Unzipping {args.ZipFile.Name} to {outputDir.FullName}..."
+
+[<EntryPoint>]
+let main argv =
+    rootCommand argv {
+        description "Unzips a .zip file"
+        input {
+            let! zipFile = argument "zipfile" |> desc "The file to unzip" |> validateFileExists
+            and! outputDir = optionMaybe "--output" |> alias "-o" |> desc "The output directory"
+            return { ZipFile = zipFile; OutputDir = outputDir }
+        }
+        setAction unzip
+    }
+```
+
 ### Rules to be aware of
 
 * Bind all sources in one `let!`/`and!` group. A second sequential `let!` is a compile error (`Bind` is deliberately not defined), because an input cannot depend on another input's parsed value — the full input set must be known before parsing.
