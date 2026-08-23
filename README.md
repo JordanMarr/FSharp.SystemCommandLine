@@ -13,6 +13,7 @@ _[Click here to view the old beta 4 README](README-beta4.md)_
 * `Input.context` helper allows you to pass the `ActionContext` to your action function which is necessary for some operations.
 * `Input.inject` helper allows you to inject pre-resolved dependencies (e.g., loggers, services) into your action function alongside parsed CLI inputs.
 * `Input.validate` helper allows you to validate against parsed value using the F# `Result` type.
+* `input { }` computation expression composes any number of inputs into a single named value — no more 8-input tuple limit or positional matching.
 
 ## Example
 
@@ -62,6 +63,76 @@ let main argv =
 
 _Notice that mismatches between the `setAction` and the `inputs` are caught as a compile time error:_
 ![fs scl demo](https://user-images.githubusercontent.com/1030435/164288239-e0ff595d-cdb2-47f8-9381-50c89aedd481.gif)
+
+## Composing Inputs with `input { }`
+
+As an alternative to the `inputs` tuple, the `input { }` computation expression composes any number of inputs into a *single* composite input using applicative `let!`/`and!` bindings. Each value is named at its binding site, and the action receives whatever shape you `return` — typically an anonymous record:
+
+```F#
+[<EntryPoint>]
+let main argv =
+    rootCommand argv {
+        description "Appends words together"
+        input {
+            let! words = option<string[]> "--word" |> alias "-w" |> desc "A list of words to be appended"
+            and! separator = optionMaybe "--separator" |> alias "-s" |> desc "A character that will separate the joined words."
+            return {| Words = words; Separator = separator |}
+        }
+        setAction (fun io ->
+            let separator = defaultArg io.Separator ", "
+            io.Words |> String.concat separator |> printfn "%s"
+        )
+    }
+```
+
+This removes the 8-input tuple limit (bind as many inputs as you like with `and!`) and the need to keep the `inputs` tuple and the `setAction` parameters in positional sync.
+
+The composite input is a normal `ActionInput<'T>`, so it is first-class — all of these work:
+
+```F#
+// Declared separately and passed to `inputs`:
+let io = input {
+    let! words = option<string[]> "--word"
+    and! separator = option "--separator" |> def ", "
+    return {| Words = words; Separator = separator |}
+}
+
+rootCommand argv {
+    inputs io
+    setAction (fun io -> ...)
+}
+
+// Mixed into an `inputs` tuple alongside plain inputs:
+rootCommand argv {
+    inputs (io, option<bool> "--verbose")
+    setAction (fun (io, verbose) -> ...)
+}
+
+// Nested inside another `input { }` — great for sharing common option groups
+// between commands (shared options are registered only once per command):
+let common = input {
+    let! verbose = option<bool> "--verbose"
+    and! config = option "--configuration" |> def "Release"
+    return {| Verbose = verbose; Config = config |}
+}
+
+let buildCmd = command "build" {
+    input {
+        let! common = common
+        and! quick = option<bool> "--quick"
+        return {| Common = common; Quick = quick |}
+    }
+    setAction (fun io -> ...)
+}
+```
+
+A few rules to be aware of:
+
+* Bind all sources in one `let!`/`and!` group. A second sequential `let!` is a compile error (`Bind` is deliberately not defined), because an input cannot depend on another input's parsed value — the full input set must be known before parsing.
+* Declare one `input { }` block per command, before `setAction`.
+* `configureParser` / `configureInvocation` must appear *before* an inline `input { }` block.
+
+
 
 ## Input API
 The new `Input` module contains functions for the underlying System.CommandLine `Option` and `Argument` properties. 
