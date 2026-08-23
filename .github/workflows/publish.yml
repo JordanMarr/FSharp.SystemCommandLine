@@ -40,4 +40,5 @@ jobs:
           user: "jordan marr" # nuget.org profile name (not email)
 
       - name: Push
-        run: dotnet nuget push artifacts/*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        # Backslash separator is required: on Windows, dotnet nuget push only expands wildcards in paths using '\'
+        run: dotnet nuget push artifacts\*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
