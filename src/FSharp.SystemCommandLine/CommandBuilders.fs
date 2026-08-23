@@ -15,6 +15,7 @@ let private parseInput<'V> (handlerInput: ActionInput) (pr: ParseResult) (cancel
     | ParsedArgument a -> pr.GetValue<'V>(a :?> Argument<'V>)
     | Context -> { ParseResult = pr; CancellationToken = cancelToken } |> unbox<'V>
     | Injection value -> value |> unbox<'V>
+    | Composed (_, read) -> read pr cancelToken |> unbox<'V>
 
 type CommandSpec<'Inputs, 'Output> = 
     {
@@ -122,11 +123,50 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
             invalidOp "Only 8 inputs are supported."
         
 
-    member this.Yield _ =
-        CommandSpec<unit, 'Output>.Default 
+    /// Merges two spec fragments, keeping the typed handler (and its inputs) from `typed`.
+    /// The metadata fragment's RootCommand and configuration objects always win, so
+    /// `configureParser` / `configureInvocation` must appear before a yielded `input { }` block.
+    let mergeInto (meta: CommandSpec<'M, 'Output>) (typed: CommandSpec<'T, 'Output>) : CommandSpec<'T, 'Output> =
+        let defaultDescription = CommandSpec<unit, 'Output>.Default.Description
+        {
+            RootCommand = meta.RootCommand
+            ParserConfiguration = meta.ParserConfiguration
+            InvocationConfiguration = meta.InvocationConfiguration
+            Description = if typed.Description <> defaultDescription then typed.Description else meta.Description
+            Inputs = meta.Inputs @ typed.Inputs
+            Aliases = meta.Aliases @ typed.Aliases
+            ExtraInputs = meta.ExtraInputs @ typed.ExtraInputs
+            Handler = typed.Handler
+            SubCommands = meta.SubCommands @ typed.SubCommands
+            Hidden = meta.Hidden || typed.Hidden
+        }
 
-    member this.Zero _ = 
+    /// Creates a typed spec fragment from a yielded composed input.
+    let specOfInput (input: ActionInput<'Composed>) : CommandSpec<'Composed, 'Output> =
+        { newHandler def<'Composed -> 'Output> CommandSpec<unit, 'Output>.Default with Inputs = [ input :> ActionInput ] }
+
+    member this.Yield (_: unit) =
         CommandSpec<unit, 'Output>.Default
+
+    /// Yields a composed input (from the `input { }` builder) directly into the command,
+    /// setting the action input type to the composed value type.
+    member this.Yield (input: ActionInput<'Composed>) : ActionInput<'Composed> =
+        input
+
+    member this.Zero _ =
+        CommandSpec<unit, 'Output>.Default
+
+    member this.Delay (fn: unit -> 'Delayed) : 'Delayed =
+        fn ()
+
+    member this.Combine (input: ActionInput<'Composed>, meta: CommandSpec<unit, 'Output>) : CommandSpec<'Composed, 'Output> =
+        mergeInto meta (specOfInput input)
+
+    member this.Combine (meta: CommandSpec<unit, 'Output>, input: ActionInput<'Composed>) : CommandSpec<'Composed, 'Output> =
+        mergeInto meta (specOfInput input)
+
+    member this.For (meta: CommandSpec<unit, 'Output>, fn: unit -> CommandSpec<'Composed, 'Output>) : CommandSpec<'Composed, 'Output> =
+        mergeInto meta (fn ())
 
     /// A description that will be displayed to the command line user.
     [<CustomOperation("description")>]
@@ -261,19 +301,17 @@ type BaseCommandBuilder<'A, 'B, 'C, 'D, 'E, 'F, 'G, 'H, 'Output>() =
     /// Sets general properties on the command.
     member this.SetGeneralProperties (spec: CommandSpec<'T, 'U>) (cmd: Command) = 
         cmd.Description <- spec.Description
-        spec.Inputs
-        |> Seq.iter (fun input ->
+        // Composed inputs are flattened to their constituent options/arguments, and inputs are
+        // deduped by reference so an input shared by multiple composed specs registers only once.
+        let registered = System.Collections.Generic.HashSet<obj>(HashIdentity.Reference)
+        spec.Inputs @ spec.ExtraInputs
+        |> List.collect (fun input -> input.Flatten())
+        |> List.iter (fun input ->
             match input.Source with
-            | ParsedOption o -> cmd.Add o
-            | ParsedArgument a -> cmd.Add a
+            | ParsedOption o -> if registered.Add o then cmd.Add o
+            | ParsedArgument a -> if registered.Add a then cmd.Add a
             | Context | Injection _ -> ()
-        )
-        spec.ExtraInputs
-        |> Seq.iter (fun input ->
-            match input.Source with
-            | ParsedOption o -> cmd.Add o
-            | ParsedArgument a -> cmd.Add a
-            | Context | Injection _ -> ()
+            | Composed _ -> () // Flatten() never returns a Composed input
         )
         spec.SubCommands |> List.iter cmd.Add
         spec.Aliases |> List.iter cmd.Aliases.Add
