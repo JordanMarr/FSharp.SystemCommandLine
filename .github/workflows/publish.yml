@@ -18,8 +18,8 @@ on:
   pull_request:
   # never run on a pull request that changes the build script or the CI - security concern
     paths-ignore: 
-      - *\build.fsx
-      - *\publish.yml
+      - '**/*/build.fsx'
+      - '**/*/publish.yml'
     branches: 
       - main
 
