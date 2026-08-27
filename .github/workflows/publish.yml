@@ -46,4 +46,4 @@ jobs:
           user: "jordan marr" # nuget.org profile name (not email)
 
       - name: Push
-        run: dotnet fsi src\build.fsx -- publish --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+        run: dotnet fsi src\build.fsx -- publish --nuget-key ${{ steps.login.outputs.NUGET_API_KEY }}
