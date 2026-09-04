@@ -784,6 +784,42 @@ Notes about invocation:
 
 </details>
 
+<details>
+    <summary><b>Mapping to a bound set of typed values</b></summary>
+
+Use `Input.mapFromAmong` to map string inputs to typed values:
+
+```F#
+open FSharp.SystemCommandLine
+type Configuration =
+    | Debug
+    | Release
+
+let config =
+    Input.option<Configuration>
+    |> Input.mapFromAmong [
+        "r", Release; "release", Release
+        "R", Release; "Release", Release
+        "d", Debug; "debug", Debug
+        "D", Debug; "Debug", Debug
+    ]
+    // is required unless you provide a default
+  
+// use `Input.mapFromAmongWith` to pass a custom string comparer!
+
+let config =
+    Input.option<Configuration>
+    |> Input.mapFromAmongWith StringComparer.OrdinalIgnoreCase [
+        "r", Release; "release", Release
+        "d", Debug; "debug", Debug
+    ]
+```
+
+Notes about overriding properties:
+* `Input.tryParse` will overwrite the configuration from `.mapFromAmong` if it is used downstream.
+
+</details>
+
 ---
 
 ## Configuration
