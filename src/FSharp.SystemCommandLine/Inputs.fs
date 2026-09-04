@@ -19,8 +19,11 @@ type private SafeInputLists =
             let typ = typeof<'T>
             let count = result.Tokens.Count
             let elementType =
+                // if list is empty, then element type will return null
                 if typ.GetElementType() = null
+                // use the generic arg passed to the generic type definition
                 then typ.GetGenericArguments()[0]
+                // otherwise, we use the element type
                 else typ.GetElementType()
                 
             let dynamicArray = Array.CreateInstance(elementType, count)
