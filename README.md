@@ -213,6 +213,8 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
 * `acceptOnlyFromAmong` validates the allowed values for an `Option` or `Argument`
+* `mapFromAmong` validates allowed values against `string * 'T` tuples, providing the typed value
+* `mapFromAmongWith` validates allowed values against `string * 'T` tuples using a given `StringComparer`
 * `customParser` allows you to parse the input tokens using a custom parser function.
 * `tryParse` allows you to parse the input tokens using a custom parser `Result<'T, string>` function.
 * `arity` sets the arity of an `Option` or `Argument`
