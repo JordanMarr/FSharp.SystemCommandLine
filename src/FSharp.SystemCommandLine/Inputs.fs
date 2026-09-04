@@ -6,7 +6,7 @@ open System.CommandLine
 module private MaybeParser = 
     /// Parses an argument token value. 
     /// TODO: Ideally, this should use the S.CL Arugment parser.
-    let parseTokenValue (tokenValue: string) = 
+    let parseTokenValue<'T> (tokenValue: string) = 
         match typeof<'T> with
         | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> unbox<'T> |> Some
         | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> unbox<'T> |> Some
