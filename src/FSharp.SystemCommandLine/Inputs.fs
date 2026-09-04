@@ -172,7 +172,6 @@ module Input =
         input 
         |> editOption (fun o -> o.Required <- true)
 
-    /// Marks an argument as required. 
     /// When set to true, this option will be applied to its immediate parent command or commands and recursively to their subcommands.
     let recursive (input: ActionInput<'T>) = 
         input
