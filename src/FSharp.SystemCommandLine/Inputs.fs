@@ -308,47 +308,18 @@ module Input =
                 Unchecked.defaultof<'T>
         )
     
-    /// Maps an option whose legal values are a known set bound to a typed value. The parser closes over the table
-    /// when the input is built, and nothing downstream can reach back into the closure. Does not modify arity (ie
-    /// you will still need to set it manually)
-    let acceptManyFromChoicesWith (comparer: StringComparer) (choices: seq<string * 'T>) (input: ActionInput<'T list>) =
-        let keys = choices |> Seq.map fst
-        let legal = keys |> String.concat ", "
-        let lookup token = choices |> Seq.tryFind (fun (key, _) -> comparer.Equals(key, token)) |> Option.map snd
-        let caseSensitive = not (comparer.Equals ("a", "A"))
-        if caseSensitive then
-            // acceptOnlyFromAmong always compares strings ordinally
-            acceptOnlyFromAmong keys input
-        else
-            // if not case sensitive, we will add the keys to the completion sources; the parser will validate them
-            editOption (fun opt -> for key in keys do opt.CompletionSources.Add key) input
-            |> editArgument (fun arg -> for key in keys do arg.CompletionSources.Add key)
-        |> tryParse (fun argResult ->
-            argResult.Tokens
-            |> Seq.fold (fun (acc, errs) token ->
-                match lookup token.Value with
-                | Some value -> value :: acc, errs
-                | None -> acc, $"'%s{token.Value}' is not a valid choice from: %s{legal}" :: errs
-                ) ([], [])
-            |> function
-                | values, [] -> Ok values
-                | _, errs -> Error (String.concat "\n" errs)
-            )
     
-    /// Maps an option whose legal values are a known set bound to a typed value. The parser closes over the table
-    /// when the input is built, and nothing downstream can reach back into the closure.
-    let acceptOnlyFromChoicesWith (comparer: StringComparer) (choices: seq<string * 'T>) (input: ActionInput<'T>) =
+    /// <summary>
+    /// Maps an input whose legal values are a known set bound to a typed value using the given <c>StringComparer</c>.
+    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
+    /// </summary>
+    let mapFromAmongWith (comparer: StringComparer) (choices: seq<string * 'T>) (input: ActionInput<'T>) =
         let keys = choices |> Seq.map fst
         let legal = keys |> String.concat ", "
         let lookup token = choices |> Seq.tryFind (fun (key, _) -> comparer.Equals(key, token)) |> Option.map snd
-        let caseSensitive = not (comparer.Equals ("a", "A"))
-        if caseSensitive then
-            // acceptOnlyFromAmong always compares strings ordinally
-            acceptOnlyFromAmong keys input
-        else
-            // if not case sensitive, we will add the keys to the completion sources; the parser will validate them
-            editOption (fun opt -> for key in keys do opt.CompletionSources.Add key) input
-            |> editArgument (fun arg -> for key in keys do arg.CompletionSources.Add key)
+        editOption (fun opt -> for key in keys do opt.CompletionSources.Add key) input
+        |> editArgument (fun arg -> for key in keys do arg.CompletionSources.Add key)
+        // parser closes over lookup -> nothing downstream can reach in/modify or would break.
         |> tryParse (fun argResult ->
             match argResult.Tokens |> Seq.tryLast with
             | None -> Error $"'%s{argResult.Argument.Name}' needs one of: %s{legal}"
@@ -358,24 +329,10 @@ module Input =
                 | None -> Error $"'%s{token.Value}' is not a valid choice from: %s{legal}"
             )
     
-    /// Maps an option whose legal values are a known set bound to a typed value. Case sensitive.
-    let acceptOnlyFromChoices (choices: seq<string * 'T>) (input: ActionInput<'T>) =
-        acceptOnlyFromChoicesWith StringComparer.Ordinal choices input
-    
-    /// Maps an option whose legal values are a known set bound to a typed value. Case sensitive.
-    /// Does not modify arity.
-    let acceptManyFromChoices (choices: seq<string * 'T>) (input: ActionInput<'T list>) =
-        acceptManyFromChoicesWith StringComparer.Ordinal choices input
-        
-    /// Maps an option whose legal values are a known set bound to a typed value. Case insensitive.
-    let acceptOnlyFromChoicesIgnoreCase (choices: seq<string * 'T>) (input: ActionInput<'T>) =
-        acceptOnlyFromChoicesWith StringComparer.OrdinalIgnoreCase choices input
-        
-    /// Maps an option whose legal values are a known set bound to a typed value. Case insensitive.
-    /// Does not modify arity.
-    let acceptManyFromChoicesIgnoreCase (choices: seq<string * 'T>) (input: ActionInput<'T list>) =
-        acceptManyFromChoicesWith StringComparer.OrdinalIgnoreCase choices input
-        
+    /// <summary>Maps an input whose legal values are a known set bound to a typed value.</summary>
+    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
+    let mapFromAmong (choices: seq<string * 'T>) (input: ActionInput<'T>) =
+        mapFromAmongWith StringComparer.Ordinal choices input
 
     /// Sets the arity of an option or argument.
     let arity (arity: Arity) (input: ActionInput<'T>) =
