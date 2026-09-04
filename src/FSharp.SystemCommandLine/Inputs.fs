@@ -363,6 +363,7 @@ module Input =
         acceptOnlyFromChoicesWith StringComparer.Ordinal choices input
     
     /// Maps an option whose legal values are a known set bound to a typed value. Case sensitive.
+    /// Does not modify arity.
     let acceptManyFromChoices (choices: seq<string * 'T>) (input: ActionInput<'T list>) =
         acceptManyFromChoicesWith StringComparer.Ordinal choices input
         
@@ -371,6 +372,7 @@ module Input =
         acceptOnlyFromChoicesWith StringComparer.OrdinalIgnoreCase choices input
         
     /// Maps an option whose legal values are a known set bound to a typed value. Case insensitive.
+    /// Does not modify arity.
     let acceptManyFromChoicesIgnoreCase (choices: seq<string * 'T>) (input: ActionInput<'T list>) =
         acceptManyFromChoicesWith StringComparer.OrdinalIgnoreCase choices input
         
