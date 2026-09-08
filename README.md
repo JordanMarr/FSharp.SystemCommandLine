@@ -796,7 +796,7 @@ type Configuration =
     | Release
 
 let config =
-    Input.option<Configuration>
+    Input.option<Configuration> "--config"
     |> Input.mapFromAmong [
         "r", Release; "release", Release
         "R", Release; "Release", Release
@@ -808,15 +808,12 @@ let config =
 // use `Input.mapFromAmongWith` to pass a custom string comparer!
 
 let config =
-    Input.option<Configuration>
+    Input.option<Configuration> "--config"
     |> Input.mapFromAmongWith StringComparer.OrdinalIgnoreCase [
         "r", Release; "release", Release
         "d", Debug; "debug", Debug
     ]
 ```
-
-Notes about overriding properties:
-* `Input.tryParse` will overwrite the configuration from `.mapFromAmong` if it is used downstream.
 
 </details>
 

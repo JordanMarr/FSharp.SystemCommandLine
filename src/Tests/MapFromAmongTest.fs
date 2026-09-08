@@ -93,35 +93,3 @@ let ``03 - mapFromAmongWith returns correct typed DU - case insensitive``() =
     // invalid map
     shouldFail "--du a" B
     shouldFail "--du B" A
-
-[<Test>]
-let ``04 - mapFromAmong followed by different tryParse will override``() =
-    let input = option<DUType> "--du" |> mapFromAmong duChoices |> tryParse (fun _ -> Ok A)
-    let compareAgainst (shouldSucceed: bool): string -> DUType -> unit = fun cmd v ->
-        testRootCommand cmd {
-            description "Test"
-            inputs input
-            setAction (fun o ->
-                if shouldSucceed
-                then o =! v |> callAction; 0
-                else o <>! v; 1
-                )
-        }
-        |> if shouldSucceed then (=!) 0 else (<>!) 0
-        actionCalled =! shouldSucceed
-        actionCalled <- false
-    let shouldSucceed = compareAgainst true
-    let shouldFail = compareAgainst false
-    shouldSucceed "--du a" A
-    shouldSucceed "--du A" A
-    shouldSucceed "--du b" A
-    shouldSucceed "--du B" A
-    shouldFail "--du a" B
-    shouldFail "--du A" B
-    shouldFail "--du b" B
-    shouldFail "--du B" B
-    // invalid input still processes
-    // completions will still show correctly
-    // undefined behaviour
-    shouldSucceed "--du c" A
-    shouldFail "--du c" B
