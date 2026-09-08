@@ -1,4 +1,4 @@
-﻿namespace FSharp.SystemCommandLine
+namespace FSharp.SystemCommandLine
 
 open System
 open System.CommandLine
@@ -309,10 +309,8 @@ module Input =
         )
     
     
-    /// <summary>
-    /// Maps an input whose legal values are a known set bound to a typed value using the given <c>StringComparer</c>.
-    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
-    /// </summary>
+    /// Maps an input whose legal values are a known set of strings, each bound to a typed value, using the given `StringComparer`.
+    /// Example: `option<Env> "--env" |> mapFromAmongWith StringComparer.OrdinalIgnoreCase [ "dev", Dev; "prod", Prod ]`
     let mapFromAmongWith (comparer: StringComparer) (choices: seq<string * 'T>) (input: ActionInput<'T>) =
         let keys = choices |> Seq.map fst
         let legal = keys |> String.concat ", "
@@ -329,8 +327,8 @@ module Input =
                 | None -> Error $"'%s{token.Value}' is not a valid choice from: %s{legal}"
             )
     
-    /// <summary>Maps an input whose legal values are a known set bound to a typed value.</summary>
-    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
+    /// Maps an input whose legal values are a known set of strings, each bound to a typed value (case-sensitive).
+    /// Example: `option<Env> "--env" |> mapFromAmong [ "dev", Dev; "prod", Prod ]`
     let mapFromAmong (choices: seq<string * 'T>) (input: ActionInput<'T>) =
         mapFromAmongWith StringComparer.Ordinal choices input
 
