@@ -17,6 +17,7 @@
     <Compile Include="SimpleAsyncTest.fs" />
     <Compile Include="SimpleAppTest.fs" />
     <Compile Include="InputBuilderTest.fs" />
+    <Compile Include="MapFromAmongTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

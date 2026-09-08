@@ -172,7 +172,6 @@ module Input =
         input 
         |> editOption (fun o -> o.Required <- true)
 
-    /// Marks an argument as required. 
     /// When set to true, this option will be applied to its immediate parent command or commands and recursively to their subcommands.
     let recursive (input: ActionInput<'T>) = 
         input
@@ -308,6 +307,32 @@ module Input =
                 argResult.AddError(err)
                 Unchecked.defaultof<'T>
         )
+    
+    
+    /// <summary>
+    /// Maps an input whose legal values are a known set bound to a typed value using the given <c>StringComparer</c>.
+    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
+    /// </summary>
+    let mapFromAmongWith (comparer: StringComparer) (choices: seq<string * 'T>) (input: ActionInput<'T>) =
+        let keys = choices |> Seq.map fst
+        let legal = keys |> String.concat ", "
+        let lookup token = choices |> Seq.tryFind (fun (key, _) -> comparer.Equals(key, token)) |> Option.map snd
+        editOption (fun opt -> for key in keys do opt.CompletionSources.Add key) input
+        |> editArgument (fun arg -> for key in keys do arg.CompletionSources.Add key)
+        // parser closes over lookup -> nothing downstream can reach in/modify or would break.
+        |> tryParse (fun argResult ->
+            match argResult.Tokens |> Seq.tryLast with
+            | None -> Error $"'%s{argResult.Argument.Name}' needs one of: %s{legal}"
+            | Some token ->
+                match lookup token.Value with
+                | Some value -> Ok value
+                | None -> Error $"'%s{token.Value}' is not a valid choice from: %s{legal}"
+            )
+    
+    /// <summary>Maps an input whose legal values are a known set bound to a typed value.</summary>
+    /// <remarks>Caution: avoid overriding downstream with <c>Input.tryParse</c>.</remarks>
+    let mapFromAmong (choices: seq<string * 'T>) (input: ActionInput<'T>) =
+        mapFromAmongWith StringComparer.Ordinal choices input
 
     /// Sets the arity of an option or argument.
     let arity (arity: Arity) (input: ActionInput<'T>) =

@@ -213,6 +213,8 @@ The new `Input` module contains functions for the underlying System.CommandLine 
 * `validateDirectoryExists` ensures that the `DirectoryInfo` exists
 * `addValidator` allows you to add a validator to the underlying `Option` or `Argument`
 * `acceptOnlyFromAmong` validates the allowed values for an `Option` or `Argument`
+* `mapFromAmong` validates allowed values against `string * 'T` tuples, providing the typed value
+* `mapFromAmongWith` validates allowed values against `string * 'T` tuples using a given `StringComparer`
 * `customParser` allows you to parse the input tokens using a custom parser function.
 * `tryParse` allows you to parse the input tokens using a custom parser `Result<'T, string>` function.
 * `arity` sets the arity of an `Option` or `Argument`
@@ -779,6 +781,42 @@ Notes about invocation:
 * At this point, you can call `parseResult.Invoke()` or `parseResult.InvokeAsync()`
 * You can optionally pass in an `InvocationConfiguration`:
   * `parseResult.Invoke(InvocationConfiguration(EnableDefaultExceptionHandler = false))`
+
+</details>
+
+<details>
+    <summary><b>Mapping to a bound set of typed values</b></summary>
+
+Use `Input.mapFromAmong` to map string inputs to typed values:
+
+```F#
+open FSharp.SystemCommandLine
+type Configuration =
+    | Debug
+    | Release
+
+let config =
+    Input.option<Configuration>
+    |> Input.mapFromAmong [
+        "r", Release; "release", Release
+        "R", Release; "Release", Release
+        "d", Debug; "debug", Debug
+        "D", Debug; "Debug", Debug
+    ]
+    // is required unless you provide a default
+  
+// use `Input.mapFromAmongWith` to pass a custom string comparer!
+
+let config =
+    Input.option<Configuration>
+    |> Input.mapFromAmongWith StringComparer.OrdinalIgnoreCase [
+        "r", Release; "release", Release
+        "d", Debug; "debug", Debug
+    ]
+```
+
+Notes about overriding properties:
+* `Input.tryParse` will overwrite the configuration from `.mapFromAmong` if it is used downstream.
 
 </details>
 
