@@ -3,15 +3,18 @@ namespace FSharp.SystemCommandLine
 open System
 open System.CommandLine
 
-module private MaybeParser = 
+module private MaybeParser =
+    let parseTokenValueForType (typ: Type) (tokenValue: string) =
+        match typ with
+        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) :> obj
+        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue)
+        | t when t = typeof<Uri> -> Uri(tokenValue) 
+        | t -> Convert.ChangeType(tokenValue, t)
+        
     /// Parses an argument token value. 
     /// TODO: Ideally, this should use the S.CL Arugment parser.
     let parseTokenValue<'T> (tokenValue: string) = 
-        match typeof<'T> with
-        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> unbox<'T> |> Some
-        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> unbox<'T> |> Some
-        | t when t = typeof<Uri> -> Uri(tokenValue) |> unbox<'T> |> Some
-        | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
+        parseTokenValueForType typeof<'T> tokenValue :?> 'T |> Some
 
 /// Short alias used in SafeInputLists for constraints and delegate construction.
 type private ParseFunc<'T> = Func<Parsing.ArgumentResult, 'T>
@@ -45,14 +48,8 @@ type private SafeInputLists =
         if not <| isListGeneric typ then () else
         let elementType = listElementType typ
         let changeType: Parsing.Token -> obj =
-            // we cannot use MaybeParser.parseTokenValue here because
-            // we only have the reflected System.Type object, not the
-            // actual typar.
-            match elementType with
-            | t when t = typeof<System.IO.DirectoryInfo> -> _.Value >> fun s -> IO.DirectoryInfo(s) :> obj
-            | t when t = typeof<System.IO.FileInfo> -> _.Value >> fun s -> IO.FileInfo(s) :> obj
-            | t when t = typeof<Uri> -> _.Value >> fun s -> Uri(s) :> obj
-            | t -> _.Value >> fun s -> Convert.ChangeType(s, t)
+            let fn = MaybeParser.parseTokenValueForType elementType
+            _.Value >> fn
         let ofArray = ofArrayForType typ
         let empty = makeEmptyList typ
         ParseFunc(fun result ->
