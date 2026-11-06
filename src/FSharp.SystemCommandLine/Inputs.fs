@@ -3,15 +3,93 @@ namespace FSharp.SystemCommandLine
 open System
 open System.CommandLine
 
-module private MaybeParser = 
+module private MaybeParser =
+    /// Parses an argument token value to the given type.
+    let parseTokenValueForType (typ: Type) (tokenValue: string) =
+        match typ with
+        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) :> obj
+        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue)
+        | t when t = typeof<Uri> -> Uri(tokenValue) 
+        | t -> Convert.ChangeType(tokenValue, t)
+        
     /// Parses an argument token value. 
     /// TODO: Ideally, this should use the S.CL Arugment parser.
     let parseTokenValue<'T> (tokenValue: string) = 
-        match typeof<'T> with
-        | t when t = typeof<IO.DirectoryInfo> -> IO.DirectoryInfo(tokenValue) |> unbox<'T> |> Some
-        | t when t = typeof<IO.FileInfo> -> IO.FileInfo(tokenValue) |> unbox<'T> |> Some
-        | t when t = typeof<Uri> -> Uri(tokenValue) |> unbox<'T> |> Some
-        | t -> Convert.ChangeType(tokenValue, t) :?> 'T |> Some
+        parseTokenValueForType typeof<'T> tokenValue :?> 'T |> Some
+
+/// Short alias used in SafeInputLists for constraints and delegate construction.
+type private ParseFunc<'T> = Func<Parsing.ArgumentResult, 'T>
+type private SafeInputLists =
+    // bound generic `List.OfArray` method
+    static let ofArrayInfo =
+        typeof<list<obj>>
+            .Assembly
+            .GetType("Microsoft.FSharp.Collections.ListModule")
+            .GetMethod("OfArray", System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public)
+    // invokes `List.OfArray` with the given array using the provided type as the element type
+    static let ofArrayForType (typ: Type) (elements: Array) =
+        ofArrayInfo.MakeGenericMethod(typ.GetGenericArguments()[0]).Invoke(null, [| elements |])
+    // safely retrieves the element type of a list type
+    static let listElementType (typ: Type) =
+        // naive tests show more predictable behaviour
+        // with the presence of this branch
+        match typ.GetElementType() with
+        | null -> typ.GetGenericArguments()[0]
+        | typ -> typ
+    // retrieves the `List.Empty` property for the given element type generic
+    static let makeEmptyList (typ: Type) =
+        match typ.GetProperty("Empty", System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public) with
+        | null -> Error $"Could not find Empty property on type %s{typ.FullName}."
+        | prop -> prop.GetValue(null) |> Ok
+    // determines whether provided type is a generic `list` type
+    static let isListGeneric (typ: Type) =
+        typ.IsGenericType
+        && typ.GetGenericTypeDefinition() = typedefof<list<_>>
+    static member inline private dynamicParser<^T, ^U
+        // static binding of Option<_> and Argument<_>
+        // where T is the typar for U: the generic Option/Argument
+        when ^U:(member set_DefaultValueFactory: ParseFunc<^T> -> unit)
+        and ^U:(member set_CustomParser: ParseFunc<^T> -> unit)
+        and ^U:(member set_Arity: ArgumentArity -> unit)>
+        (o: ^U) =
+        let typ = typeof<'T>
+        // if not a list, noop
+        if not <| isListGeneric typ then () else
+        let elementType = listElementType typ
+        // parses token to element type
+        let changeType: Parsing.Token -> obj =
+            let fn = MaybeParser.parseTokenValueForType elementType
+            _.Value >> fn
+        // converts array to final list type
+        let ofArray = ofArrayForType typ
+        let empty = makeEmptyList typ
+        // Default Value Factory -> List.Empty
+        ParseFunc(fun result ->
+            match empty with
+            | Error err ->
+                result.AddError err
+                Unchecked.defaultof<'T>
+            | Ok empty -> empty |> unbox<'T>)
+        |> o.set_DefaultValueFactory
+        // Custom Parser -> tokens -> Array -> List.OfArray
+        ParseFunc(fun result ->
+            let count = result.Tokens.Count
+            let dynamicArray = Array.CreateInstance(elementType, count)
+            for i, token in result.Tokens |> Seq.indexed do
+                try
+                    dynamicArray.SetValue(changeType token, i)
+                // should this be more permissive?
+                with :? FormatException as e -> result.AddError e.Message
+            ofArray dynamicArray |> unbox<'T>)
+        |> o.set_CustomParser
+        ArgumentArity(0, 100_000)
+        |> o.set_Arity
+    /// Checks `'T` for a `List&lt;_>` generic type. Injects list compatible CustomParser and DefaultValueFactory
+    /// if `true`; noop if `false`
+    static member protect<'T>(o: Argument<'T>) = SafeInputLists.dynamicParser<'T, _> o; o
+    /// Checks `'T` for a `List&lt;_>` generic type. Injects list compatible CustomParser and DefaultValueFactory
+    /// if `true`; noop if `false`
+    static member protect<'T>(o: Option<'T>) = SafeInputLists.dynamicParser<'T, _> o; o
 
 /// A custom action context that contains the `ParseResult` and a cancellation token.
 type ActionContext = 
@@ -101,7 +179,9 @@ module Input =
 
     /// Creates a named option. Example: `option "--file-name"`
     let option<'T> (name: string) = 
-        Option<'T>(name) |> ActionInput.OfOption
+        Option<'T>(name)
+        |> SafeInputLists.protect
+        |> ActionInput.OfOption
 
     /// Edits the underlying System.CommandLine.Option<'T>.
     let editOption (edit: Option<'T> -> unit) (input: ActionInput<'T>) = 
@@ -216,8 +296,9 @@ module Input =
 
     /// Creates a named argument. Example: `argument "file-name"`
     let argument<'T> (name: string) = 
-        let a = Argument<'T>(name)
-        ActionInput.OfArgument<'T> a
+        Argument<'T>(name)
+        |> SafeInputLists.protect
+        |> ActionInput.OfArgument<'T>
 
     /// Creates a named argument of type `Argument<'T option>` that defaults to `None`.
     let argumentMaybe<'T> (name: string) = 
