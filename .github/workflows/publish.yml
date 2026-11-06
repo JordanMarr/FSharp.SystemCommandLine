@@ -3,13 +3,25 @@
 # short-lived (1 hour) API key, validated against the trusted publishing policy
 # configured on nuget.org for this repository + workflow file.
 #
-# Trigger manually from the Actions tab (Run workflow) after bumping <Version>
-# in the fsproj. The version in the fsproj determines the published version.
+# To release: push a version tag, e.g.
+#   git tag v2.3.0 && git push origin v2.3.0
+# The tag (minus the leading "v") is the published version; a suffix such as
+# v2.4.0-alpha.1 publishes a prerelease. The <Version> in the fsproj is only
+# used for local builds.
+#
+# Fallback: Actions -> "Publish to NuGet" -> Run workflow, entering an existing tag
+# (useful for re-running a failed release; already-published versions are skipped).
 
 name: Publish to NuGet
 
 on:
+  push:
+    tags: [ "v*" ]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to publish (e.g. v2.3.0)"
+        required: true
 
 jobs:
   publish:
@@ -17,10 +29,24 @@ jobs:
 
     permissions:
       id-token: write # required for GitHub OIDC token issuance (Trusted Publishing)
-      contents: read
+      contents: write # required to create the GitHub Release
+
+    env:
+      TAG: ${{ github.event_name == 'push' && github.ref_name || inputs.tag }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Get version from tag
+        run: |
+          $version = "$env:TAG" -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$') {
+            throw "Tag '$env:TAG' is not a version tag like v2.3.0 or v2.4.0-alpha.1"
+          }
+          "VERSION=$version" >> $env:GITHUB_ENV
+          Write-Host "Publishing version $version"
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -31,7 +57,7 @@ jobs:
         run: dotnet test src/Tests/Tests.fsproj --configuration Release
 
       - name: Pack
-        run: dotnet pack src/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj --configuration Release --output artifacts
+        run: dotnet pack src/FSharp.SystemCommandLine/FSharp.SystemCommandLine.fsproj --configuration Release --output artifacts -p:Version=${{ env.VERSION }}
 
       - name: NuGet login (OIDC -> temp API key)
         uses: NuGet/login@v1
@@ -42,3 +68,17 @@ jobs:
       - name: Push
         # Backslash separator is required: on Windows, dotnet nuget push only expands wildcards in paths using '\'
         run: dotnet nuget push artifacts\*.nupkg --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$env:TAG" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Release $env:TAG already exists; skipping."
+            $global:LASTEXITCODE = 0
+          } else {
+            $releaseArgs = @('release', 'create', $env:TAG, '--verify-tag', '--generate-notes', '--title', $env:TAG)
+            if ($env:VERSION -like '*-*') { $releaseArgs += '--prerelease' }
+            gh @releaseArgs
+          }

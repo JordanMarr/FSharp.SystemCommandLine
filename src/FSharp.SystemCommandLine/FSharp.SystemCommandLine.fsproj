@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+	<!-- Local builds only: the published version comes from the git tag (see .github/workflows/publish.yml). -->
 	<Version>2.3.0</Version>
 	<Description>F# computation expressions for working with the System.CommandLine API.</Description>
 	<Authors>Jordan Marr</Authors>
