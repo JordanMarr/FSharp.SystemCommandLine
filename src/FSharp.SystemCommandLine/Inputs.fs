@@ -20,27 +20,13 @@ module private MaybeParser =
 /// Short alias used in SafeInputLists for constraints and delegate construction.
 type private ParseFunc<'T> = Func<Parsing.ArgumentResult, 'T>
 type private SafeInputLists =
-    // bound generic `List.OfArray` method
+    static let publicStatic = Reflection.BindingFlags.Static ||| Reflection.BindingFlags.Public
+    // open generic `List.ofArray` method
     static let ofArrayInfo =
         typeof<list<obj>>
             .Assembly
             .GetType("Microsoft.FSharp.Collections.ListModule")
-            .GetMethod("OfArray", System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public)
-    // invokes `List.OfArray` with the given array using the provided type as the element type
-    static let ofArrayForType (typ: Type) (elements: Array) =
-        ofArrayInfo.MakeGenericMethod(typ.GetGenericArguments()[0]).Invoke(null, [| elements |])
-    // safely retrieves the element type of a list type
-    static let listElementType (typ: Type) =
-        // naive tests show more predictable behaviour
-        // with the presence of this branch
-        match typ.GetElementType() with
-        | null -> typ.GetGenericArguments()[0]
-        | typ -> typ
-    // retrieves the `List.Empty` property for the given element type generic
-    static let makeEmptyList (typ: Type) =
-        match typ.GetProperty("Empty", System.Reflection.BindingFlags.Static ||| System.Reflection.BindingFlags.Public) with
-        | null -> Error $"Could not find Empty property on type %s{typ.FullName}."
-        | prop -> prop.GetValue(null) |> Ok
+            .GetMethod("OfArray", publicStatic)
     // determines whether provided type is a generic `list` type
     static let isListGeneric (typ: Type) =
         typ.IsGenericType
@@ -55,32 +41,22 @@ type private SafeInputLists =
         let typ = typeof<'T>
         // if not a list, noop
         if not <| isListGeneric typ then () else
-        let elementType = listElementType typ
-        // parses token to element type
-        let changeType: Parsing.Token -> obj =
-            let fn = MaybeParser.parseTokenValueForType elementType
-            _.Value >> fn
-        // converts array to final list type
-        let ofArray = ofArrayForType typ
-        let empty = makeEmptyList typ
+        let elementType = typ.GetGenericArguments()[0]
+        // closed `List.ofArray<elementType>` and `List<elementType>.Empty`, built once per input
+        let ofArray = ofArrayInfo.MakeGenericMethod(elementType)
+        let empty = typ.GetProperty("Empty", publicStatic).GetValue(null) |> unbox<'T>
         // Default Value Factory -> List.Empty
-        ParseFunc(fun result ->
-            match empty with
-            | Error err ->
-                result.AddError err
-                Unchecked.defaultof<'T>
-            | Ok empty -> empty |> unbox<'T>)
+        ParseFunc(fun _ -> empty)
         |> o.set_DefaultValueFactory
-        // Custom Parser -> tokens -> Array -> List.OfArray
+        // Custom Parser -> tokens -> Array -> List.ofArray
         ParseFunc(fun result ->
-            let count = result.Tokens.Count
-            let dynamicArray = Array.CreateInstance(elementType, count)
-            for i, token in result.Tokens |> Seq.indexed do
+            let dynamicArray = Array.CreateInstance(elementType, result.Tokens.Count)
+            result.Tokens |> Seq.iteri (fun i token ->
                 try
-                    dynamicArray.SetValue(changeType token, i)
-                // should this be more permissive?
-                with :? FormatException as e -> result.AddError e.Message
-            ofArray dynamicArray |> unbox<'T>)
+                    dynamicArray.SetValue(MaybeParser.parseTokenValueForType elementType token.Value, i)
+                with _ ->
+                    result.AddError $"Cannot parse '%s{token.Value}' as %s{elementType.Name}.")
+            ofArray.Invoke(null, [| dynamicArray |]) |> unbox<'T>)
         |> o.set_CustomParser
         ArgumentArity(0, 100_000)
         |> o.set_Arity
