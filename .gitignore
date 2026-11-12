@@ -43,6 +43,8 @@ nupkg
 _UpgradeReport_Files/
 [Pp]ackages/
 
+.vscode/
+
 Thumbs.db
 Desktop.ini
 .DS_Store
