@@ -19,6 +19,7 @@
     <Compile Include="InputBuilderTest.fs" />
     <Compile Include="MapFromAmongTest.fs" />
     <Compile Include="ListOptionTest.fs" />
+    <Compile Include="TrimmingDescriptorTest.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

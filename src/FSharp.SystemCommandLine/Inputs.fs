@@ -22,6 +22,8 @@ type private ParseFunc<'T> = Func<Parsing.ArgumentResult, 'T>
 type private SafeInputLists =
     static let publicStatic = Reflection.BindingFlags.Static ||| Reflection.BindingFlags.Public
     // open generic `List.ofArray` method
+    // Looked up by name, so it is kept for trimming/NativeAOT by FSharp.SystemCommandLine.TrimmerRoots.xml.
+    // Update that descriptor if this lookup changes (TrimmingDescriptorTest checks the entries resolve).
     static let ofArrayInfo =
         typeof<list<obj>>
             .Assembly
