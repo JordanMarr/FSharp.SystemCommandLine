@@ -20,6 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="FSharp.SystemCommandLine.TrimmerRoots.xml"
+                      LogicalName="ILLink.Descriptors.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0" />
   </ItemGroup>
 

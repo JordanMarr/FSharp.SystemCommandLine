@@ -1,0 +1,8 @@
+<linker>
+  <!-- SafeInputLists looks up ListModule.OfArray by name during initialization. -->
+  <assembly fullname="FSharp.Core">
+    <type fullname="Microsoft.FSharp.Collections.ListModule">
+      <method name="OfArray" />
+    </type>
+  </assembly>
+</linker>
